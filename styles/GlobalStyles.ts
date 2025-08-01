@@ -37,7 +37,7 @@ const GlobalStyles = createGlobalStyle<{ theme: Theme }>`
     background: ${({ theme }) => theme.secondary};
   }
   ::-webkit-scrollbar-thumb {
-    background: ${({ theme }) => theme.primary};
+    background: ${({ theme }) => theme.neutral};
     border-radius: 4px;
   }
 `;

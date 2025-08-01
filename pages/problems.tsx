@@ -39,7 +39,7 @@ const Header = styled.div`
 const Title = styled.h1`
   font-size: 2rem;
   font-weight: 700;
-  color: ${({ theme }) => theme.primary};
+  color: ${({ theme }) => theme.neutralDark};
   margin: 0;
   
   @media (max-width: 768px) {
@@ -96,9 +96,9 @@ const FilterContainer = styled.div`
 
 const FilterButton = styled.button<{ active: boolean }>`
   padding: 0.5rem 1rem;
-  border: 1px solid ${({ theme, active }) => active ? theme.primary : theme.border};
+  border: 1px solid ${({ theme, active }) => active ? theme.neutralDark : theme.border};
   border-radius: 8px;
-  background: ${({ theme, active }) => active ? theme.primary : 'transparent'};
+  background: ${({ theme, active }) => active ? theme.neutralDark : 'transparent'};
   color: ${({ theme, active }) => active ? theme.bodyBg : theme.text};
   font-weight: 500;
   cursor: pointer;
@@ -108,7 +108,7 @@ const FilterButton = styled.button<{ active: boolean }>`
   &:hover {
     transform: translateY(-1px);
     box-shadow: ${({ theme, active }) => active 
-      ? `0 2px 8px ${theme.primary}30` 
+      ? `0 2px 8px ${theme.neutral}30` 
       : `0 1px 4px ${theme.border}`};
   }
 `;

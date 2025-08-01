@@ -47,7 +47,7 @@ const ModalContainer = styled.div`
     left: 0;
     right: 0;
     height: 4px;
-    background: ${({ theme }) => theme.primary};
+    background: ${({ theme }) => theme.neutralDark};
   }
 `;
 
@@ -55,7 +55,7 @@ const Heading = styled.h2`
   margin-bottom: 2rem;
   font-size: 1.8rem;
   font-weight: 700;
-  color: ${({ theme }) => theme.primary};
+  color: ${({ theme }) => theme.neutralDark};
   text-align: center;
 `;
 
@@ -83,8 +83,8 @@ const Input = styled.input`
   
   &:focus {
     outline: none;
-    border-color: ${({ theme }) => theme.primary};
-    box-shadow: 0 0 0 3px ${({ theme }) => theme.primary}20;
+    border-color: ${({ theme }) => theme.neutralDark};
+    box-shadow: 0 0 0 3px ${({ theme }) => theme.neutral}20;
   }
   
   &::placeholder {
@@ -104,8 +104,8 @@ const Select = styled.select`
   
   &:focus {
     outline: none;
-    border-color: ${({ theme }) => theme.primary};
-    box-shadow: 0 0 0 3px ${({ theme }) => theme.primary}20;
+    border-color: ${({ theme }) => theme.neutralDark};
+    box-shadow: 0 0 0 3px ${({ theme }) => theme.neutral}20;
   }
 `;
 

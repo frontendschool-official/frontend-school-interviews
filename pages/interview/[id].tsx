@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import styled from "styled-components";
 import NavBar from "../../components/NavBar";
 import CodeEditor from "../../components/CodeEditor";
+import DSAEditor from "../../components/DSAEditor";
 import { useAuth } from "../../hooks/useAuth";
 import { getProblemById } from "../../services/firebase";
 import {
@@ -58,7 +59,7 @@ const CollapseButton = styled.button`
   position: absolute;
   top: 10px;
   right: 10px;
-  background: ${({ theme }) => theme.primary};
+  background: ${({ theme }) => theme.neutralDark};
   color: white;
   border: none;
   border-radius: 4px;
@@ -68,7 +69,7 @@ const CollapseButton = styled.button`
   z-index: 5;
 
   &:hover {
-    background: ${({ theme }) => theme.accent};
+    background: ${({ theme }) => theme.neutral};
   }
 `;
 
@@ -144,17 +145,18 @@ const EditorTabs = styled.div`
 const Tab = styled.button<{ active: boolean }>`
   padding: 0.5rem 1rem;
   background: ${({ active, theme }) => 
-    active ? theme.primary : 'transparent'};
+    active ? theme.neutralDark : 'transparent'};
   color: ${({ active, theme }) => 
     active ? 'white' : theme.text};
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 4px;
+  border: none;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 0.9rem;
+  transition: all 0.2s ease;
 
   &:hover {
     background: ${({ active, theme }) => 
-      active ? theme.accent : theme.bodyBg};
+      active ? theme.neutral : theme.border};
   }
 `;
 
@@ -733,6 +735,42 @@ export default function InterviewPage() {
     }
   }, [id]);
 
+  // Set initial code template for DSA problems
+  useEffect(() => {
+    if (problem && problem.interviewType === "dsa" && problem.dsaProblem) {
+      // Generate a template based on the first example
+      const firstExample = problem.dsaProblem.examples?.[0];
+      let template = `/**
+ * @param {any} input
+ * @return {any}
+ */
+function solution(input) {
+    // Your solution here
+    return 0;
+}`;
+
+      if (firstExample) {
+        try {
+          const inputType = typeof JSON.parse(firstExample.input);
+          const outputType = typeof JSON.parse(firstExample.output);
+          
+          template = `/**
+ * @param {${inputType === 'object' ? 'any' : inputType}} input
+ * @return {${outputType === 'object' ? 'any' : outputType}}
+ */
+function solution(input) {
+    // Your solution here
+    return 0;
+}`;
+        } catch (e) {
+          // Fallback to generic template
+        }
+      }
+      
+      setCode(template);
+    }
+  }, [problem]);
+
   const handleEvaluated = (fb: string) => {
     setFeedback(fb);
   };
@@ -890,43 +928,64 @@ export default function InterviewPage() {
               <EditorPanel>
                 <EditorHeader>
                   <EditorTabs>
-                    <Tab active={problem.interviewType === "coding" || problem.interviewType === "dsa"}>
-                      {problem.interviewType === "dsa" ? "Solution" : "Code"}
+                    <Tab active={problem.interviewType === "coding"}>
+                      Code
                     </Tab>
+                    {problem.interviewType === "dsa" && (
+                      <Tab active={true}>Solution</Tab>
+                    )}
                     {problem.interviewType === "design" && (
                       <Tab active={true}>System Design</Tab>
                     )}
                   </EditorTabs>
                   <ActionButtons>
-                    <EvaluateButton
-                      designation={problem.designation}
-                      code={problem.interviewType === "coding" || problem.interviewType === "dsa" ? code : ""}
-                      excalidrawRef={excalidrawRef}
-                      problemId={problem.id || ""}
-                      onEvaluated={handleEvaluated}
-                    />
-                    <Button variant="success">Submit</Button>
+                    {problem.interviewType !== "dsa" && (
+                      <EvaluateButton
+                        designation={problem.designation}
+                        code={problem.interviewType === "coding" ? code : ""}
+                        excalidrawRef={excalidrawRef}
+                        problemId={problem.id || ""}
+                        onEvaluated={handleEvaluated}
+                      />
+                    )}
+                    {problem.interviewType === "dsa" && (
+                      <Button variant="success">Submit Solution</Button>
+                    )}
                   </ActionButtons>
                 </EditorHeader>
                 <EditorContainer>
                   {problem.interviewType === "design" ? (
                     <SystemDesignCanvas ref={excalidrawRef} />
+                  ) : problem.interviewType === "dsa" ? (
+                    <DSAEditor 
+                      code={code} 
+                      onChange={setCode} 
+                      problemId={problem.id || ""}
+                      testCases={problem.dsaProblem?.examples?.map((example, index) => ({
+                        id: (index + 1).toString(),
+                        input: example.input,
+                        expectedOutput: example.output,
+                        status: undefined
+                      })) || []}
+                    />
                   ) : (
                     <CodeEditor code={code} onChange={setCode} />
                   )}
                 </EditorContainer>
-                <OutputPanel isVisible={feedback !== null}>
-                  <OutputHeader>
-                    <h4>AI Feedback</h4>
-                    <ActionButtons>
-                      <Button variant="secondary" onClick={clearFeedback}>Clear</Button>
-                      <Button variant="success">Save</Button>
-                    </ActionButtons>
-                  </OutputHeader>
-                  <OutputContent>
-                    {feedback || "No feedback yet. Click 'Evaluate' to get started."}
-                  </OutputContent>
-                </OutputPanel>
+                {problem.interviewType !== "dsa" && (
+                  <OutputPanel isVisible={feedback !== null}>
+                    <OutputHeader>
+                      <h4>AI Feedback</h4>
+                      <ActionButtons>
+                        <Button variant="secondary" onClick={clearFeedback}>Clear</Button>
+                        <Button variant="success">Save</Button>
+                      </ActionButtons>
+                    </OutputHeader>
+                    <OutputContent>
+                      {feedback || "No feedback yet. Click 'Evaluate' to get started."}
+                    </OutputContent>
+                  </OutputPanel>
+                )}
               </EditorPanel>
             </MainContent>
             

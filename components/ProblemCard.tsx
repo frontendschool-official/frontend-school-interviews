@@ -32,7 +32,7 @@ const Card = styled.div`
     left: 0;
     right: 0;
     height: 3px;
-    background: ${({ theme }) => theme.primary};
+    background: ${({ theme }) => theme.neutralDark};
     opacity: 0;
     transition: opacity 0.3s ease;
   }
@@ -40,7 +40,7 @@ const Card = styled.div`
   &:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 25px ${({ theme }) => theme.border}30;
-    border-color: ${({ theme }) => theme.primary}30;
+    border-color: ${({ theme }) => theme.neutral}30;
     
     &::before {
       opacity: 1;

@@ -50,17 +50,16 @@ const Tab = styled.div<{ active: boolean }>`
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  background: ${({ active, theme }) => active ? theme.bodyBg : 'transparent'};
+  background: ${({ active, theme }) => active ? theme.neutral + '20' : 'transparent'};
+  color: ${({ active, theme }) => active ? theme.neutralDark : theme.text};
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
-  color: ${({ active, theme }) => active ? theme.text : theme.text + '80'};
   transition: all 0.2s ease;
   border: 1px solid ${({ active, theme }) => active ? theme.border : 'transparent'};
 
   &:hover {
-    background: ${({ theme }) => theme.bodyBg};
-    color: ${({ theme }) => theme.text};
+    background: ${({ theme }) => theme.border};
   }
 `;
 
@@ -119,7 +118,7 @@ const Resizer = styled.div`
   transition: background 0.2s ease;
 
   &:hover {
-    background: ${({ theme }) => theme.primary};
+    background: ${({ theme }) => theme.neutralDark};
   }
 `;
 
@@ -310,12 +309,12 @@ code {
             files={files} 
             options={{}}
             theme={theme}
+            onChange={handleChange}
           >
             <SandpackCodeEditor
               showTabs={false}
               showLineNumbers={true}
               wrapContent={true}
-              onChange={handleChange}
               style={{ height: '100%' }}
             />
           </SandpackProvider>

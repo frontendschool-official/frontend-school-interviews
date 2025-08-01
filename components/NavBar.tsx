@@ -39,7 +39,7 @@ const Menu = styled.nav`
 
 const MenuItem = styled.a<{ active?: boolean }>`
   font-weight: ${({ active }) => (active ? 700 : 500)};
-  color: ${({ theme, active }) => (active ? theme.primary : theme.text)};
+  color: ${({ theme, active }) => (active ? theme.neutralDark : theme.text)};
   text-decoration: none;
   padding: 0.5rem 1rem;
   border-radius: 12px;
@@ -47,7 +47,7 @@ const MenuItem = styled.a<{ active?: boolean }>`
   position: relative;
   
   &:hover {
-    background: ${({ theme }) => theme.primary}10;
+    background: ${({ theme }) => theme.neutral}10;
     transform: translateY(-1px);
   }
   
@@ -59,7 +59,7 @@ const MenuItem = styled.a<{ active?: boolean }>`
     transform: translateX(-50%);
     width: ${({ active }) => (active ? '80%' : '0%')};
     height: 3px;
-    background: ${({ theme }) => theme.primary};
+    background: ${({ theme, active }) => active ? theme.neutralDark : 'transparent'};
     border-radius: 2px;
     transition: all 0.3s ease;
   }
@@ -75,11 +75,11 @@ const Avatar = styled.img`
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  border: 2px solid ${({ theme }) => theme.primary}30;
+  border: 2px solid ${({ theme }) => theme.neutral}30;
   transition: all 0.3s ease;
   
   &:hover {
-    border-color: ${({ theme }) => theme.primary};
+    border-color: ${({ theme }) => theme.neutralDark};
     transform: scale(1.1);
   }
 `;
@@ -95,7 +95,7 @@ const SignOutButton = styled.button`
   transition: all 0.3s ease;
   
   &:hover {
-    background: ${({ theme }) => theme.primary};
+    background: ${({ theme }) => theme.neutralDark};
     color: ${({ theme }) => theme.bodyBg};
     transform: translateY(-1px);
     box-shadow: 0 4px 15px ${({ theme }) => theme.border};
