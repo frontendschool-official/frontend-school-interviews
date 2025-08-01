@@ -14,74 +14,214 @@ import {
 import SystemDesignCanvas from "../../components/SystemDesignCanvas";
 import EvaluateButton from "../../components/EvaluateButton";
 
-const Container = styled.div`
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
+// Full page layout with LeetCode-like design
+const PageContainer = styled.div`
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: ${({ theme }) => theme.bodyBg};
 `;
 
-const TopBar = styled.div`
-  margin-bottom: 2rem;
+const MainContent = styled.div`
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+`;
+
+const ProblemPanel = styled.div<{ isCollapsed: boolean }>`
+  min-width: ${({ isCollapsed }) => (isCollapsed ? "50px" : "300px")};
+  max-width: ${({ isCollapsed }) => (isCollapsed ? "50px" : "600px")};
+  background-color: ${({ theme }) => theme.secondary};
+  border-right: 1px solid ${({ theme }) => theme.border};
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s ease;
+  position: relative;
+`;
+
+const Resizer = styled.div`
+  width: 4px;
+  background-color: ${({ theme }) => theme.border};
+  cursor: col-resize;
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 10;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.primary};
+  }
+`;
+
+const CollapseButton = styled.button`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: ${({ theme }) => theme.primary};
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 12px;
+  z-index: 5;
+
+  &:hover {
+    background: ${({ theme }) => theme.accent};
+  }
+`;
+
+const ProblemHeader = styled.div`
   padding: 1rem;
-  background-color: ${({ theme }) => theme.secondary};
-  border-radius: 8px;
-  border: 1px solid ${({ theme }) => theme.border};
+  border-bottom: 1px solid ${({ theme }) => theme.border};
+  background-color: ${({ theme }) => theme.bodyBg};
 
-  h2 {
-    margin: 0 0 1rem 0;
+  h1 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.5rem;
     color: ${({ theme }) => theme.text};
+    font-weight: 600;
   }
 
-  p {
-    margin: 0.5rem 0;
-    color: ${({ theme }) => theme.text};
+  .meta-info {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+    font-size: 0.9rem;
+    color: ${({ theme }) => theme.textSecondary};
   }
 `;
 
-const Split = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  margin-bottom: 2rem;
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-  }
-`;
-
-const Pane = styled.div`
-  h3 {
-    margin-bottom: 1rem;
-    color: ${({ theme }) => theme.text};
-  }
-`;
-
-const ProblemBox = styled.div`
-  background-color: ${({ theme }) => theme.secondary};
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 8px;
-  padding: 1.5rem;
+const ProblemContent = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
   color: ${({ theme }) => theme.text};
   line-height: 1.6;
+  font-size: 0.95rem;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: ${({ theme }) => theme.bodyBg};
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: ${({ theme }) => theme.border};
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: ${({ theme }) => theme.textSecondary};
+  }
 `;
 
-const ProblemSection = styled.div`
-  margin-bottom: 1.5rem;
+const EditorPanel = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: ${({ theme }) => theme.bodyBg};
+`;
 
-  h4 {
-    margin: 0 0 0.5rem 0;
-    color: ${({ theme }) => theme.primary};
-    font-size: 1.1rem;
-  }
+const EditorHeader = styled.div`
+  padding: 1rem;
+  border-bottom: 1px solid ${({ theme }) => theme.border};
+  background-color: ${({ theme }) => theme.secondary};
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
 
-  ul {
-    margin: 0.5rem 0;
-    padding-left: 1.5rem;
-  }
+const EditorTabs = styled.div`
+  display: flex;
+  gap: 0.5rem;
+`;
 
-  li {
-    margin-bottom: 0.25rem;
+const Tab = styled.button<{ active: boolean }>`
+  padding: 0.5rem 1rem;
+  background: ${({ active, theme }) => 
+    active ? theme.primary : 'transparent'};
+  color: ${({ active, theme }) => 
+    active ? 'white' : theme.text};
+  border: 1px solid ${({ theme }) => theme.border};
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+
+  &:hover {
+    background: ${({ active, theme }) => 
+      active ? theme.accent : theme.bodyBg};
   }
+`;
+
+const EditorContainer = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+`;
+
+const OutputPanel = styled.div<{ isVisible: boolean }>`
+  height: ${({ isVisible }) => (isVisible ? "200px" : "0")};
+  background-color: ${({ theme }) => theme.secondary};
+  border-top: 1px solid ${({ theme }) => theme.border};
+  overflow: hidden;
+  transition: height 0.3s ease;
+`;
+
+
+
+const OutputContent = styled.div`
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+  color: ${({ theme }) => theme.text};
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.9rem;
+  line-height: 1.5;
+`;
+
+const ActionButtons = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+`;
+
+const Button = styled.button<{ variant?: 'primary' | 'secondary' | 'success' }>`
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+
+  ${({ variant, theme }) => {
+    switch (variant) {
+      case 'primary':
+        return `
+          background: ${theme.primary};
+          color: white;
+          &:hover { background: ${theme.accent}; }
+        `;
+      case 'success':
+        return `
+          background: #10b981;
+          color: white;
+          &:hover { background: #059669; }
+        `;
+      default:
+        return `
+          background: transparent;
+          color: ${theme.text};
+          border: 1px solid ${theme.border};
+          &:hover { background: ${theme.secondary}; }
+        `;
+    }
+  }}
 `;
 
 const DifficultyBadge = styled.span<{ difficulty: string }>`
@@ -91,7 +231,7 @@ const DifficultyBadge = styled.span<{ difficulty: string }>`
   font-size: 0.8rem;
   font-weight: 500;
   text-transform: uppercase;
-  background-color: ${({ difficulty, theme }) => {
+  background-color: ${({ difficulty }) => {
     switch (difficulty) {
       case "easy":
         return "#10b981";
@@ -100,10 +240,34 @@ const DifficultyBadge = styled.span<{ difficulty: string }>`
       case "hard":
         return "#ef4444";
       default:
-        return theme.border;
+        return "#6b7280";
     }
   }};
   color: white;
+`;
+
+const ProblemSection = styled.div`
+  margin-bottom: 1.5rem;
+
+  h4 {
+    margin: 0 0 0.75rem 0;
+    color: ${({ theme }) => theme.primary};
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  ul {
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
+  }
+
+  li {
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    margin: 0.5rem 0;
+  }
 `;
 
 const TechnologyTags = styled.div`
@@ -116,15 +280,16 @@ const TechnologyTags = styled.div`
 const TechnologyTag = styled.span`
   background-color: ${({ theme }) => theme.primary};
   color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
   font-size: 0.8rem;
+  font-weight: 500;
 `;
 
 const ScaleInfo = styled.div`
   background-color: ${({ theme }) => theme.bodyBg};
   border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 4px;
+  border-radius: 6px;
   padding: 1rem;
   margin: 0.5rem 0;
 
@@ -139,22 +304,17 @@ const ScaleInfo = styled.div`
   }
 `;
 
-const Output = styled.div`
-  margin-top: 2rem;
-  padding: 1rem;
-  background-color: ${({ theme }) => theme.secondary};
+const ExampleBox = styled.div`
+  background-color: ${({ theme }) => theme.bodyBg};
   border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 8px;
-
-  h4 {
-    margin: 0 0 1rem 0;
-    color: ${({ theme }) => theme.text};
-  }
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 1rem;
 
   p {
-    margin: 0;
-    color: ${({ theme }) => theme.text};
-    line-height: 1.6;
+    margin: 0.25rem 0;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.9rem;
   }
 `;
 
@@ -162,8 +322,19 @@ const LoadingContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 300px;
+  height: 100vh;
   color: ${({ theme }) => theme.text};
+  font-size: 1.1rem;
+`;
+
+const AuthMessage = styled.div`
+  margin: 1rem 0;
+  padding: 0.75rem;
+  background-color: #fef3c7;
+  border-radius: 6px;
+  border: 1px solid #f59e0b;
+  color: #92400e;
+  font-size: 0.9rem;
 `;
 
 const ErrorContainer = styled.div`
@@ -171,17 +342,15 @@ const ErrorContainer = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 300px;
+  height: 100vh;
   text-align: center;
   gap: 1rem;
   padding: 2rem;
   background-color: ${({ theme }) => theme.secondary};
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 4px;
 `;
 
 const ErrorTitle = styled.h2`
-  color: #e74c3c;
+  color: #ef4444;
   margin: 0;
 `;
 
@@ -194,7 +363,7 @@ const ErrorMessage = styled.p`
 const RetryButton = styled.button`
   padding: 0.75rem 1.5rem;
   background-color: ${({ theme }) => theme.primary};
-  color: white;
+  color: ${({ theme }) => theme.bodyBg};
   border: none;
   border-radius: 4px;
   cursor: pointer;
@@ -219,6 +388,22 @@ const BackButton = styled.button`
   }
 `;
 
+// Add missing styled components
+const OutputHeader = styled.div`
+  padding: 0.75rem 1rem;
+  background-color: ${({ theme }) => theme.bodyBg};
+  border-bottom: 1px solid ${({ theme }) => theme.border};
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  h4 {
+    margin: 0;
+    color: ${({ theme }) => theme.text};
+    font-size: 1rem;
+  }
+`;
+
 interface ErrorState {
   type: "network" | "not_found" | "unauthorized" | "unknown";
   message: string;
@@ -226,8 +411,19 @@ interface ErrorState {
 
 const renderMachineCodingProblem = (problem: MachineCodingProblem) => (
   <div>
-    <h3>{problem.title}</h3>
-    <p>{problem.description}</p>
+    <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1rem" }}>
+      <DifficultyBadge difficulty={problem.difficulty}>
+        {problem.difficulty}
+      </DifficultyBadge>
+      <span style={{ color: '#6b7280', fontSize: '0.9rem' }}>
+        ⏱️ {problem.estimatedTime}
+      </span>
+    </div>
+
+    <ProblemSection>
+      <h4>Description</h4>
+      <p>{problem.description}</p>
+    </ProblemSection>
 
     <ProblemSection>
       <h4>Requirements</h4>
@@ -256,20 +452,6 @@ const renderMachineCodingProblem = (problem: MachineCodingProblem) => (
       </ul>
     </ProblemSection>
 
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "1rem",
-        marginBottom: "1rem",
-      }}
-    >
-      <DifficultyBadge difficulty={problem.difficulty}>
-        {problem.difficulty}
-      </DifficultyBadge>
-      <span>Estimated time: {problem.estimatedTime}</span>
-    </div>
-
     <ProblemSection>
       <h4>Technologies</h4>
       <TechnologyTags>
@@ -281,7 +463,7 @@ const renderMachineCodingProblem = (problem: MachineCodingProblem) => (
 
     {problem.hints && problem.hints.length > 0 && (
       <ProblemSection>
-        <h4>Hints</h4>
+        <h4>💡 Hints</h4>
         <ul>
           {problem.hints.map((hint, index) => (
             <li key={index}>{hint}</li>
@@ -294,8 +476,19 @@ const renderMachineCodingProblem = (problem: MachineCodingProblem) => (
 
 const renderSystemDesignProblem = (problem: SystemDesignProblem) => (
   <div>
-    <h3>{problem.title}</h3>
-    <p>{problem.description}</p>
+    <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1rem" }}>
+      <DifficultyBadge difficulty={problem.difficulty}>
+        {problem.difficulty}
+      </DifficultyBadge>
+      <span style={{ color: '#6b7280', fontSize: '0.9rem' }}>
+        ⏱️ {problem.estimatedTime}
+      </span>
+    </div>
+
+    <ProblemSection>
+      <h4>Description</h4>
+      <p>{problem.description}</p>
+    </ProblemSection>
 
     <ProblemSection>
       <h4>Functional Requirements</h4>
@@ -325,17 +518,17 @@ const renderSystemDesignProblem = (problem: SystemDesignProblem) => (
     </ProblemSection>
 
     <ProblemSection>
-      <h4>Scale</h4>
+      <h4>📊 Scale</h4>
       <ScaleInfo>
         <p>
-          <strong>Users:</strong> {problem.scale.users}
+          <strong>👥 Users:</strong> {problem.scale.users}
         </p>
         <p>
-          <strong>Requests per Second:</strong>{" "}
+          <strong>⚡ Requests per Second:</strong>{" "}
           {problem.scale.requestsPerSecond}
         </p>
         <p>
-          <strong>Data Size:</strong> {problem.scale.dataSize}
+          <strong>💾 Data Size:</strong> {problem.scale.dataSize}
         </p>
       </ScaleInfo>
     </ProblemSection>
@@ -349,20 +542,6 @@ const renderSystemDesignProblem = (problem: SystemDesignProblem) => (
       </ul>
     </ProblemSection>
 
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "1rem",
-        marginBottom: "1rem",
-      }}
-    >
-      <DifficultyBadge difficulty={problem.difficulty}>
-        {problem.difficulty}
-      </DifficultyBadge>
-      <span>Estimated time: {problem.estimatedTime}</span>
-    </div>
-
     <ProblemSection>
       <h4>Technologies</h4>
       <TechnologyTags>
@@ -374,7 +553,7 @@ const renderSystemDesignProblem = (problem: SystemDesignProblem) => (
 
     {problem.followUpQuestions && problem.followUpQuestions.length > 0 && (
       <ProblemSection>
-        <h4>Follow-up Questions</h4>
+        <h4>❓ Follow-up Questions</h4>
         <ul>
           {problem.followUpQuestions.map((question, index) => (
             <li key={index}>{question}</li>
@@ -387,6 +566,15 @@ const renderSystemDesignProblem = (problem: SystemDesignProblem) => (
 
 const renderDSAProblem = (problem: DSAProblem) => (
   <div>
+    <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1rem" }}>
+      <DifficultyBadge difficulty={problem.difficulty}>
+        {problem.difficulty}
+      </DifficultyBadge>
+      <span style={{ color: '#6b7280', fontSize: '0.9rem' }}>
+        ⏱️ {problem.estimatedTime}
+      </span>
+    </div>
+
     <ProblemSection>
       <h4>Problem Statement</h4>
       <p>{problem.problemStatement}</p>
@@ -412,22 +600,22 @@ const renderDSAProblem = (problem: DSAProblem) => (
     </ProblemSection>
 
     <ProblemSection>
-      <h4>Examples</h4>
+      <h4>📝 Examples</h4>
       {problem.examples.map((example, index) => (
-        <div key={index} style={{ marginBottom: '1rem', padding: '1rem', backgroundColor: '#f8f9fa', borderRadius: '4px' }}>
+        <ExampleBox key={index}>
           <p><strong>Example {index + 1}:</strong></p>
           <p><strong>Input:</strong> {example.input}</p>
           <p><strong>Output:</strong> {example.output}</p>
           {example.explanation && (
             <p><strong>Explanation:</strong> {example.explanation}</p>
           )}
-        </div>
+        </ExampleBox>
       ))}
     </ProblemSection>
 
     {problem.hints && problem.hints.length > 0 && (
       <ProblemSection>
-        <h4>Hints</h4>
+        <h4>💡 Hints</h4>
         <ul>
           {problem.hints.map((hint, index) => (
             <li key={index}>{hint}</li>
@@ -443,34 +631,11 @@ const renderDSAProblem = (problem: DSAProblem) => (
 
     <ProblemSection>
       <h4>Tags</h4>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+      <TechnologyTags>
         {problem.tags.map((tag, index) => (
-          <span
-            key={index}
-            style={{
-              padding: '0.25rem 0.5rem',
-              backgroundColor: '#e9ecef',
-              borderRadius: '12px',
-              fontSize: '0.8rem',
-              color: '#495057'
-            }}
-          >
-            {tag}
-          </span>
+          <TechnologyTag key={index}>{tag}</TechnologyTag>
         ))}
-      </div>
-    </ProblemSection>
-
-    <ProblemSection>
-      <h4>Difficulty</h4>
-      <DifficultyBadge difficulty={problem.difficulty}>
-        {problem.difficulty}
-      </DifficultyBadge>
-    </ProblemSection>
-
-    <ProblemSection>
-      <h4>Estimated Time</h4>
-      <p>{problem.estimatedTime}</p>
+      </TechnologyTags>
     </ProblemSection>
   </div>
 );
@@ -484,13 +649,14 @@ export default function InterviewPage() {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<ErrorState | null>(null);
+  const [isProblemPanelCollapsed, setIsProblemPanelCollapsed] = useState(false);
+  const [problemPanelWidth, setProblemPanelWidth] = useState(400);
+  const [isResizing, setIsResizing] = useState(false);
   const excalidrawRef = useRef<any>(null);
+  const problemPanelRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.replace("/login");
-    }
-  }, [user, authLoading, router]);
+  // Allow non-authenticated users to view problems but show a message
+  // No longer redirecting to login
 
   const fetchProblem = async () => {
     console.log("id not found", id);
@@ -562,10 +728,10 @@ export default function InterviewPage() {
 
   // Fetch problem by id
   useEffect(() => {
-    if (id && !authLoading) {
+    if (id) {
       fetchProblem();
     }
-  }, [id, authLoading]);
+  }, [id]);
 
   const handleEvaluated = (fb: string) => {
     setFeedback(fb);
@@ -579,16 +745,56 @@ export default function InterviewPage() {
     router.push("/problems");
   };
 
+  const handleResizeStart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+  };
+
+  const handleResize = (e: MouseEvent) => {
+    if (!isResizing || !problemPanelRef.current) return;
+    
+    const newWidth = e.clientX;
+    const minWidth = 300;
+    const maxWidth = 600;
+    
+    if (newWidth >= minWidth && newWidth <= maxWidth) {
+      setProblemPanelWidth(newWidth);
+    }
+  };
+
+  const handleResizeEnd = () => {
+    setIsResizing(false);
+  };
+
+  const toggleProblemPanel = () => {
+    setIsProblemPanelCollapsed(!isProblemPanelCollapsed);
+  };
+
+  const clearFeedback = () => {
+    setFeedback(null);
+  };
+
+  // Add resize event listeners
+  useEffect(() => {
+    if (isResizing) {
+      document.addEventListener('mousemove', handleResize);
+      document.addEventListener('mouseup', handleResizeEnd);
+      
+      return () => {
+        document.removeEventListener('mousemove', handleResize);
+        document.removeEventListener('mouseup', handleResizeEnd);
+      };
+    }
+  }, [isResizing]);
+
   // Show loading while auth is being checked
   if (authLoading) {
     return (
       <>
         <NavBar />
-        <Container>
-          <LoadingContainer>
-            <p>Loading...</p>
-          </LoadingContainer>
-        </Container>
+        <LoadingContainer>
+          <p>Loading...</p>
+        </LoadingContainer>
       </>
     );
   }
@@ -598,21 +804,19 @@ export default function InterviewPage() {
     return (
       <>
         <NavBar />
-        <Container>
-          <ErrorContainer>
-            <ErrorTitle>
-              {error.type === "network" && "Network Error"}
-              {error.type === "not_found" && "Problem Not Found"}
-              {error.type === "unauthorized" && "Access Denied"}
-              {error.type === "unknown" && "Error"}
-            </ErrorTitle>
-            <ErrorMessage>{error.message}</ErrorMessage>
-            <div style={{ display: "flex", gap: "1rem" }}>
-              <RetryButton onClick={handleRetry}>Try Again</RetryButton>
-              <BackButton onClick={handleBack}>Back to Problems</BackButton>
-            </div>
-          </ErrorContainer>
-        </Container>
+        <ErrorContainer>
+          <ErrorTitle>
+            {error.type === "network" && "Network Error"}
+            {error.type === "not_found" && "Problem Not Found"}
+            {error.type === "unauthorized" && "Access Denied"}
+            {error.type === "unknown" && "Error"}
+          </ErrorTitle>
+          <ErrorMessage>{error.message}</ErrorMessage>
+          <div style={{ display: "flex", gap: "1rem" }}>
+            <RetryButton onClick={handleRetry}>Try Again</RetryButton>
+            <BackButton onClick={handleBack}>Back to Problems</BackButton>
+          </div>
+        </ErrorContainer>
       </>
     );
   }
@@ -622,11 +826,9 @@ export default function InterviewPage() {
     return (
       <>
         <NavBar />
-        <Container>
-          <LoadingContainer>
-            <p>Loading problem...</p>
-          </LoadingContainer>
-        </Container>
+        <LoadingContainer>
+          <p>Loading problem...</p>
+        </LoadingContainer>
       </>
     );
   }
@@ -634,69 +836,108 @@ export default function InterviewPage() {
   return (
     <>
       <NavBar />
-      <Container>
+      <PageContainer>
         {problem ? (
           <>
-            <TopBar>
-              <h2>{problem.designation} Interview</h2>
-              <p>
-                <strong>Companies:</strong> {problem.companies || "N/A"}
-              </p>
-              <p>
-                <strong>Round:</strong> {problem.round}
-              </p>
-              <p>
-                <strong>Type:</strong> {problem.interviewType}
-              </p>
-            </TopBar>
-            <Split>
-              <Pane>
-                <h3>Problem</h3>
-                <ProblemBox>
-                  {problem.interviewType === "design"
-                    ? problem.systemDesignProblem
-                      ? renderSystemDesignProblem(problem.systemDesignProblem)
-                      : "No system design problem available"
-                    : problem.interviewType === "dsa"
-                    ? problem.dsaProblem
-                      ? renderDSAProblem(problem.dsaProblem)
-                      : "No DSA problem available"
-                    : problem.machineCodingProblem
-                    ? renderMachineCodingProblem(problem.machineCodingProblem)
-                    : "No machine coding problem available"}
-                </ProblemBox>
-              </Pane>
-              <Pane>
-                <h3>Solution</h3>
-                {problem.interviewType === "coding" || problem.interviewType === "dsa" ? (
-                  <CodeEditor code={code} onChange={setCode} />
-                ) : (
-                  <SystemDesignCanvas ref={excalidrawRef} />
+            <MainContent>
+              <ProblemPanel 
+                ref={problemPanelRef}
+                isCollapsed={isProblemPanelCollapsed}
+                style={{ width: isProblemPanelCollapsed ? '50px' : `${problemPanelWidth}px` }}
+              >
+                {!isProblemPanelCollapsed && (
+                  <>
+                    <ProblemHeader>
+                      <h1>{problem.designation}</h1>
+                      <div className="meta-info">
+                        <span>
+                          <strong>Companies:</strong> {problem.companies || "N/A"}
+                        </span>
+                        <span>
+                          <strong>Round:</strong> {problem.round}
+                        </span>
+                        <span>
+                          <strong>Type:</strong> {problem.interviewType}
+                        </span>
+                      </div>
+                      {!user && (
+                        <AuthMessage>
+                          <strong>Note:</strong> You can view and practice this problem. Sign in to submit your solution and get AI feedback.
+                        </AuthMessage>
+                      )}
+                    </ProblemHeader>
+                    <ProblemContent>
+                      {problem.interviewType === "design"
+                        ? problem.systemDesignProblem
+                          ? renderSystemDesignProblem(problem.systemDesignProblem)
+                          : "No system design problem available"
+                        : problem.interviewType === "dsa"
+                        ? problem.dsaProblem
+                          ? renderDSAProblem(problem.dsaProblem)
+                          : "No DSA problem available"
+                        : problem.machineCodingProblem
+                        ? renderMachineCodingProblem(problem.machineCodingProblem)
+                        : "No machine coding problem available"}
+                    </ProblemContent>
+                  </>
                 )}
-              </Pane>
-            </Split>
-            <div>
-              <EvaluateButton
-                designation={problem.designation}
-                code={problem.interviewType === "coding" || problem.interviewType === "dsa" ? code : ""}
-                excalidrawRef={excalidrawRef}
-                problemId={problem.id || ""}
-                onEvaluated={handleEvaluated}
-              />
-            </div>
-            {feedback && (
-              <Output>
-                <h4>AI Feedback</h4>
-                <p>{feedback}</p>
-              </Output>
-            )}
+                <CollapseButton onClick={toggleProblemPanel}>
+                  {isProblemPanelCollapsed ? ">" : "<"}
+                </CollapseButton>
+                <Resizer onMouseDown={handleResizeStart} />
+              </ProblemPanel>
+              
+              <EditorPanel>
+                <EditorHeader>
+                  <EditorTabs>
+                    <Tab active={problem.interviewType === "coding" || problem.interviewType === "dsa"}>
+                      {problem.interviewType === "dsa" ? "Solution" : "Code"}
+                    </Tab>
+                    {problem.interviewType === "design" && (
+                      <Tab active={true}>System Design</Tab>
+                    )}
+                  </EditorTabs>
+                  <ActionButtons>
+                    <EvaluateButton
+                      designation={problem.designation}
+                      code={problem.interviewType === "coding" || problem.interviewType === "dsa" ? code : ""}
+                      excalidrawRef={excalidrawRef}
+                      problemId={problem.id || ""}
+                      onEvaluated={handleEvaluated}
+                    />
+                    <Button variant="success">Submit</Button>
+                  </ActionButtons>
+                </EditorHeader>
+                <EditorContainer>
+                  {problem.interviewType === "design" ? (
+                    <SystemDesignCanvas ref={excalidrawRef} />
+                  ) : (
+                    <CodeEditor code={code} onChange={setCode} />
+                  )}
+                </EditorContainer>
+                <OutputPanel isVisible={feedback !== null}>
+                  <OutputHeader>
+                    <h4>AI Feedback</h4>
+                    <ActionButtons>
+                      <Button variant="secondary" onClick={clearFeedback}>Clear</Button>
+                      <Button variant="success">Save</Button>
+                    </ActionButtons>
+                  </OutputHeader>
+                  <OutputContent>
+                    {feedback || "No feedback yet. Click 'Evaluate' to get started."}
+                  </OutputContent>
+                </OutputPanel>
+              </EditorPanel>
+            </MainContent>
+            
+            {/* Remove the hidden evaluate button since we're now using it directly */}
           </>
         ) : (
           <LoadingContainer>
             <p>Loading problem...</p>
           </LoadingContainer>
         )}
-      </Container>
+      </PageContainer>
     </>
   );
 }

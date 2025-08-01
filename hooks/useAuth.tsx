@@ -20,11 +20,7 @@ const AuthContext = createContext<AuthContextValue>({
   signOut: async () => {},
 });
 
-interface Props {
-  children: React.ReactNode;
-}
-
-export const AuthProvider: React.FC<Props> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 

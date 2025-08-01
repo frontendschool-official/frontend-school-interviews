@@ -10,18 +10,18 @@ export interface Theme {
 
 export const lightTheme: Theme = {
   bodyBg: '#ffffff',
-  text: '#222222',
-  primary: '#0070f3',
-  secondary: '#f5f5f5',
-  accent: '#005bb5',
-  border: '#eaeaea',
+  text: '#000000',
+  primary: '#04AA6D', // W3Schools green
+  secondary: '#f8f9fa',
+  accent: '#059862', // Darker W3Schools green
+  border: '#e0e0e0',
 };
 
 export const darkTheme: Theme = {
-  bodyBg: '#121212',
-  text: '#f5f5f5',
-  primary: '#90caf9',
-  secondary: '#1f1f1f',
-  accent: '#648dae',
+  bodyBg: '#000000',
+  text: '#ffffff',
+  primary: '#04AA6D', // W3Schools green
+  secondary: '#1a1a1a',
+  accent: '#059862', // Darker W3Schools green
   border: '#333333',
 };

@@ -7,62 +7,115 @@ import ThemeToggle from './ThemeToggle';
 
 const Bar = styled.header`
   width: 100%;
-  padding: 0.75rem 1.5rem;
+  padding: 1rem 2rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: ${({ theme }) => theme.secondary};
+  background: ${({ theme }) => theme.secondary};
   border-bottom: 1px solid ${({ theme }) => theme.border};
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 20px ${({ theme }) => theme.border}20;
 `;
 
 const Logo = styled.a`
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-size: 1.5rem;
+  font-weight: 800;
   color: ${({ theme }) => theme.primary};
+  text-decoration: none;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: scale(1.05);
+  }
 `;
 
 const Menu = styled.nav`
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 2rem;
 `;
 
 const MenuItem = styled.a<{ active?: boolean }>`
-  font-weight: ${({ active }) => (active ? 600 : 400)};
+  font-weight: ${({ active }) => (active ? 700 : 500)};
   color: ${({ theme, active }) => (active ? theme.primary : theme.text)};
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  transition: all 0.3s ease;
   position: relative;
+  
+  &:hover {
+    background: ${({ theme }) => theme.primary}10;
+    transform: translateY(-1px);
+  }
+  
   &:after {
     content: '';
     position: absolute;
-    bottom: -4px;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    background-color: ${({ theme, active }) => (active ? theme.primary : 'transparent')};
-    transition: background-color 0.3s ease;
+    bottom: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: ${({ active }) => (active ? '80%' : '0%')};
+    height: 3px;
+    background: ${({ theme }) => theme.primary};
+    border-radius: 2px;
+    transition: all 0.3s ease;
   }
 `;
 
 const UserArea = styled.div`
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1rem;
 `;
 
 const Avatar = styled.img`
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
+  border: 2px solid ${({ theme }) => theme.primary}30;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    border-color: ${({ theme }) => theme.primary};
+    transform: scale(1.1);
+  }
 `;
 
 const SignOutButton = styled.button`
-  background: none;
-  border: none;
-  padding: 0.5rem 0.75rem;
-  color: ${({ theme }) => theme.primary};
-  border-radius: 4px;
+  background: ${({ theme }) => theme.secondary};
+  border: 1px solid ${({ theme }) => theme.border};
+  padding: 0.5rem 1rem;
+  color: ${({ theme }) => theme.text};
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  
   &:hover {
-    background-color: ${({ theme }) => theme.secondary};
+    background: ${({ theme }) => theme.primary};
+    color: ${({ theme }) => theme.bodyBg};
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px ${({ theme }) => theme.border};
+  }
+`;
+
+const LoginLink = styled(Link)`
+  background: ${({ theme }) => theme.primary};
+  color: ${({ theme }) => theme.bodyBg};
+  padding: 0.5rem 1.5rem;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px ${({ theme }) => theme.border};
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px ${({ theme }) => theme.border};
+    background: ${({ theme }) => theme.accent};
   }
 `;
 
@@ -101,7 +154,7 @@ export default function NavBar() {
             <SignOutButton onClick={signOut}>Sign Out</SignOutButton>
           </>
         ) : (
-          <Link href="/login">Login</Link>
+          <LoginLink href="/login">Login</LoginLink>
         )}
       </UserArea>
     </Bar>

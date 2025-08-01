@@ -308,15 +308,7 @@ code {
           <SandpackProvider 
             template={template} 
             files={files} 
-            options={{ 
-              showConsole: showConsole,
-              showNavigator: false,
-              showTabs: false,
-              showLineNumbers: true,
-              wrapContent: true,
-              editorHeight: '100%',
-              editorWidthPercentage: 100,
-            }}
+            options={{}}
             theme={theme}
           >
             <SandpackCodeEditor
@@ -342,15 +334,7 @@ code {
               <SandpackProvider 
                 template={template} 
                 files={files} 
-                options={{ 
-                  showConsole: showConsole,
-                  showNavigator: false,
-                  showTabs: false,
-                  showLineNumbers: false,
-                  wrapContent: true,
-                  editorHeight: 0,
-                  editorWidthPercentage: 0,
-                }}
+                options={{}}
                 theme={theme}
               >
                 <SandpackPreview 

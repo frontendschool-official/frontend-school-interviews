@@ -7,10 +7,11 @@ A comprehensive interview preparation platform for frontend developers with AI-p
 - **AI-Powered Problem Generation**: Generate machine coding and system design problems using Google's Gemini API
 - **Structured Problem Schema**: Comprehensive JSON schema for detailed problem statements
 - **Real-time Code Editor**: Built-in code editor for solving machine coding problems
-- **System Design Canvas**: Interactive canvas for system design problems (coming soon)
-- **AI Evaluation**: Get instant feedback on your solutions
+- **System Design Canvas**: Interactive canvas for system design problems
+- **AI Evaluation**: Get instant feedback on your solutions with AI-powered evaluation
 - **Progress Tracking**: Track your interview preparation progress
 - **Firebase Integration**: Secure authentication and data persistence
+- **LeetCode-like UI**: Modern, resizable interface similar to popular coding platforms
 
 ## Problem Schema Structure
 
@@ -112,8 +113,14 @@ if (!isValidProblemSchema(parsedResponse)) {
 
 ## Environment Variables
 
+### Required for AI Evaluation
 ```env
 NEXT_PUBLIC_GEMINI_API_KEY=your_gemini_api_key
+```
+**Get your Gemini API key from [Google AI Studio](https://makersuite.google.com/app/apikey)**
+
+### Required for Firebase Integration
+```env
 NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_firebase_auth_domain
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_firebase_project_id
@@ -121,6 +128,9 @@ NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_firebase_storage_bucket
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_firebase_messaging_sender_id
 NEXT_PUBLIC_FIREBASE_APP_ID=your_firebase_app_id
 ```
+**Get these from your Firebase project settings**
+
+> **Note**: Without the Gemini API key, AI evaluation will not work. The app will show a message indicating that AI evaluation is not configured.
 
 ## Getting Started
 
@@ -136,8 +146,8 @@ NEXT_PUBLIC_FIREBASE_APP_ID=your_firebase_app_id
    ```
 
 3. **Set up environment variables**
-   - Copy `.env.example` to `.env.local`
-   - Fill in your API keys
+   - Copy `env.example` to `.env.local`
+   - Fill in your API keys (Gemini API key is required for AI evaluation)
 
 4. **Run the development server**
    ```bash

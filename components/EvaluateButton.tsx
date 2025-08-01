@@ -14,14 +14,20 @@ interface EvaluateButtonProps {
 }
 
 const Button = styled.button`
-  padding: 0.75rem 1.25rem;
+  padding: 0.5rem 1rem;
   border: none;
   border-radius: 4px;
-  color: #fff;
+  color: ${({ theme }) => theme.bodyBg};
   background-color: ${({ theme }) => theme.primary};
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
   &:hover {
     background-color: ${({ theme }) => theme.accent};
   }
+  
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
@@ -31,25 +37,25 @@ const Button = styled.button`
 const ErrorMessage = styled.div`
   margin-top: 1rem;
   padding: 0.75rem;
-  background-color: #fee;
-  border: 1px solid #fcc;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
   border-radius: 4px;
-  color: #c33;
+  color: #dc2626;
   font-size: 0.9rem;
 `;
 
 const RetryButton = styled.button`
   margin-top: 0.5rem;
   padding: 0.5rem 1rem;
-  background-color: #e74c3c;
-  color: white;
+  background-color: ${({ theme }) => theme.primary};
+  color: ${({ theme }) => theme.bodyBg};
   border: none;
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.9rem;
   
   &:hover {
-    background-color: #c0392b;
+    background-color: ${({ theme }) => theme.accent};
   }
 `;
 
@@ -64,7 +70,8 @@ export default function EvaluateButton({ designation, code, excalidrawRef, probl
       return;
     }
 
-    if (!excalidrawRef.current) {
+    // Check if this is a system design problem and canvas is required
+    if (designation === 'design' && !excalidrawRef.current) {
       setError('System design canvas is not available. Please refresh the page and try again.');
       return;
     }
@@ -131,8 +138,8 @@ export default function EvaluateButton({ designation, code, excalidrawRef, probl
       if (err instanceof Error) {
         if (err.message.includes('network') || err.message.includes('fetch')) {
           errorMessage = 'Network error. Please check your internet connection and try again.';
-        } else if (err.message.includes('API') || err.message.includes('key')) {
-          errorMessage = 'AI evaluation service is temporarily unavailable. Please try again later.';
+        } else if (err.message.includes('API') || err.message.includes('key') || err.message.includes('AI service')) {
+          errorMessage = 'AI evaluation service is not configured. Please contact support to enable AI feedback.';
         } else if (err.message.includes('permission') || err.message.includes('unauthorized')) {
           errorMessage = 'You do not have permission to save this submission.';
         } else if (err.message.includes('canvas') || err.message.includes('image')) {

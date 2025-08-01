@@ -117,7 +117,7 @@ function App() {
       justifyContent: 'center', 
       minHeight: '100vh',
       fontFamily: 'Arial, sans-serif',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      background: 'linear-gradient(135deg, #764abc 0%, #764ba2 100%)',
       color: 'white'
     }}>
       <h1>React Counter App</h1>

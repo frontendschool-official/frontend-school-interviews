@@ -7,86 +7,145 @@ import { generateInterviewQuestions } from '../services/geminiApi';
 import NavBar from '../components/NavBar';
 import PromptModal from '../components/PromptModal';
 import ProblemCard from '../components/ProblemCard';
+import FirebaseConfigError from '../components/FirebaseConfigError';
 
 const PageContainer = styled.div`
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 1rem;
+  min-height: 100vh;
+  background: ${({ theme }) => theme.bodyBg};
 `;
 
 const Header = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
+  padding: 1.5rem;
+  background: ${({ theme }) => theme.secondary};
+  border-radius: 16px;
+  border: 1px solid ${({ theme }) => theme.border};
+  box-shadow: 0 2px 12px ${({ theme }) => theme.border}15;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+    padding: 1rem;
+  }
 `;
 
-const Title = styled.h2``;
+const Title = styled.h1`
+  font-size: 2rem;
+  font-weight: 700;
+  color: ${({ theme }) => theme.primary};
+  margin: 0;
+  
+  @media (max-width: 768px) {
+    font-size: 1.5rem;
+  }
+`;
 
 const StartButton = styled.button`
-  padding: 0.5rem 1rem;
+  padding: 0.75rem 1.5rem;
   border: none;
-  border-radius: 4px;
-  background-color: ${({ theme }) => theme.primary};
-  color: #fff;
-  font-weight: 500;
+  border-radius: 10px;
+  background: ${({ theme }) => theme.primary};
+  color: ${({ theme }) => theme.bodyBg};
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px ${({ theme }) => theme.border};
+  
   &:hover {
-    background-color: ${({ theme }) => theme.accent};
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px ${({ theme }) => theme.border};
+    background: ${({ theme }) => theme.accent};
   }
 `;
 
 const Grid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1rem;
+  margin-top: 1rem;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
 `;
 
 const FilterContainer = styled.div`
   display: flex;
-  gap: 1rem;
-  margin-bottom: 2rem;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
   flex-wrap: wrap;
+  padding: 1rem;
+  background: ${({ theme }) => theme.secondary};
+  border-radius: 12px;
+  border: 1px solid ${({ theme }) => theme.border}20;
+  
+  @media (max-width: 768px) {
+    gap: 0.4rem;
+    padding: 0.75rem;
+  }
 `;
 
 const FilterButton = styled.button<{ active: boolean }>`
   padding: 0.5rem 1rem;
   border: 1px solid ${({ theme, active }) => active ? theme.primary : theme.border};
-  border-radius: 4px;
-  background-color: ${({ theme, active }) => active ? theme.primary : 'transparent'};
-  color: ${({ theme, active }) => active ? '#fff' : theme.text};
+  border-radius: 8px;
+  background: ${({ theme, active }) => active ? theme.primary : 'transparent'};
+  color: ${({ theme, active }) => active ? theme.bodyBg : theme.text};
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
+  font-size: 0.8rem;
   
   &:hover {
-    background-color: ${({ theme, active }) => active ? theme.accent : theme.bodyBg};
+    transform: translateY(-1px);
+    box-shadow: ${({ theme, active }) => active 
+      ? `0 2px 8px ${theme.primary}30` 
+      : `0 1px 4px ${theme.border}`};
   }
 `;
 
-const StatsContainer = styled.div`
-  display: flex;
-  gap: 2rem;
-  margin-bottom: 2rem;
-  padding: 1rem;
-  background-color: ${({ theme }) => theme.secondary};
-  border-radius: 8px;
-  border: 1px solid ${({ theme }) => theme.border};
-`;
 
-const StatItem = styled.div`
-  text-align: center;
-`;
 
-const StatNumber = styled.div`
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: ${({ theme }) => theme.primary};
-`;
-
-const StatLabel = styled.div`
-  font-size: 0.875rem;
+const SignInMessage = styled.div`
+  font-size: 0.9rem;
   color: ${({ theme }) => theme.text};
   opacity: 0.8;
+  text-align: right;
+  font-weight: 500;
+`;
+
+const LoadingContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  font-size: 1.1rem;
+  color: ${({ theme }) => theme.text};
+  opacity: 0.7;
+`;
+
+const EmptyState = styled.div`
+  text-align: center;
+  padding: 3rem 1rem;
+  color: ${({ theme }) => theme.text};
+  opacity: 0.7;
+  font-size: 1rem;
+`;
+
+const SectionTitle = styled.h2`
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 2rem 0 1rem 0;
+  color: ${({ theme }) => theme.text};
 `;
 
 export default function ProblemsPage() {
@@ -98,44 +157,64 @@ export default function ProblemsPage() {
   const [loadingNew, setLoadingNew] = useState(false);
   const [activeFilter, setActiveFilter] = useState<string>('all');
   const [loadingProblems, setLoadingProblems] = useState(true);
+  const [firebaseError, setFirebaseError] = useState<string | null>(null);
 
-  // Redirect to login if unauthenticated
-  useEffect(() => {
-    if (!loading && !user) {
-      router.replace('/login');
-    }
-  }, [user, loading, router]);
+  console.log('ProblemsPage render - user:', user?.uid, 'loading:', loading, 'loadingProblems:', loadingProblems);
+
+  // No longer redirecting to login - showing all problems to everyone
 
   // Fetch all problems and submissions
   useEffect(() => {
     const fetchData = async () => {
-      if (!user) return;
       setLoadingProblems(true);
+      setFirebaseError(null); // Clear any previous errors
       try {
-        const [allProblems, submissionDocs] = await Promise.all([
-          getAllProblems(user.uid),
-          getSubmissionsForUser(user.uid),
-        ]);
-        console.log(allProblems, 'allProblems')
+        console.log('Fetching all problems');
+        const allProblems = await getAllProblems();
+        console.log('Fetched problems:', allProblems);
+        
         setProblems(allProblems);
         
-        // Create status map
+        // Create status map - all problems show as unsolved for non-authenticated users
         const statusMap: Record<string, 'attempted' | 'solved' | 'unsolved'> = {};
         allProblems.forEach((p: any) => {
-          const submission = submissionDocs.find((s: any) => s.problemId === p.id);
-          if (submission) {
-            statusMap[p.id] = 'attempted';
-          } else {
-            statusMap[p.id] = 'unsolved';
-          }
+          statusMap[p.id] = 'unsolved';
         });
+        
+        // If user is authenticated, fetch their submissions to update status
+        if (user) {
+          try {
+            const submissionDocs = await getSubmissionsForUser(user.uid);
+            console.log('Fetched submissions:', submissionDocs);
+            
+            allProblems.forEach((p: any) => {
+              const submission = submissionDocs.find((s: any) => s.problemId === p.id);
+              if (submission) {
+                statusMap[p.id] = 'attempted';
+              }
+            });
+          } catch (submissionError) {
+            console.error('Error fetching submissions:', submissionError);
+            // Continue with unsolved status for all problems
+          }
+        }
+        
         setStatuses(statusMap);
       } catch (error) {
-        console.error('Error loading problems', error);
+        console.error('Error loading problems:', error);
+        // Set empty arrays on error to prevent infinite loading
+        setProblems([]);
+        setStatuses({});
+        
+        // Check if it's a Firebase configuration error
+        if (error instanceof Error && error.message.includes('Firebase is not properly initialized')) {
+          setFirebaseError('Firebase configuration is missing. Please check your environment variables.');
+        }
       } finally {
         setLoadingProblems(false);
       }
     };
+    
     fetchData();
   }, [user]);
 
@@ -144,7 +223,10 @@ export default function ProblemsPage() {
     setLoadingNew(true);
     try {
       const { designation, companies, round, interviewType } = values;
+      console.log('Starting interview with values:', values);
+      
       const result = await generateInterviewQuestions({ designation, companies, round, interviewType });
+      console.log('Generated result:', result);
       
       const problemData: any = {
         userId: user.uid,
@@ -156,12 +238,15 @@ export default function ProblemsPage() {
 
       if (interviewType === 'dsa') {
         problemData.dsaProblem = result.dsaProblem;
+        console.log('Setting DSA problem data:', problemData);
       } else {
         problemData.machineCodingProblem = result.machineCodingProblem;
         problemData.systemDesignProblem = result.systemDesignProblem;
+        console.log('Setting coding/design problem data:', problemData);
       }
 
       const docRef = await saveProblemSet(user.uid, problemData);
+      console.log('Problem saved with docRef:', docRef);
       
       const newProblem = {
         id: docRef.id,
@@ -169,11 +254,16 @@ export default function ProblemsPage() {
         companies,
         round,
         interviewType,
-        type: 'user_generated',
-        category: 'Custom Problems',
+        type: interviewType === 'dsa' ? 'dsa' : 
+              interviewType === 'coding' ? 'machine_coding' : 
+              interviewType === 'design' ? 'system_design' : 'user_generated',
+        category: interviewType === 'dsa' ? 'Data Structures & Algorithms' :
+                  interviewType === 'coding' ? 'Machine Coding' :
+                  interviewType === 'design' ? 'System Design' : 'Custom Problems',
         ...problemData
       };
       
+      console.log('New problem object:', newProblem);
       setProblems((prev) => [newProblem, ...prev]);
       setStatuses((prev) => ({ ...prev, [docRef.id]: 'unsolved' }));
       setModalOpen(false);
@@ -185,16 +275,13 @@ export default function ProblemsPage() {
     }
   };
 
-  // Calculate statistics
+  // Calculate counts for filters
   const stats = {
     total: problems.length,
     dsa: problems.filter(p => p.type === 'dsa').length,
     machineCoding: problems.filter(p => p.type === 'machine_coding').length,
     systemDesign: problems.filter(p => p.type === 'system_design').length,
-    interview: problems.filter(p => p.type === 'interview').length,
-    custom: problems.filter(p => p.type === 'user_generated').length,
-    attempted: Object.values(statuses).filter(s => s === 'attempted').length,
-    solved: Object.values(statuses).filter(s => s === 'solved').length,
+    attempted: user ? Object.values(statuses).filter(s => s === 'attempted').length : 0,
   };
 
   // Filter problems based on active filter
@@ -203,20 +290,35 @@ export default function ProblemsPage() {
     if (activeFilter === 'dsa') return problem.type === 'dsa';
     if (activeFilter === 'machine_coding') return problem.type === 'machine_coding';
     if (activeFilter === 'system_design') return problem.type === 'system_design';
-    if (activeFilter === 'interview') return problem.type === 'interview';
-    if (activeFilter === 'custom') return problem.type === 'user_generated';
+    if (activeFilter === 'attempted') return statuses[problem.id] === 'attempted';
     return true;
   });
 
-  if (loading || loadingProblems) {
+  if (loading) {
     return (
       <>
         <NavBar />
         <PageContainer>
-          <div>Loading problems...</div>
+          <LoadingContainer>Loading authentication...</LoadingContainer>
         </PageContainer>
       </>
     );
+  }
+
+  if (loadingProblems) {
+    return (
+      <>
+        <NavBar />
+        <PageContainer>
+          <LoadingContainer>Loading problems...</LoadingContainer>
+        </PageContainer>
+      </>
+    );
+  }
+
+  // Show Firebase configuration error if present
+  if (firebaseError) {
+    return <FirebaseConfigError />;
   }
 console.log(problems, 'problems')
   return (
@@ -225,50 +327,23 @@ console.log(problems, 'problems')
       <PageContainer>
         <Header>
           <Title>All Available Problems</Title>
-          <StartButton onClick={() => setModalOpen(true)}>Start New Interview</StartButton>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
+            {user ? (
+              <StartButton onClick={() => setModalOpen(true)}>Start New Interview</StartButton>
+            ) : (
+              <SignInMessage>
+                Sign in to track your progress and create custom problems
+              </SignInMessage>
+            )}
+          </div>
         </Header>
-
-        <StatsContainer>
-          <StatItem>
-            <StatNumber>{stats.total}</StatNumber>
-            <StatLabel>Total Problems</StatLabel>
-          </StatItem>
-          <StatItem>
-            <StatNumber>{stats.dsa}</StatNumber>
-            <StatLabel>DSA Problems</StatLabel>
-          </StatItem>
-          <StatItem>
-            <StatNumber>{stats.machineCoding}</StatNumber>
-            <StatLabel>Machine Coding</StatLabel>
-          </StatItem>
-          <StatItem>
-            <StatNumber>{stats.systemDesign}</StatNumber>
-            <StatLabel>System Design</StatLabel>
-          </StatItem>
-          <StatItem>
-            <StatNumber>{stats.interview}</StatNumber>
-            <StatLabel>Interview Problems</StatLabel>
-          </StatItem>
-          <StatItem>
-            <StatNumber>{stats.custom}</StatNumber>
-            <StatLabel>Custom Problems</StatLabel>
-          </StatItem>
-          <StatItem>
-            <StatNumber>{stats.attempted}</StatNumber>
-            <StatLabel>Attempted</StatLabel>
-          </StatItem>
-          <StatItem>
-            <StatNumber>{stats.solved}</StatNumber>
-            <StatLabel>Solved</StatLabel>
-          </StatItem>
-        </StatsContainer>
 
         <FilterContainer>
           <FilterButton 
             active={activeFilter === 'all'} 
             onClick={() => setActiveFilter('all')}
           >
-            All Problems ({stats.total})
+            All ({stats.total})
           </FilterButton>
           <FilterButton 
             active={activeFilter === 'dsa'} 
@@ -288,18 +363,14 @@ console.log(problems, 'problems')
           >
             System Design ({stats.systemDesign})
           </FilterButton>
-          <FilterButton 
-            active={activeFilter === 'interview'} 
-            onClick={() => setActiveFilter('interview')}
-          >
-            Interview ({stats.interview})
-          </FilterButton>
-          <FilterButton 
-            active={activeFilter === 'custom'} 
-            onClick={() => setActiveFilter('custom')}
-          >
-            Custom ({stats.custom})
-          </FilterButton>
+          {user && (
+            <FilterButton 
+              active={activeFilter === 'attempted'} 
+              onClick={() => setActiveFilter('attempted')}
+            >
+              Attempted ({stats.attempted})
+            </FilterButton>
+          )}
         </FilterContainer>
 
         <Grid>
@@ -309,9 +380,9 @@ console.log(problems, 'problems')
         </Grid>
 
         {filteredProblems.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '2rem', color: '#666' }}>
+          <EmptyState>
             No problems found for the selected filter.
-          </div>
+          </EmptyState>
         )}
 
         <PromptModal

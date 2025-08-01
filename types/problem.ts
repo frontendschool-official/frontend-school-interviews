@@ -60,8 +60,8 @@ export interface DSAProblem {
 
 // Complete Problem Schema
 export interface ProblemSchema {
-  machineCodingProblem: MachineCodingProblem;
-  systemDesignProblem: SystemDesignProblem;
+  machineCodingProblem?: MachineCodingProblem;
+  systemDesignProblem?: SystemDesignProblem;
   dsaProblem?: DSAProblem;
 }
 
@@ -76,9 +76,9 @@ export interface ProblemData {
   companies: string;
   round: string;
   interviewType: InterviewType;
-  machineCodingProblem?: string; // JSON stringified MachineCodingProblem
-  systemDesignProblem?: string; // JSON stringified SystemDesignProblem
-  dsaProblem?: string; // JSON stringified DSAProblem
+  machineCodingProblem?: MachineCodingProblem; // JSON stringified MachineCodingProblem
+  systemDesignProblem?: SystemDesignProblem; // JSON stringified SystemDesignProblem
+  dsaProblem?: DSAProblem; // JSON stringified DSAProblem
   createdAt?: any; // Firebase Timestamp
 }
 
@@ -212,9 +212,11 @@ export const isValidDSAProblem = (data: any): data is DSAProblem => {
 export const isValidProblemSchema = (data: any): data is ProblemSchema => {
   return (
     typeof data === 'object' &&
-    isValidMachineCodingProblem(data.machineCodingProblem) &&
-    isValidSystemDesignProblem(data.systemDesignProblem) &&
-    (data.dsaProblem ? isValidDSAProblem(data.dsaProblem) : true)
+    // For DSA problems, only validate dsaProblem
+    (data.dsaProblem ? isValidDSAProblem(data.dsaProblem) : true) &&
+    // For coding/design problems, validate machineCodingProblem and systemDesignProblem
+    (data.machineCodingProblem ? isValidMachineCodingProblem(data.machineCodingProblem) : true) &&
+    (data.systemDesignProblem ? isValidSystemDesignProblem(data.systemDesignProblem) : true)
   );
 };
 
@@ -289,7 +291,25 @@ export const getProblemCardInfo = (problem: ProblemData | ParsedProblemData | Pr
     title = `${(problem as any).designation} – Round ${(problem as any).round}`;
     
     try {
-      if ((problem as any).interviewType === 'design' && (problem as any).systemDesignProblem) {
+      // First, try to parse machineCodingProblem and use its title
+      if ((problem as any).machineCodingProblem) {
+        const machineCoding = typeof (problem as any).machineCodingProblem === 'string' 
+          ? JSON.parse((problem as any).machineCodingProblem) 
+          : (problem as any).machineCodingProblem;
+        
+        if (machineCoding.title) {
+          title = machineCoding.title;
+        }
+        if (machineCoding.difficulty) {
+          difficulty = machineCoding.difficulty;
+        }
+        if (machineCoding.technologies) {
+          technologies = machineCoding.technologies;
+        }
+        if (machineCoding.estimatedTime) {
+          estimatedTime = machineCoding.estimatedTime;
+        }
+      } else if ((problem as any).interviewType === 'design' && (problem as any).systemDesignProblem) {
         const systemDesign = typeof (problem as any).systemDesignProblem === 'string' 
           ? JSON.parse((problem as any).systemDesignProblem) 
           : (problem as any).systemDesignProblem;
@@ -345,8 +365,18 @@ export const getProblemCardInfo = (problem: ProblemData | ParsedProblemData | Pr
       console.error('Error parsing problem data:', error);
     }
     
-    category = 'Custom Problem';
-    type = 'user_generated';
+    // Set category and type based on interviewType if not already set
+    if (!category) {
+      category = (problem as any).interviewType === 'dsa' ? 'Data Structures & Algorithms' :
+                 (problem as any).interviewType === 'coding' ? 'Machine Coding' :
+                 (problem as any).interviewType === 'design' ? 'System Design' : 'Custom Problems';
+    }
+    
+    if (!type || type === 'user_generated') {
+      type = (problem as any).interviewType === 'dsa' ? 'dsa' :
+             (problem as any).interviewType === 'coding' ? 'machine_coding' :
+             (problem as any).interviewType === 'design' ? 'system_design' : 'user_generated';
+    }
   }
 
   return { title, difficulty, technologies, estimatedTime, category, type };

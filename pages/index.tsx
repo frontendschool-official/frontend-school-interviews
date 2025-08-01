@@ -35,10 +35,23 @@ const CtaButton = styled.a`
   border-radius: 4px;
   font-weight: 600;
   text-decoration: none;
-  color: #fff;
+  color: ${({ theme }) => theme.bodyBg};
   background-color: ${({ theme }) => theme.primary};
   &:hover {
     background-color: ${({ theme }) => theme.accent};
+  }
+`;
+
+const SecondaryButton = styled.a`
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  font-weight: 600;
+  text-decoration: none;
+  color: ${({ theme }) => theme.text};
+  background-color: transparent;
+  border: 1px solid ${({ theme }) => theme.border};
+  &:hover {
+    background-color: ${({ theme }) => theme.secondary};
   }
 `;
 
@@ -63,7 +76,7 @@ export default function HomePage() {
             </Link>
           )}
           <Link href="/about" passHref legacyBehavior>
-            <CtaButton style={{ backgroundColor: '#6c63ff' }}>Learn More</CtaButton>
+            <SecondaryButton>Learn More</SecondaryButton>
           </Link>
         </Cta>
       </Hero>

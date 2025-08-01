@@ -10,9 +10,9 @@ const Button = styled.button`
   border: none;
   border-radius: 4px;
   background-color: ${({ theme }) => theme.primary};
-  color: #fff;
+  color: ${({ theme }) => theme.bodyBg};
   font-weight: 500;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px ${({ theme }) => theme.border};
   &:hover {
     background-color: ${({ theme }) => theme.accent};
   }
