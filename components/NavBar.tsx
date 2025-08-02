@@ -1,9 +1,9 @@
-import Link from 'next/link';
-import { useRouter } from 'next/router';
-import styled from 'styled-components';
-import { useThemeContext } from '../hooks/useTheme';
-import { useAuth } from '../hooks/useAuth';
-import ThemeToggle from './ThemeToggle';
+import Link from "next/link";
+import { useRouter } from "next/router";
+import styled from "styled-components";
+import { useThemeContext } from "../hooks/useTheme";
+import { useAuth } from "../hooks/useAuth";
+import ThemeToggle from "./ThemeToggle";
 
 const Bar = styled.header`
   width: 100%;
@@ -25,7 +25,7 @@ const Logo = styled.a`
   color: ${({ theme }) => theme.primary};
   text-decoration: none;
   transition: all 0.3s ease;
-  
+
   &:hover {
     transform: scale(1.05);
   }
@@ -45,21 +45,22 @@ const MenuItem = styled.a<{ active?: boolean }>`
   border-radius: 12px;
   transition: all 0.3s ease;
   position: relative;
-  
+
   &:hover {
     background: ${({ theme }) => theme.neutral}10;
     transform: translateY(-1px);
   }
-  
+
   &:after {
-    content: '';
+    content: "";
     position: absolute;
     bottom: -2px;
     left: 50%;
     transform: translateX(-50%);
-    width: ${({ active }) => (active ? '80%' : '0%')};
+    width: ${({ active }) => (active ? "80%" : "0%")};
     height: 3px;
-    background: ${({ theme, active }) => active ? theme.neutralDark : 'transparent'};
+    background: ${({ theme, active }) =>
+      active ? theme.neutralDark : "transparent"};
     border-radius: 2px;
     transition: all 0.3s ease;
   }
@@ -77,7 +78,7 @@ const Avatar = styled.img`
   border-radius: 50%;
   border: 2px solid ${({ theme }) => theme.neutral}30;
   transition: all 0.3s ease;
-  
+
   &:hover {
     border-color: ${({ theme }) => theme.neutralDark};
     transform: scale(1.1);
@@ -93,7 +94,7 @@ const SignOutButton = styled.button`
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  
+
   &:hover {
     background: ${({ theme }) => theme.neutralDark};
     color: ${({ theme }) => theme.bodyBg};
@@ -111,7 +112,7 @@ const LoginLink = styled(Link)`
   font-weight: 600;
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px ${({ theme }) => theme.border};
-  
+
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 25px ${({ theme }) => theme.border};
@@ -125,9 +126,11 @@ export default function NavBar() {
   const router = useRouter();
 
   const menuLinks = [
-    { href: '/', label: 'Home', auth: false },
-    { href: '/problems', label: 'Problems', auth: true },
-    { href: '/solved', label: 'Solved', auth: true },
+    { href: "/", label: "Home", auth: false },
+    { href: "/problems", label: "Problems", auth: true },
+    { href: "/interview-simulation", label: "Interview Sim", auth: true },
+    { href: "/mock-interview-setup", label: "Mock Interview", auth: true },
+    { href: "/solved", label: "Solved", auth: true },
   ];
 
   return (

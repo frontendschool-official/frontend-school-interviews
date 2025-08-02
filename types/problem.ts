@@ -75,6 +75,7 @@ export interface ProblemData {
   designation: string;
   companies: string;
   round: string;
+  title: string;
   interviewType: InterviewType;
   machineCodingProblem?: MachineCodingProblem; // JSON stringified MachineCodingProblem
   systemDesignProblem?: SystemDesignProblem; // JSON stringified SystemDesignProblem
@@ -109,6 +110,7 @@ export interface SubmissionData {
   designation: string;
   code?: string;
   feedback: string;
+  drawingImage?: string; // base64 for system design problems
 }
 
 // Problem status types
@@ -279,6 +281,7 @@ export const getProblemCardInfo = (problem: ProblemData | ParsedProblemData | Pr
 
   // Handle predefined problems
   if ('type' in problem && problem.type !== 'user_generated') {
+    console.log(problem, 'predefinedProblem')
     const predefinedProblem = problem as PredefinedProblem;
     title = predefinedProblem.title;
     difficulty = predefinedProblem.difficulty;
@@ -293,6 +296,7 @@ export const getProblemCardInfo = (problem: ProblemData | ParsedProblemData | Pr
     try {
       // First, try to parse machineCodingProblem and use its title
       if ((problem as any).machineCodingProblem) {
+        console.log((problem as any).machineCodingProblem, 'machineCodingProblem')
         const machineCoding = typeof (problem as any).machineCodingProblem === 'string' 
           ? JSON.parse((problem as any).machineCodingProblem) 
           : (problem as any).machineCodingProblem;
@@ -381,3 +385,124 @@ export const getProblemCardInfo = (problem: ProblemData | ParsedProblemData | Pr
 
   return { title, difficulty, technologies, estimatedTime, category, type };
 }; 
+
+// Interview Insights API Types
+export interface InterviewRound {
+  name: string;
+  description: string;
+  sampleProblems: string[];
+  duration: string; // e.g., "45-60 minutes"
+  focusAreas: string[]; // e.g., ["React", "TypeScript", "State Management"]
+  evaluationCriteria: string[]; // e.g., ["Code quality", "Problem solving", "Communication"]
+  difficulty: 'easy' | 'medium' | 'hard';
+  tips: string[]; // e.g., ["Practice system design", "Know your fundamentals"]
+}
+
+export interface InterviewInsightsData {
+  totalRounds: number;
+  estimatedDuration: string; // e.g., "3-4 hours"
+  rounds: InterviewRound[];
+  overallTips: string[];
+  companySpecificNotes: string;
+}
+
+export interface InterviewInsightsRequest {
+  companyName: string;
+  roleLevel: string;
+}
+
+export interface InterviewInsightsResponse {
+  companyName: string;
+  roleLevel: string;
+  data: InterviewInsightsData;
+  updatedAt?: any; // Firebase Timestamp
+}
+
+export interface InterviewInsightsDocument extends InterviewInsightsResponse {
+  id?: string;
+  updatedAt: any; // Firebase Timestamp
+}
+
+// Mock Interview Types
+export interface MockInterviewSession {
+  id?: string;
+  userId: string;
+  companyName: string;
+  roleLevel: string;
+  roundName: string;
+  roundType: 'dsa' | 'machine_coding' | 'system_design' | 'theory';
+  problems: MockInterviewProblem[];
+  currentProblemIndex: number;
+  status: 'active' | 'completed' | 'evaluated';
+  startedAt: any; // Firebase Timestamp
+  completedAt?: any; // Firebase Timestamp
+  totalScore?: number;
+  feedback?: string;
+}
+
+export interface MockInterviewProblem {
+  id: string;
+  type: 'dsa' | 'machine_coding' | 'system_design' | 'theory';
+  title: string;
+  description: string;
+  difficulty: Difficulty;
+  estimatedTime: string;
+  // DSA specific
+  problemStatement?: string;
+  inputFormat?: string;
+  outputFormat?: string;
+  constraints?: string[];
+  examples?: {
+    input: string;
+    output: string;
+    explanation?: string;
+  }[];
+  category?: string;
+  tags?: string[];
+  // Machine Coding specific
+  requirements?: string[];
+  acceptanceCriteria?: string[];
+  technologies?: string[];
+  hints?: string[];
+  // System Design specific
+  functionalRequirements?: string[];
+  nonFunctionalRequirements?: string[];
+  scale?: {
+    users: string;
+    requestsPerSecond: string;
+    dataSize: string;
+  };
+  expectedDeliverables?: string[];
+  followUpQuestions?: string[];
+  // Theory specific
+  question?: string;
+  expectedAnswer?: string;
+  keyPoints?: string[];
+}
+
+export interface MockInterviewSubmission {
+  problemId: string;
+  type: 'dsa' | 'machine_coding' | 'system_design' | 'theory';
+  code?: string;
+  drawingImage?: string; // base64 for system design
+  answer?: string; // for theory questions
+  submittedAt: any; // Firebase Timestamp
+}
+
+export interface MockInterviewEvaluation {
+  problemId: string;
+  score: number; // out of 100
+  feedback: string;
+  strengths: string[];
+  areasForImprovement: string[];
+  suggestions: string[];
+}
+
+export interface MockInterviewResult {
+  sessionId: string;
+  totalScore: number;
+  averageScore: number;
+  overallFeedback: string;
+  problemEvaluations: MockInterviewEvaluation[];
+  completedAt: any; // Firebase Timestamp
+} 

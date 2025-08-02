@@ -309,7 +309,6 @@ code {
             files={files} 
             options={{}}
             theme={theme}
-            onChange={handleChange}
           >
             <SandpackCodeEditor
               showTabs={false}

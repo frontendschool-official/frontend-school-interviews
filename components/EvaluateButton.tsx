@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import styled from 'styled-components';
 import { evaluateSubmission } from '../services/geminiApi';
-import { saveSubmission } from '../services/firebase';
+import { saveSubmission, markProblemAsAttempted } from '../services/firebase';
 import { useAuth } from '../hooks/useAuth';
 import { exportToBlob } from '@excalidraw/excalidraw';
 
@@ -11,6 +11,9 @@ interface EvaluateButtonProps {
   excalidrawRef: any;
   problemId: string;
   onEvaluated: (feedback: string) => void;
+  interviewType?: 'coding' | 'design' | 'dsa';
+  problemStatement?: string;
+  problemTitle?: string;
 }
 
 const Button = styled.button`
@@ -59,10 +62,20 @@ const RetryButton = styled.button`
   }
 `;
 
-export default function EvaluateButton({ designation, code, excalidrawRef, problemId, onEvaluated }: EvaluateButtonProps) {
+export default function EvaluateButton({ 
+  designation, 
+  code, 
+  excalidrawRef, 
+  problemId, 
+  onEvaluated,
+  interviewType = 'coding',
+  problemStatement = '',
+  problemTitle = ''
+}: EvaluateButtonProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
+  console.log(code, "code");
 
   const handleClick = async () => {
     if (!user) {
@@ -70,63 +83,93 @@ export default function EvaluateButton({ designation, code, excalidrawRef, probl
       return;
     }
 
-    // Check if this is a system design problem and canvas is required
-    if (designation === 'design' && !excalidrawRef.current) {
-      setError('System design canvas is not available. Please refresh the page and try again.');
-      return;
-    }
-
     setLoading(true);
     setError(null);
 
+    // Track problem attempt when user evaluates
     try {
-      // Validate that we have content to evaluate
-      if (designation === 'coding' && !code.trim()) {
-        throw new Error('Please provide some code before evaluating.');
+      await markProblemAsAttempted(user.uid, problemId, {
+        title: designation,
+        type: interviewType,
+        designation,
+        companies: "",
+        round: ""
+      });
+    } catch (error) {
+      console.error('Error tracking problem attempt:', error);
+    }
+
+    try {
+      let evaluationData = {
+        designation,
+        code: '',
+        drawingImage: ''
+      };
+
+      // Build comprehensive context with problem statement
+      const contextWithProblem = problemStatement && problemTitle 
+        ? `Problem: ${problemTitle}\n\nProblem Statement:\n${problemStatement}\n\nCandidate's Solution:\n\`\`\`\n${code}\n\`\`\``
+        : code;
+
+      // Handle different evaluation strategies based on interview type
+      if (interviewType === 'design') {
+        // System Design: Generate image from canvas for evaluation
+        if (!excalidrawRef?.current) {
+          throw new Error('System design canvas is not available. Please refresh the page and try again.');
+        }
+
+        try {
+          const elements = excalidrawRef.current.getSceneElements() || [];
+          const appState = excalidrawRef.current.getAppState() || {};
+          const files = excalidrawRef.current.getFiles() || {};
+          
+          if (!elements || elements.length === 0) {
+            throw new Error('Please add some elements to your system design before evaluating.');
+          }
+
+          // Export canvas to blob and convert to base64
+          const blob = await exportToBlob({ 
+            elements, 
+            appState, 
+            files, 
+            mimeType: 'image/png' 
+          });
+
+          const base64Data = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              const result = reader.result as string;
+              const base64 = result.split(',')[1];
+              resolve(base64);
+            };
+            reader.onerror = () => reject(new Error('Failed to process canvas image'));
+            reader.readAsDataURL(blob);
+          });
+
+          evaluationData.drawingImage = base64Data;
+        } catch (error) {
+          console.error('Error processing system design:', error);
+          throw new Error('Failed to process your system design. Please try again.');
+        }
+      } else {
+        // DSA and Machine Coding: Send all code files for AI evaluation
+        if (!code.trim()) {
+          throw new Error('Please provide some code before evaluating.');
+        }
+
+        // For DSA and machine coding, we send the code with problem context for AI evaluation
+        evaluationData.code = contextWithProblem;
       }
 
-      // Get canvas elements for system design
-      const elements = excalidrawRef.current.getSceneElements();
-      const appState = excalidrawRef.current.getAppState();
-      const files = excalidrawRef.current.getFiles();
-      
-      // Check if there's any content in the canvas for design problems
-      if (designation === 'design' && (!elements || elements.length === 0)) {
-        throw new Error('Please add some elements to your system design before evaluating.');
-      }
-
-      // Export canvas to blob
-      const blob = await exportToBlob({ 
-        elements, 
-        appState, 
-        files, 
-        mimeType: 'image/png' 
-      });
-
-      // Convert blob to base64
-      const base64Data = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const result = reader.result as string;
-          const base64 = result.split(',')[1];
-          resolve(base64);
-        };
-        reader.onerror = () => reject(new Error('Failed to process canvas image'));
-        reader.readAsDataURL(blob);
-      });
-
-      // Evaluate submission
-      const feedback = await evaluateSubmission({ 
-        designation, 
-        code, 
-        drawingImage: base64Data 
-      });
+      // Evaluate submission using AI
+      const feedback = await evaluateSubmission(evaluationData);
 
       // Save submission to database
       await saveSubmission(user.uid, problemId, { 
         designation, 
-        code, 
-        feedback 
+        code: evaluationData.code, 
+        feedback,
+        drawingImage: evaluationData.drawingImage
       });
 
       onEvaluated(feedback);

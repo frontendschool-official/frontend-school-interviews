@@ -254,6 +254,7 @@ interface CodeEditorProps {
   showLineNumbers?: boolean;
   showMinimap?: boolean;
   readOnly?: boolean;
+  onSubmit?: (code: string) => Promise<void>;
 }
 
 export default function CodeEditor({ 
@@ -263,7 +264,8 @@ export default function CodeEditor({
   theme = 'vs-dark',
   showLineNumbers = true,
   showMinimap = true,
-  readOnly = false
+  readOnly = false,
+  onSubmit
 }: CodeEditorProps) {
   const [activeFile, setActiveFile] = useState('App.js');
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -578,6 +580,7 @@ code {
   const handleEditorChange = useCallback(
     (value: string | undefined) => {
       if (value !== undefined) {
+        console.log(value, "value handleEditorChange");
         onChange(value);
       }
     },

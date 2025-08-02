@@ -4,21 +4,27 @@ import { AuthProvider } from '../hooks/useAuth';
 import { ThemeContextProvider, useThemeContext } from '../hooks/useTheme';
 import GlobalStyles from '../styles/GlobalStyles';
 
-function InnerApp({ Component, pageProps }: AppProps) {
-  const { themeObject } = useThemeContext();
+function InnerApp(props: AppProps) {
+  const { themeObject, isInitialized } = useThemeContext();
+  
+  // Don't render until theme is initialized to prevent flash
+  if (!isInitialized) {
+    return null; // or a loading spinner if preferred
+  }
+  
   return (
     <ThemeProvider theme={themeObject}>
       <GlobalStyles />
-      <Component {...pageProps} />
+      <props.Component {...props.pageProps} />
     </ThemeProvider>
   );
 }
 
-export default function MyApp({ Component, pageProps }: AppProps) {
+export default function MyApp(props: AppProps) {
   return (
     <AuthProvider>
       <ThemeContextProvider>
-        <InnerApp Component={Component} pageProps={pageProps} />
+        <InnerApp {...props} />
       </ThemeContextProvider>
     </AuthProvider>
   );

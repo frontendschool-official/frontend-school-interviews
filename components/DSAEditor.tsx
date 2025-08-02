@@ -1,7 +1,10 @@
 import React, { useCallback, useState, useMemo, useRef } from "react";
 import dynamic from "next/dynamic";
 import styled from "styled-components";
-import { FiPlay, FiCheck, FiX, FiCopy, FiRotateCcw } from "react-icons/fi";
+import { FiPlay, FiCheck, FiX, FiCopy, FiRotateCcw, FiMessageSquare } from "react-icons/fi";
+import { BiBrain } from "react-icons/bi";
+import { evaluateSubmission } from "../services/geminiApi";
+import { useAuth } from "../hooks/useAuth";
 
 // Dynamically import Monaco editor to avoid SSR issues
 const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
@@ -44,7 +47,7 @@ const ActionButtons = styled.div`
 `;
 
 const ActionButton = styled.button<{
-  variant?: "primary" | "success" | "danger" | "secondary";
+  variant?: "primary" | "success" | "danger" | "secondary" | "ai";
 }>`
   display: flex;
   align-items: center;
@@ -76,6 +79,12 @@ const ActionButton = styled.button<{
           background: #ef4444;
           color: white;
           &:hover { background: #dc2626; }
+        `;
+      case "ai":
+        return `
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          &:hover { background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%); }
         `;
       default:
         return `
@@ -228,6 +237,94 @@ const ConsoleOutput = styled.div`
   overflow-y: auto;
 `;
 
+// AI Feedback Panel
+const AIFeedbackPanel = styled.div<{ isVisible: boolean }>`
+  height: ${({ isVisible }) => (isVisible ? "400px" : "0")};
+  background: ${({ theme }) => theme.secondary};
+  border-top: 1px solid ${({ theme }) => theme.border};
+  overflow: hidden;
+  transition: height 0.3s ease;
+  display: flex;
+  flex-direction: column;
+`;
+
+const AIFeedbackHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: ${({ theme }) => theme.bodyBg};
+  border-bottom: 1px solid ${({ theme }) => theme.border};
+`;
+
+const AIFeedbackTitle = styled.h4`
+  margin: 0;
+  color: ${({ theme }) => theme.text};
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+const AIFeedbackContent = styled.div`
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+`;
+
+const FeedbackSection = styled.div`
+  background: ${({ theme }) => theme.bodyBg};
+  border: 1px solid ${({ theme }) => theme.border};
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 16px;
+`;
+
+const FeedbackSectionTitle = styled.h5`
+  margin: 0 0 12px 0;
+  color: ${({ theme }) => theme.text};
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+`;
+
+const FeedbackText = styled.div`
+  color: ${({ theme }) => theme.text};
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+`;
+
+const SuggestionList = styled.ul`
+  margin: 8px 0;
+  padding-left: 20px;
+`;
+
+const SuggestionItem = styled.li`
+  margin-bottom: 6px;
+  color: ${({ theme }) => theme.text};
+  font-size: 14px;
+  line-height: 1.5;
+`;
+
+const LoadingSpinner = styled.div`
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`;
+
 const StatusBar = styled.div`
   display: flex;
   align-items: center;
@@ -255,12 +352,24 @@ interface TestCase {
   error?: string;
 }
 
+interface AIFeedback {
+  overallFeedback: string;
+  codeQuality: string;
+  algorithmAnalysis: string;
+  suggestions: string[];
+  improvements: string[];
+  timeComplexity?: string;
+  spaceComplexity?: string;
+}
+
 interface DSAEditorProps {
   code: string;
   onChange: (newCode: string) => void;
   problemId?: string;
   testCases?: TestCase[];
   onSubmit?: (code: string) => Promise<{ success: boolean; message: string }>;
+  problemTitle?: string;
+  problemStatement?: string;
 }
 
 const DEFAULT_JAVASCRIPT_TEMPLATE = `/**
@@ -376,13 +485,18 @@ function DSAEditor({
   problemId = "",
   testCases = [],
   onSubmit,
+  problemTitle = "DSA Problem",
+  problemStatement = "",
 }: DSAEditorProps) {
   const [showTestCases, setShowTestCases] = useState(true);
+  const [showAIFeedback, setShowAIFeedback] = useState(false);
   const [runningTests, setRunningTests] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [gettingAIFeedback, setGettingAIFeedback] = useState(false);
   const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
-  const [currentTestCases, setCurrentTestCases] =
-    useState<TestCase[]>(testCases);
+  const [currentTestCases, setCurrentTestCases] = useState<TestCase[]>(testCases);
+  const [aiFeedback, setAIFeedback] = useState<AIFeedback | null>(null);
+  const { user } = useAuth();
   const editorRef = useRef<any>(null);
 
   const handleEditorChange = useCallback(
@@ -488,6 +602,118 @@ function DSAEditor({
     }
   }, [code, currentTestCases]);
 
+  const handleGetAIFeedback = useCallback(async () => {
+    if (!user) {
+      setConsoleOutput(["❌ Please log in to get AI feedback."]);
+      return;
+    }
+
+    if (!code.trim()) {
+      setConsoleOutput(["❌ Please write some code before getting AI feedback."]);
+      return;
+    }
+
+    setGettingAIFeedback(true);
+    setConsoleOutput(["🤖 Getting AI feedback..."]);
+
+    try {
+      // Create a comprehensive context for AI evaluation
+      const testResults = currentTestCases.map(tc => ({
+        input: tc.input,
+        expected: tc.expectedOutput,
+        actual: tc.actualOutput,
+        status: tc.status,
+        error: tc.error
+      }));
+
+      const context = {
+        problemTitle,
+        problemStatement,
+        code,
+        testResults,
+        passedTests: testResults.filter(t => t.status === 'pass').length,
+        totalTests: testResults.length
+      };
+
+      // Call the AI evaluation service with comprehensive context
+      const feedback = await evaluateSubmission({
+        designation: problemTitle,
+        code: `Problem: ${problemTitle}\n\nProblem Statement: ${problemStatement}\n\nSolution Code:\n\`\`\`javascript\n${code}\n\`\`\`\n\nTest Results:\n${testResults.map((tr, i) => 
+          `Test ${i + 1}: Input=${tr.input}, Expected=${tr.expected}, Actual=${tr.actual || 'Not run'}, Status=${tr.status || 'Not run'}`
+        ).join('\n')}\n\nPassed Tests: ${testResults.filter(t => t.status === 'pass').length}/${testResults.length}`,
+        drawingImage: ""
+      });
+
+      // Try to parse structured feedback from AI response
+      let parsedFeedback: AIFeedback;
+      
+      try {
+        // Look for structured sections in the AI response
+        const sections = feedback.split(/(?=💡|🔍|⚡|🚀|🎯)/);
+        
+        const overallFeedback = sections.find(s => s.includes('Overall') || s.includes('Feedback')) || feedback;
+        const codeQuality = sections.find(s => s.includes('Code Quality') || s.includes('Quality')) || "Code quality analysis provided by AI.";
+        const algorithmAnalysis = sections.find(s => s.includes('Algorithm') || s.includes('Complexity')) || "Algorithm analysis provided by AI.";
+        
+        // Extract suggestions and improvements
+        const suggestionsMatch = feedback.match(/Suggestions?[:\s]*([\s\S]*?)(?=Improvements?|$)/i);
+        const improvementsMatch = feedback.match(/Improvements?[:\s]*([\s\S]*?)(?=Suggestions?|$)/i);
+        
+        const suggestions = suggestionsMatch 
+          ? suggestionsMatch[1].split('\n').filter(s => s.trim().startsWith('-') || s.trim().startsWith('•') || s.trim().startsWith('*'))
+            .map(s => s.replace(/^[-•*]\s*/, '').trim()).filter(s => s.length > 0)
+          : ["Consider optimizing the time complexity", "Add more comments for better readability", "Handle edge cases more explicitly"];
+        
+        const improvements = improvementsMatch
+          ? improvementsMatch[1].split('\n').filter(s => s.trim().startsWith('-') || s.trim().startsWith('•') || s.trim().startsWith('*'))
+            .map(s => s.replace(/^[-•*]\s*/, '').trim()).filter(s => s.length > 0)
+          : ["Use more efficient data structures", "Implement early termination conditions", "Add input validation"];
+        
+        // Extract complexity information
+        const timeComplexityMatch = feedback.match(/Time Complexity[:\s]*([^\n]+)/i);
+        const spaceComplexityMatch = feedback.match(/Space Complexity[:\s]*([^\n]+)/i);
+        
+        parsedFeedback = {
+          overallFeedback: overallFeedback.replace(/^[💡🔍⚡🚀🎯]\s*/, '').trim(),
+          codeQuality: codeQuality.replace(/^[💡🔍⚡🚀🎯]\s*/, '').trim(),
+          algorithmAnalysis: algorithmAnalysis.replace(/^[💡🔍⚡🚀🎯]\s*/, '').trim(),
+          suggestions,
+          improvements,
+          timeComplexity: timeComplexityMatch ? timeComplexityMatch[1].trim() : undefined,
+          spaceComplexity: spaceComplexityMatch ? spaceComplexityMatch[1].trim() : undefined
+        };
+      } catch (parseError) {
+        // Fallback to simple feedback if parsing fails
+        parsedFeedback = {
+          overallFeedback: feedback,
+          codeQuality: "Code quality analysis provided by AI.",
+          algorithmAnalysis: "Algorithm analysis provided by AI.",
+          suggestions: ["Consider optimizing the time complexity", "Add more comments for better readability", "Handle edge cases more explicitly"],
+          improvements: ["Use more efficient data structures", "Implement early termination conditions", "Add input validation"],
+          timeComplexity: "O(n) - Linear time complexity",
+          spaceComplexity: "O(1) - Constant space complexity"
+        };
+      }
+
+      setAIFeedback(parsedFeedback);
+      setShowAIFeedback(true);
+      setConsoleOutput([
+        "✅ AI feedback received!",
+        "💡 Check the AI Feedback panel for detailed analysis and suggestions."
+      ]);
+
+    } catch (error) {
+      console.error('AI feedback error:', error);
+      setConsoleOutput([
+        "❌ Error getting AI feedback: " +
+          (error instanceof Error ? error.message : String(error)),
+        "🔧 Please try again or contact support if the issue persists."
+      ]);
+    } finally {
+      setGettingAIFeedback(false);
+    }
+  }, [code, currentTestCases, user, problemTitle, problemStatement]);
+
   const handleSubmit = useCallback(async () => {
     if (!code.trim()) {
       setConsoleOutput(["❌ Please write some code before submitting."]);
@@ -560,6 +786,8 @@ function DSAEditor({
   const handleReset = useCallback(() => {
     onChange(DEFAULT_JAVASCRIPT_TEMPLATE);
     setConsoleOutput([]);
+    setAIFeedback(null);
+    setShowAIFeedback(false);
     setCurrentTestCases(
       testCases.map((tc) => ({
         ...tc,
@@ -592,6 +820,14 @@ function DSAEditor({
           >
             <FiPlay size={14} />
             {runningTests ? "Running..." : "Run Tests"}
+          </ActionButton>
+          <ActionButton
+            onClick={handleGetAIFeedback}
+            disabled={gettingAIFeedback || !user}
+            variant="ai"
+          >
+            {gettingAIFeedback ? <LoadingSpinner /> : <BiBrain size={14} />}
+            {gettingAIFeedback ? "Analyzing..." : "AI Feedback"}
           </ActionButton>
           <ActionButton
             onClick={handleSubmit}
@@ -696,6 +932,71 @@ function DSAEditor({
           )}
         </TestCasesContent>
       </TestCasesPanel>
+
+      <AIFeedbackPanel isVisible={showAIFeedback && aiFeedback !== null}>
+        <AIFeedbackHeader>
+          <AIFeedbackTitle>
+            <BiBrain size={16} />
+            AI Feedback & Suggestions
+          </AIFeedbackTitle>
+          <ActionButtons>
+            <ActionButton
+              onClick={() => setShowAIFeedback(!showAIFeedback)}
+              variant="secondary"
+            >
+              {showAIFeedback ? "Hide" : "Show"} AI Feedback
+            </ActionButton>
+          </ActionButtons>
+        </AIFeedbackHeader>
+        <AIFeedbackContent>
+          {aiFeedback && (
+            <>
+              <FeedbackSection>
+                <FeedbackSectionTitle>💡 Overall Feedback</FeedbackSectionTitle>
+                <FeedbackText>{aiFeedback.overallFeedback}</FeedbackText>
+              </FeedbackSection>
+
+              <FeedbackSection>
+                <FeedbackSectionTitle>🔍 Code Quality Analysis</FeedbackSectionTitle>
+                <FeedbackText>{aiFeedback.codeQuality}</FeedbackText>
+              </FeedbackSection>
+
+              <FeedbackSection>
+                <FeedbackSectionTitle>⚡ Algorithm Analysis</FeedbackSectionTitle>
+                <FeedbackText>{aiFeedback.algorithmAnalysis}</FeedbackText>
+                {aiFeedback.timeComplexity && (
+                  <div style={{ marginTop: '8px' }}>
+                    <strong>Time Complexity:</strong> {aiFeedback.timeComplexity}
+                  </div>
+                )}
+                {aiFeedback.spaceComplexity && (
+                  <div style={{ marginTop: '4px' }}>
+                    <strong>Space Complexity:</strong> {aiFeedback.spaceComplexity}
+                  </div>
+                )}
+              </FeedbackSection>
+
+              <FeedbackSection>
+                <FeedbackSectionTitle>🚀 Suggestions for Improvement</FeedbackSectionTitle>
+                <SuggestionList>
+                  {aiFeedback.suggestions.map((suggestion, index) => (
+                    <SuggestionItem key={index}>{suggestion}</SuggestionItem>
+                  ))}
+                </SuggestionList>
+              </FeedbackSection>
+
+              <FeedbackSection>
+                <FeedbackSectionTitle>🎯 Specific Improvements</FeedbackSectionTitle>
+                <SuggestionList>
+                  {aiFeedback.improvements.map((improvement, index) => (
+                    <SuggestionItem key={index}>{improvement}</SuggestionItem>
+                  ))}
+                </SuggestionList>
+              </FeedbackSection>
+            </>
+          )}
+        </AIFeedbackContent>
+      </AIFeedbackPanel>
 
       <StatusBar>
         <StatusItem>

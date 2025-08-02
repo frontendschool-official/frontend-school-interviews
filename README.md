@@ -5,11 +5,19 @@ A comprehensive interview preparation platform for frontend developers with AI-p
 ## Features
 
 - **AI-Powered Problem Generation**: Generate machine coding and system design problems using Google's Gemini API
+- **Mock Interview System**: Complete mock interview experience with company-specific problems
+- **AI-Powered Mock Interview Simulator**: Step-by-step interview flow with:
+  - Authentication check using Firebase Auth
+  - Company, role, and round selection
+  - Problem generation using Gemini API
+  - Timed interview sessions with auto-submission
+  - Real-time evaluation and scoring out of 100
 - **Structured Problem Schema**: Comprehensive JSON schema for detailed problem statements
 - **Real-time Code Editor**: Built-in code editor for solving machine coding problems
 - **System Design Canvas**: Interactive canvas for system design problems
-- **AI Evaluation**: Get instant feedback on your solutions with AI-powered evaluation
-- **Progress Tracking**: Track your interview preparation progress
+- **Theory Question Editor**: Text-based editor for theory and conceptual questions
+- **AI Evaluation**: Get instant feedback on your solutions with AI-powered evaluation and scoring
+- **Progress Tracking**: Track your interview preparation progress with timers and progress bars
 - **Firebase Integration**: Secure authentication and data persistence
 - **LeetCode-like UI**: Modern, resizable interface similar to popular coding platforms
 
@@ -83,13 +91,46 @@ if (!isValidProblemSchema(parsedResponse)) {
 }
 ```
 
+## Mock Interview System
+
+The platform now includes a comprehensive mock interview system that provides a realistic interview experience:
+
+### Features
+- **Company-Specific Problems**: Problems tailored to specific companies and role levels
+- **Multiple Round Types**: DSA, Machine Coding, System Design, and Theory rounds
+- **Dynamic Problem Generation**: AI generates unique problems for each session
+- **Real-time Evaluation**: Instant scoring and feedback using Gemini API
+- **Progress Tracking**: Timer, progress bar, and session management
+- **Duplicate Prevention**: Ensures no duplicate problems are stored in the database
+
+### How to Use
+
+1. **Via Interview Simulation**:
+   - Navigate to `/interview-simulation`
+   - Select company, role, and starting round
+   - Get interview insights
+   - Click "Start Mock Interview" on any round
+
+2. **Via Demo Page**:
+   - Navigate to `/mock-interview-demo`
+   - Choose from predefined interview types
+   - Start practicing immediately
+
+### Problem Types
+
+- **DSA Problems**: Data structures and algorithms with test cases
+- **Machine Coding**: React/Vue/Angular component building
+- **System Design**: Frontend architecture and component design
+- **Theory Questions**: JavaScript, React, and frontend concepts
+
 ## Data Flow
 
 1. **Problem Creation**: User configures interview parameters
 2. **AI Generation**: Gemini API generates structured problem statements
 3. **Storage**: Problems are stored in Firebase as JSON strings
 4. **Retrieval**: Problems are parsed and displayed with rich UI
-5. **Evaluation**: User solutions are evaluated by AI
+5. **Evaluation**: User solutions are evaluated by AI with scoring
+6. **Results**: Comprehensive feedback and performance analysis
 
 ## File Structure
 
@@ -97,17 +138,23 @@ if (!isValidProblemSchema(parsedResponse)) {
 ├── components/           # React components
 │   ├── ProblemCard.tsx   # Problem display card
 │   ├── CodeEditor.tsx    # Code editor component
+│   ├── MockInterview.tsx # Complete mock interview component
+│   ├── TheoryEditor.tsx  # Theory question editor
+│   ├── DSAEditor.tsx     # DSA problem editor
+│   ├── SystemDesignCanvas.tsx # System design canvas
 │   └── ...
 ├── pages/               # Next.js pages
 │   ├── problems.tsx     # Problems list
 │   ├── interview/[id].tsx # Interview page
+│   ├── interview-simulation.tsx # Interview simulation with mock interviews
+│   ├── mock-interview-demo.tsx  # Standalone mock interview demo
 │   └── ...
 ├── services/            # API services
-│   ├── geminiApi.ts     # Gemini API integration
-│   ├── firebase.ts      # Firebase integration
+│   ├── geminiApi.ts     # Gemini API integration (problem generation & evaluation)
+│   ├── firebase.ts      # Firebase integration (including mock interview data)
 │   └── ...
 ├── types/               # TypeScript definitions
-│   └── problem.ts       # Problem schema types
+│   └── problem.ts       # Problem schema types (including mock interview types)
 └── ...
 ```
 
@@ -159,6 +206,7 @@ NEXT_PUBLIC_FIREBASE_APP_ID=your_firebase_app_id
 
 ## Usage
 
+### Traditional Problem Solving
 1. **Sign in** with your Google account
 2. **Create a new interview** by specifying:
    - Role/Designation
@@ -168,6 +216,14 @@ NEXT_PUBLIC_FIREBASE_APP_ID=your_firebase_app_id
 3. **Solve the generated problem** using the built-in tools
 4. **Get AI feedback** on your solution
 5. **Track your progress** across multiple problems
+
+### Mock Interview System
+1. **Start a Mock Interview**:
+   - Via Interview Simulation: Go to `/interview-simulation` and click "Start Mock Interview"
+   - Via Demo Page: Go to `/mock-interview-demo` and choose an interview type
+2. **Complete 3 Problems**: Each mock interview includes 3 problems of the same type
+3. **Get Real-time Feedback**: Receive instant scoring and detailed feedback after each problem
+4. **View Final Results**: See your overall performance with strengths and areas for improvement
 
 ## Technical Stack
 
