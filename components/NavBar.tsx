@@ -4,6 +4,7 @@ import styled from "styled-components";
 import { useThemeContext } from "../hooks/useTheme";
 import { useAuth } from "../hooks/useAuth";
 import ThemeToggle from "./ThemeToggle";
+import { FaUser } from 'react-icons/fa';
 
 const Bar = styled.header`
   width: 100%;
@@ -72,16 +73,29 @@ const UserArea = styled.div`
   gap: 1rem;
 `;
 
-const Avatar = styled.img`
+const Avatar = styled.div`
   width: 40px;
   height: 40px;
   border-radius: 50%;
   border: 2px solid ${({ theme }) => theme.neutral}30;
   transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, ${({ theme }) => theme.primary}, ${({ theme }) => theme.accent});
+  color: white;
+  cursor: pointer;
 
   &:hover {
     border-color: ${({ theme }) => theme.neutralDark};
     transform: scale(1.1);
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
   }
 `;
 
@@ -120,17 +134,66 @@ const LoginLink = styled(Link)`
   }
 `;
 
+const PremiumTag = styled.div`
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  color: #000;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+  border: 1px solid #ffd700;
+  transition: all 0.3s ease;
+  cursor: pointer;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
+    background: linear-gradient(135deg, #ffed4e 0%, #ffd700 100%);
+  }
+`;
+
+const PremiumUpgradeLink = styled(Link)`
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  color: #000;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-decoration: none;
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+  border: 1px solid #ffd700;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
+    background: linear-gradient(135deg, #ffed4e 0%, #ffd700 100%);
+  }
+`;
+
 export default function NavBar() {
   const { theme, toggleTheme } = useThemeContext();
   const { user, signOut } = useAuth();
   const router = useRouter();
 
+  // TODO: Implement premium user check from Firebase
+  // For now, assume all users are non-premium
+  const isPremiumUser = false;
+
+
+
   const menuLinks = [
-    { href: "/", label: "Home", auth: false },
+    // { href: "/", label: "Home", auth: false },
+    { href: "/dashboard", label: "Dashboard", auth: true },
     { href: "/problems", label: "Problems", auth: true },
-    { href: "/interview-simulation", label: "Interview Sim", auth: true },
-    { href: "/mock-interview-setup", label: "Mock Interview", auth: true },
-    { href: "/solved", label: "Solved", auth: true },
+    { href: "/practice", label: "Practice", auth: true },
+    { href: "/mock-interviews", label: "Mock Interviews", auth: true },
+    { href: "/premium", label: "Premium", auth: false },
   ];
 
   return (
@@ -153,7 +216,15 @@ export default function NavBar() {
         <ThemeToggle onToggle={toggleTheme} />
         {user ? (
           <>
-            {user.photoURL && <Avatar src={user.photoURL} alt="avatar" />}
+            <Link href="/profile" passHref legacyBehavior>
+              <Avatar>
+                {user.photoURL ? (
+                  <img src={user.photoURL} alt="avatar" />
+                ) : (
+                  <FaUser />
+                )}
+              </Avatar>
+            </Link>
             <SignOutButton onClick={signOut}>Sign Out</SignOutButton>
           </>
         ) : (

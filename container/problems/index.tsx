@@ -19,6 +19,7 @@ import {
   Grid,
   EmptyState,
 } from "./problems.styled";
+import Layout from "@/components/Layout";
 
 export default function ProblemsPage() {
   const { user, loading } = useAuth();
@@ -55,36 +56,18 @@ export default function ProblemsPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <>
-        <NavBar />
-        <PageContainer>
-          <LoadingContainer>Loading authentication...</LoadingContainer>
-        </PageContainer>
-      </>
-    );
-  }
-
-  if (loadingProblems) {
-    return (
-      <>
-        <NavBar />
-        <PageContainer>
-          <LoadingContainer>Loading problems...</LoadingContainer>
-        </PageContainer>
-      </>
-    );
-  }
-
   // Show Firebase configuration error if present
   if (firebaseError) {
     return <FirebaseConfigError />;
   }
   console.log(problems, "problems");
   return (
-    <>
-      <NavBar />
+    <Layout
+      isLoading={loadingProblems || loading}
+      loadingText="Loading problems..."
+      handleRetry={() => {}}
+      handleBack={() => {}}
+    >
       <PageContainer>
         <Header>
           <Title>All Available Problems</Title>
@@ -161,6 +144,6 @@ export default function ProblemsPage() {
           onSubmit={handleStartInterview}
         />
       </PageContainer>
-    </>
+    </Layout>
   );
 }

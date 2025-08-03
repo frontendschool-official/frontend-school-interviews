@@ -70,8 +70,8 @@ export const useInterviewGeneration = () => {
         id: docRef.id,
         userId: user.uid,
         title: interviewType === 'dsa' 
-          ? result.dsaProblem?.title || 'DSA Problem'
-          : result.machineCodingProblem?.title || 'Coding Problem',
+          ? 'DSA Problem'
+          : 'Coding Problem',
         designation,
         companies,
         round,

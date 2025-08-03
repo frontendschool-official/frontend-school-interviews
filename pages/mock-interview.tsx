@@ -1,307 +1,531 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/router';
-import styled from 'styled-components';
-import { FiClock, FiCheck, FiX, FiArrowRight, FiArrowLeft, FiAward, FiAlertCircle } from 'react-icons/fi';
-import { useAuth } from '../hooks/useAuth';
-import { useThemeContext } from '../hooks/useTheme';
-import NavBar from '../components/NavBar';
-import DSAEditor from '../components/DSAEditor';
-import CodeEditor from '../components/CodeEditor';
-import SystemDesignCanvas from '../components/SystemDesignCanvas';
-import TheoryEditor from '../components/TheoryEditor';
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/router";
+import styled from "styled-components";
 import {
-  MockInterviewProblem,
-  MockInterviewSubmission,
-  MockInterviewEvaluation,
-  MockInterviewResult
-} from '../types/problem';
+  FiPlay,
+  FiClock,
+  FiCheck,
+  FiX,
+  FiArrowRight,
+  FiSearch,
+  FiFilter,
+  FiHome,
+  FiUser,
+  FiTarget,
+  FiZap,
+  FiCode,
+  FiAward,
+  FiBarChart2,
+  FiBookOpen,
+} from "react-icons/fi";
+import { useAuth } from "../hooks/useAuth";
+import { useThemeContext } from "../hooks/useTheme";
+import NavBar from "../components/NavBar";
+import { MockInterviewSession, MockInterviewProblem } from "../types/problem";
 import {
-  getMockInterviewSession,
-  updateMockInterviewSession,
-  saveMockInterviewSubmission,
-  saveMockInterviewResult
-} from '../services/firebase';
-import {
-  evaluateMockInterviewSubmission
-} from '../services/geminiApi';
+  createMockInterviewSession,
+  getProblemsByCompanyRoleRound,
+} from "../services/firebase";
+import { generateMockInterviewProblem } from "../services/geminiApi";
 import {
   PageContainer,
-  ContentContainer,
+  MainContainer,
   PageHeader,
   PageTitle,
   PageSubtitle,
   Card,
+  SelectableCard,
+  CardTitle,
+  CardDescription,
+  CardMeta,
+  Grid,
   Button,
   ButtonContainer,
   LoadingContainer,
   LoadingSpinner,
   LoadingText,
+  Modal,
+  ModalContent,
+  ModalTitle,
+  ModalInfo,
+  InfoRow,
+  InfoLabel,
+  InfoValue,
+  ModalButtons,
+  Section,
+  SectionTitle,
+  SectionSubtitle,
   ErrorMessage,
-  ProgressContainer,
-  ProgressHeader,
-  ProgressText,
-  ProgressBar,
-  ProgressFill,
-  TimerContainer,
-  TimeWarning,
-  DifficultyBadge,
-  FlexContainer
-} from '../styles/SharedUI';
+} from "../styles/SharedUI";
 
-// Additional styled components specific to this page
-const ProblemContainer = styled.div`
-  background: ${({ theme }) => theme.secondary};
-  border-radius: 12px;
-  box-shadow: 0 2px 8px ${({ theme }) => theme.border}20;
-  border: 1px solid ${({ theme }) => theme.border};
-  overflow: hidden;
-  min-height: 600px;
-`;
-
-const ProblemHeader = styled.div`
-  padding: 20px;
-  border-bottom: 1px solid ${({ theme }) => theme.border};
+// Enhanced themed components
+const InterviewContainer = styled.div`
   background: ${({ theme }) => theme.bodyBg};
+  min-height: 100vh;
+  transition: all 0.3s ease;
 `;
 
-const ProblemTitle = styled.h2`
-  color: ${({ theme }) => theme.neutralDark};
-  margin: 0 0 10px 0;
-  font-size: 1.5rem;
+const CompactMainContainer = styled(MainContainer)`
+  padding: 15px;
+  max-width: 1400px;
+`;
+
+const EnhancedCard = styled(Card)`
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px ${({ theme }) => theme.border}10;
+  border: 1px solid ${({ theme }) => theme.border};
+  transition: all 0.3s ease;
+  animation: ${({ theme }) => theme.fadeInUp || "none"} 0.6s ease-out;
+
+  &:hover {
+    box-shadow: 0 6px 20px ${({ theme }) => theme.border}20;
+    transform: translateY(-1px);
+  }
+`;
+
+const EnhancedGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+`;
+
+const EnhancedSelectableCard = styled(SelectableCard)`
+  padding: 1rem;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      ${({ theme }) => theme.primary}10 50%,
+      transparent 100%
+    );
+    transition: left 0.5s ease;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px ${({ theme }) => theme.border}25;
+
+    &::before {
+      left: 100%;
+    }
+  }
+
+  ${({ selected, theme }) =>
+    selected &&
+    `
+    border-color: ${theme.primary};
+    box-shadow: 0 4px 15px ${theme.primary}25;
+    background: ${theme.primary}05;
+    
+    &::after {
+      content: '✓';
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      width: 20px;
+      height: 20px;
+      background: ${theme.primary};
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      font-weight: bold;
+      animation: ${theme.pulse || "none"} 0.6s ease-in-out;
+    }
+  `}
+`;
+
+const EnhancedSection = styled(Section)`
+  margin-bottom: 1.5rem;
+  animation: ${({ theme }) => theme.fadeInUp || "none"} 0.6s ease-out;
+`;
+
+const EnhancedSectionTitle = styled(SectionTitle)`
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(
+    135deg,
+    ${({ theme }) => theme.neutralDark} 0%,
+    ${({ theme }) => theme.neutral} 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+`;
+
+const EnhancedSectionSubtitle = styled(SectionSubtitle)`
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  color: ${({ theme }) => theme.neutral};
+`;
+
+const EnhancedCardTitle = styled(CardTitle)`
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
   font-weight: 600;
 `;
 
-const ProblemMeta = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 15px;
+const EnhancedCardDescription = styled(CardDescription)`
+  font-size: 0.8rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+`;
+
+const EnhancedCardMeta = styled(CardMeta)`
+  font-size: 0.7rem;
+  gap: 0.25rem;
   color: ${({ theme }) => theme.neutral};
-  font-size: 0.9rem;
 `;
 
-const ProblemDescription = styled.div`
-  padding: 20px;
-  color: ${({ theme }) => theme.neutral};
-  line-height: 1.6;
-  white-space: pre-wrap;
+const EnhancedButtonContainer = styled(ButtonContainer)`
+  margin-top: 1.5rem;
+  text-align: center;
 `;
 
-const EditorContainer = styled.div`
-  height: 600px;
-`;
-
-const NavigationContainer = styled.div`
+const StatsContainer = styled.div`
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px;
+  justify-content: center;
+  gap: 1rem;
+  margin: 0.75rem 0;
+  flex-wrap: wrap;
+`;
+
+const StatItem = styled.div`
+  text-align: center;
+  padding: 0.75rem;
   background: ${({ theme }) => theme.secondary};
-  border-top: 1px solid ${({ theme }) => theme.border};
+  border-radius: 8px;
+  border: 1px solid ${({ theme }) => theme.border};
+  min-width: 80px;
 `;
+
+const StatNumber = styled.div`
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: ${({ theme }) => theme.primary};
+  margin-bottom: 0.25rem;
+`;
+
+const StatLabel = styled.div`
+  font-size: 0.7rem;
+  color: ${({ theme }) => theme.neutral};
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+`;
+
+// Types
+interface Company {
+  name: string;
+  description: string;
+  logo?: string;
+  category?: string;
+}
+
+interface Role {
+  id: string;
+  name: string;
+  description: string;
+  level: "entry" | "mid" | "senior";
+}
+
+interface Round {
+  id: string;
+  name: string;
+  description: string;
+  duration: number; // in minutes
+  type:
+    | "Machine Coding"
+    | "System Design"
+    | "JavaScript Concepts"
+    | "DSA"
+    | "Theory";
+}
+
+// Sample data
+const COMPANIES: Company[] = [
+  {
+    name: "Amazon",
+    description: "E-commerce and cloud computing",
+    category: "Tech Giants",
+  },
+  {
+    name: "Google",
+    description: "Search and AI technology",
+    category: "Tech Giants",
+  },
+  {
+    name: "Microsoft",
+    description: "Software and cloud services",
+    category: "Tech Giants",
+  },
+  {
+    name: "Meta",
+    description: "Social media and technology",
+    category: "Tech Giants",
+  },
+  {
+    name: "Apple",
+    description: "Consumer electronics and software",
+    category: "Tech Giants",
+  },
+  {
+    name: "Netflix",
+    description: "Streaming entertainment",
+    category: "Tech Giants",
+  },
+  {
+    name: "Shopify",
+    description: "E-commerce platform",
+    category: "E-commerce",
+  },
+  { name: "Stripe", description: "Payment processing", category: "E-commerce" },
+  {
+    name: "Uber",
+    description: "Ride-sharing and delivery",
+    category: "Transportation",
+  },
+  {
+    name: "Airbnb",
+    description: "Online marketplace for lodging",
+    category: "Travel",
+  },
+  {
+    name: "PayPal",
+    description: "Digital payments platform",
+    category: "Finance",
+  },
+  {
+    name: "Twitter",
+    description: "Social media platform",
+    category: "Social Media",
+  },
+];
+
+const ROLES: Role[] = [
+  {
+    id: "sde1",
+    name: "SDE1",
+    description: "Software Development Engineer I - Entry level",
+    level: "entry",
+  },
+  {
+    id: "sde2",
+    name: "SDE2",
+    description: "Software Development Engineer II - Mid level",
+    level: "mid",
+  },
+  {
+    id: "sde3",
+    name: "SDE3",
+    description: "Software Development Engineer III - Senior level",
+    level: "senior",
+  },
+];
+
+const ROUNDS: Round[] = [
+  {
+    id: "round1",
+    name: "Round 1",
+    description: "Technical screening and coding assessment",
+    duration: 45,
+    type: "Machine Coding",
+  },
+  {
+    id: "round2",
+    name: "Round 2",
+    description: "System design and architecture discussion",
+    duration: 60,
+    type: "System Design",
+  },
+  {
+    id: "round3",
+    name: "Round 3",
+    description: "JavaScript concepts and frontend fundamentals",
+    duration: 30,
+    type: "JavaScript Concepts",
+  },
+  {
+    id: "round4",
+    name: "Round 4",
+    description: "Data structures and algorithms",
+    duration: 45,
+    type: "DSA",
+  },
+  {
+    id: "theory",
+    name: "Theory Round",
+    description: "JavaScript theory and concepts assessment",
+    duration: 30,
+    type: "Theory",
+  },
+];
 
 export default function MockInterview() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const { themeObject } = useThemeContext();
-  
-  const [session, setSession] = useState<any>(null);
-  const [currentProblemIndex, setCurrentProblemIndex] = useState(0);
-  const [currentProblem, setCurrentProblem] = useState<MockInterviewProblem | null>(null);
-  const [code, setCode] = useState('');
-  const [answer, setAnswer] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [evaluating, setEvaluating] = useState(false);
-  const [showResults, setShowResults] = useState(false);
-  const [evaluations, setEvaluations] = useState<MockInterviewEvaluation[]>([]);
-  const [overallFeedback, setOverallFeedback] = useState('');
-  const [totalScore, setTotalScore] = useState(0);
-  const [timeRemaining, setTimeRemaining] = useState(0);
-  const [showTimeWarning, setShowTimeWarning] = useState(false);
+  const { type } = router.query;
+
+  const [step, setStep] = useState<"setup" | "interview" | "loading">("setup");
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+  const [selectedRound, setSelectedRound] = useState<Round | null>(null);
+  const [selectedInterviewType, setSelectedInterviewType] =
+    useState<string>("");
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [showOverview, setShowOverview] = useState(false);
+  const [currentProblemIndex, setCurrentProblemIndex] = useState(0);
+  const [problems, setProblems] = useState<MockInterviewProblem[]>([]);
+  const [session, setSession] = useState<MockInterviewSession | null>(null);
 
-  // Load session
+  // Handle type parameter from URL
   useEffect(() => {
-    const loadSession = async () => {
-      if (!user) return;
+    if (type && typeof type === "string") {
+      const interviewType = type.toLowerCase();
 
-      try {
-        setLoading(true);
-        
-        // Mock session for demo
-        const mockSession = {
-          id: 'mock-session-' + Date.now(),
-          userId: user.uid,
-          company: 'Amazon',
-          role: 'SDE2',
-          round: 'Round 1',
-          interviewType: 'Machine Coding',
-          problems: [
-            {
-              id: 'problem-1',
-              type: 'machine_coding' as const,
-              title: 'Todo List Component',
-              description: 'Build a React todo list component with add, delete, and toggle functionality.',
-              difficulty: 'medium' as const,
-              estimatedTime: '45 minutes',
-              requirements: ['Add new todos', 'Delete todos', 'Toggle completion status'],
-              acceptanceCriteria: ['Component renders correctly', 'All CRUD operations work'],
-              technologies: ['React', 'TypeScript']
-            }
-          ],
-          startTime: null,
-          status: 'Not Started',
-          score: null,
-          feedback: null
-        };
+      // Find the appropriate round based on the type
+      const matchingRound = ROUNDS.find(
+        (round) =>
+          round.type.toLowerCase().replace(" ", "_") === interviewType ||
+          round.type.toLowerCase().replace(" ", "") === interviewType ||
+          round.type.toLowerCase() === interviewType
+      );
 
-        setSession(mockSession);
-        setCurrentProblem(mockSession.problems[0]);
-        setTimeRemaining(45 * 60);
-      } catch (error) {
-        console.error('Error loading session:', error);
-        setError('Failed to load interview session');
-      } finally {
-        setLoading(false);
+      if (matchingRound) {
+        setSelectedRound(matchingRound);
+        setSelectedInterviewType(matchingRound.type);
       }
-    };
+    }
+  }, [type]);
 
-    loadSession();
-  }, [user]);
-
-  // Timer effect
+  // Check authentication
   useEffect(() => {
-    if (session && session.status === 'In Progress' && timeRemaining > 0) {
-      intervalRef.current = setInterval(() => {
-        setTimeRemaining(prev => {
-          const newTime = prev - 1;
-          
-          if (newTime === 300) {
-            setShowTimeWarning(true);
-          }
-          
-          if (newTime <= 0) {
-            handleAutoSubmit();
-            return 0;
-          }
-          
-          return newTime;
-        });
-      }, 1000);
+    if (!authLoading && !user) {
+      router.push("/login");
     }
+  }, [user, authLoading, router]);
 
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
+  const handleCompanySelect = (company: Company) => {
+    setSelectedCompany(company);
+    setError(null);
+  };
+
+  const handleRoleSelect = (role: Role) => {
+    setSelectedRole(role);
+    setError(null);
+  };
+
+  const handleRoundSelect = (round: Round) => {
+    setSelectedRound(round);
+    setSelectedInterviewType(round.type);
+    setError(null);
+  };
+
+  const canProceed = selectedCompany && selectedRole && selectedRound;
+
+  const handleStartInterview = async () => {
+    if (!canProceed || !user) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Check if problems already exist for this combination
+      const existingProblems = await getProblemsByCompanyRoleRound(
+        selectedCompany.name,
+        selectedRole.name,
+        selectedRound.name,
+        selectedInterviewType
+      );
+
+      let interviewProblems: MockInterviewProblem[] = [];
+
+      if (existingProblems.length > 0) {
+        // Use existing problems
+        interviewProblems = existingProblems;
+      } else {
+        // Generate new problems using Gemini API
+        const problemPromises = Array.from({ length: 3 }, () =>
+          generateMockInterviewProblem(
+            selectedInterviewType.toLowerCase().replace(" ", "_") as any,
+            selectedCompany.name,
+            selectedRole.name,
+            "medium"
+          )
+        );
+
+        interviewProblems = await Promise.all(problemPromises);
       }
-    };
-  }, [session]);
 
-  const startInterview = async () => {
-    if (!session) return;
-
-    try {
-      const updatedSession = {
-        ...session,
-        startTime: new Date(),
-        status: 'In Progress'
+      // Create interview session
+      const sessionData = {
+        userId: user.uid,
+        companyName: selectedCompany.name,
+        roleLevel: selectedRole.name,
+        roundName: selectedRound.name,
+        roundType: selectedInterviewType.toLowerCase().replace(" ", "_") as
+          | "dsa"
+          | "machine_coding"
+          | "system_design"
+          | "theory",
+        problems: interviewProblems,
+        currentProblemIndex: 0,
+        status: "active" as const,
+        startedAt: new Date(),
       };
 
-      await updateMockInterviewSession(session.id, updatedSession);
-      setSession(updatedSession);
+      const newSession = await createMockInterviewSession(sessionData);
+      setSession(newSession);
+      setProblems(interviewProblems);
+
+      // Start the interview
+      setStep("interview");
     } catch (error) {
-      console.error('Error starting interview:', error);
-      setError('Failed to start interview');
-    }
-  };
-
-  const handleAutoSubmit = async () => {
-    if (!currentProblem) return;
-
-    try {
-      setEvaluating(true);
-      
-      const submission: MockInterviewSubmission = {
-        problemId: currentProblem.id,
-        type: currentProblem.type,
-        code: code || 'No code submitted - time ran out',
-        submittedAt: new Date() as any
-      };
-
-      await saveMockInterviewSubmission(submission);
-      
-      const evaluation = await evaluateMockInterviewSubmission(currentProblem, submission);
-      setEvaluations(prev => [...prev, evaluation]);
-
-      await completeInterview();
-    } catch (error) {
-      console.error('Error auto-submitting:', error);
+      console.error("Error starting interview:", error);
+      setError("Failed to start interview. Please try again.");
     } finally {
-      setEvaluating(false);
+      setLoading(false);
     }
   };
 
-  const handleSubmit = async (submission: MockInterviewSubmission) => {
-    if (!currentProblem) return;
-
-    try {
-      setEvaluating(true);
-      
-      await saveMockInterviewSubmission(submission);
-      
-      const evaluation = await evaluateMockInterviewSubmission(currentProblem, submission);
-      setEvaluations(prev => [...prev, evaluation]);
-
-      await completeInterview();
-    } catch (error) {
-      console.error('Error handling submission:', error);
-    } finally {
-      setEvaluating(false);
+  const handleNextProblem = () => {
+    if (currentProblemIndex < problems.length - 1) {
+      setCurrentProblemIndex(currentProblemIndex + 1);
+    } else {
+      // Interview completed
+      setStep("loading");
+      // Navigate to results or completion page
+      router.push("/mock-interviews");
     }
   };
 
-  const completeInterview = async () => {
-    if (!session) return;
-
-    try {
-      const totalScore = evaluations.reduce((sum, evaluation) => sum + evaluation.score, 0);
-      const averageScore = totalScore / evaluations.length;
-      
-      const overallFeedback = `You completed the ${session.round} interview with an average score of ${averageScore.toFixed(1)}/100.`;
-
-      const result: MockInterviewResult = {
-        sessionId: session.id,
-        totalScore,
-        averageScore,
-        overallFeedback,
-        problemEvaluations: evaluations,
-        completedAt: new Date() as any
-      };
-
-      await saveMockInterviewResult(result);
-      await updateMockInterviewSession(session.id, {
-        status: 'Evaluated',
-        score: totalScore,
-        feedback: overallFeedback
-      });
-
-      setTotalScore(totalScore);
-      setOverallFeedback(overallFeedback);
-      setShowResults(true);
-    } catch (error) {
-      console.error('Error completing interview:', error);
+  const handlePreviousProblem = () => {
+    if (currentProblemIndex > 0) {
+      setCurrentProblemIndex(currentProblemIndex - 1);
     }
-  };
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   if (authLoading) {
     return (
       <PageContainer>
+        <NavBar />
         <LoadingContainer>
           <LoadingSpinner />
           <LoadingText>Loading...</LoadingText>
@@ -311,184 +535,303 @@ export default function MockInterview() {
   }
 
   if (!user) {
-    router.push('/login');
     return null;
   }
 
-  if (loading) {
-    return (
-      <PageContainer>
-        <LoadingContainer>
-          <LoadingSpinner />
-          <LoadingText>Loading your interview session...</LoadingText>
-        </LoadingContainer>
-      </PageContainer>
-    );
-  }
+  if (step === "interview" && problems.length > 0) {
+    const currentProblem = problems[currentProblemIndex];
 
-  if (error) {
     return (
-      <PageContainer>
-        <ContentContainer>
+      <InterviewContainer>
+        <NavBar />
+        <CompactMainContainer>
           <PageHeader>
-            <PageTitle>Mock Interview</PageTitle>
-            <PageSubtitle>Error occurred</PageSubtitle>
+            <PageTitle>Mock Interview - {selectedCompany?.name}</PageTitle>
+            <PageSubtitle>
+              {selectedRole?.name} • {selectedRound?.name} • Problem{" "}
+              {currentProblemIndex + 1} of {problems.length}
+            </PageSubtitle>
           </PageHeader>
-          <Card>
-            <div style={{ textAlign: 'center', padding: '40px' }}>
-              <p>{error}</p>
-              <Button onClick={() => router.push('/mock-interview-setup')}>
-                Start New Interview
-              </Button>
+
+          <EnhancedCard>
+            <EnhancedSectionTitle>
+              Problem {currentProblemIndex + 1}
+            </EnhancedSectionTitle>
+            <EnhancedSectionSubtitle>
+              {currentProblem.title}
+            </EnhancedSectionSubtitle>
+
+            <div
+              style={{
+                background: themeObject.secondary,
+                padding: "1rem",
+                borderRadius: "8px",
+                marginBottom: "1rem",
+                border: `1px solid ${themeObject.border}`,
+              }}
+            >
+              <h3 style={{ marginBottom: "0.5rem", color: themeObject.text }}>
+                Problem Description:
+              </h3>
+              <p style={{ color: themeObject.neutral, lineHeight: "1.6" }}>
+                {currentProblem.description}
+              </p>
             </div>
-          </Card>
-        </ContentContainer>
-      </PageContainer>
-    );
-  }
 
-  if (showResults) {
-    return (
-      <PageContainer>
-        <ContentContainer>
-          <PageHeader>
-            <PageTitle>Interview Complete!</PageTitle>
-            <PageSubtitle>{session?.company} - {session?.role} - {session?.round}</PageSubtitle>
-          </PageHeader>
-          <Card>
-            <div style={{ textAlign: 'center', padding: '40px' }}>
-              <h2>Score: {Math.round(totalScore / evaluations.length)}/100</h2>
-              <p>{overallFeedback}</p>
-              <Button onClick={() => router.push('/mock-interview-setup')}>
-                Start New Interview
-              </Button>
+            {currentProblem.examples && currentProblem.examples.length > 0 && (
+              <div
+                style={{
+                  background: themeObject.primary + "10",
+                  padding: "1rem",
+                  borderRadius: "8px",
+                  marginBottom: "1rem",
+                  border: `1px solid ${themeObject.primary + "20"}`,
+                }}
+              >
+                <h4
+                  style={{ marginBottom: "0.5rem", color: themeObject.primary }}
+                >
+                  Examples:
+                </h4>
+                {currentProblem.examples.map((example, index) => (
+                  <div key={index} style={{ marginBottom: "0.5rem" }}>
+                    <strong style={{ color: themeObject.text }}>
+                      Example {index + 1}:
+                    </strong>
+                    <p
+                      style={{
+                        color: themeObject.neutral,
+                        margin: "0.25rem 0",
+                      }}
+                    >
+                      {typeof example === "string"
+                        ? example
+                        : JSON.stringify(example)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div
+              style={{
+                background: themeObject.accent + "10",
+                padding: "1rem",
+                borderRadius: "8px",
+                marginBottom: "1rem",
+                border: `1px solid ${themeObject.accent + "20"}`,
+              }}
+            >
+              <h4 style={{ marginBottom: "0.5rem", color: themeObject.accent }}>
+                Your Answer:
+              </h4>
+              <textarea
+                style={{
+                  width: "100%",
+                  minHeight: "200px",
+                  padding: "1rem",
+                  border: `1px solid ${themeObject.border}`,
+                  borderRadius: "8px",
+                  background: themeObject.secondary,
+                  color: themeObject.text,
+                  fontFamily: "monospace",
+                  fontSize: "0.9rem",
+                  resize: "vertical",
+                }}
+                placeholder="Write your answer here..."
+              />
             </div>
-          </Card>
-        </ContentContainer>
-      </PageContainer>
-    );
-  }
 
-  if (!session) {
-    return (
-      <PageContainer>
-        <LoadingContainer>
-          <LoadingSpinner />
-          <LoadingText>No interview session found...</LoadingText>
-        </LoadingContainer>
-      </PageContainer>
-    );
-  }
-
-  if (session.status === 'Not Started') {
-    return (
-      <PageContainer>
-        <ContentContainer>
-          <PageHeader>
-            <PageTitle>Ready to Start?</PageTitle>
-            <PageSubtitle>{session.company} - {session.role} - {session.round}</PageSubtitle>
-          </PageHeader>
-          <Card>
-            <div style={{ textAlign: 'center', padding: '40px' }}>
-              <p>You're about to start a {session.interviewType} interview for {session.company}.</p>
-              <Button variant="primary" onClick={startInterview}>
-                Start Interview
+            <EnhancedButtonContainer>
+              <Button
+                variant="secondary"
+                onClick={handlePreviousProblem}
+                disabled={currentProblemIndex === 0}
+                style={{ marginRight: "1rem" }}
+              >
+                <FiArrowRight
+                  size={16}
+                  style={{ transform: "rotate(180deg)" }}
+                />
+                Previous
               </Button>
-            </div>
-          </Card>
-        </ContentContainer>
-      </PageContainer>
-    );
-  }
 
-  if (!currentProblem) {
-    return (
-      <PageContainer>
-        <LoadingContainer>
-          <LoadingSpinner />
-          <LoadingText>Loading problem...</LoadingText>
-        </LoadingContainer>
-      </PageContainer>
+              <Button onClick={handleNextProblem} size="large">
+                {currentProblemIndex === problems.length - 1 ? (
+                  <>
+                    <FiCheck size={16} />
+                    Complete Interview
+                  </>
+                ) : (
+                  <>
+                    Next Problem
+                    <FiArrowRight size={16} />
+                  </>
+                )}
+              </Button>
+            </EnhancedButtonContainer>
+          </EnhancedCard>
+        </CompactMainContainer>
+      </InterviewContainer>
     );
   }
 
   return (
-    <PageContainer>
+    <InterviewContainer>
       <NavBar />
-      <ContentContainer>
-        <PageHeader>
-          <PageTitle>Mock Interview - {session.round}</PageTitle>
-          <PageSubtitle>{session.company} • {session.role} • {session.interviewType}</PageSubtitle>
-        </PageHeader>
 
-      {showTimeWarning && (
-        <TimeWarning>
-          <FiAlertCircle size={16} />
-          5 minutes remaining! Please wrap up your solution.
-        </TimeWarning>
-      )}
+      <CompactMainContainer>
+        {/* <PageHeader style={{ padding: "1.5rem", marginBottom: "1rem" }}>
+          <PageTitle style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>
+            {type
+              ? `${
+                  typeof type === "string"
+                    ? type.charAt(0).toUpperCase() + type.slice(1)
+                    : type[0]?.charAt(0).toUpperCase() + type[0]?.slice(1)
+                } Mock Interview`
+              : "Mock Interview Setup"}
+          </PageTitle>
+          <PageSubtitle style={{ fontSize: "1rem" }}>
+            Configure your AI-powered mock interview experience
+          </PageSubtitle>
+        </PageHeader> */}
 
-      <TimerContainer>
-        <FiClock size={20} />
-        {formatTime(timeRemaining)}
-      </TimerContainer>
+        {/* Step 1: Company Selection */}
+        <EnhancedSection>
+          <EnhancedCard>
+            <EnhancedSectionTitle>Step 1: Select Company</EnhancedSectionTitle>
+            <EnhancedSectionSubtitle>
+              Choose the company you want to practice interviewing for
+            </EnhancedSectionSubtitle>
 
-      <ProgressContainer>
-        <ProgressHeader>
-          <ProgressText isBold>Problem {currentProblemIndex + 1} of {session.problems.length}</ProgressText>
-        </ProgressHeader>
-        <ProgressBar>
-          <ProgressFill percentage={((currentProblemIndex + 1) / session.problems.length) * 100} />
-        </ProgressBar>
-      </ProgressContainer>
+            <StatsContainer>
+              <StatItem>
+                <StatNumber>{COMPANIES.length}</StatNumber>
+                <StatLabel>Companies</StatLabel>
+              </StatItem>
+              <StatItem>
+                <StatNumber>{selectedCompany ? 1 : 0}</StatNumber>
+                <StatLabel>Selected</StatLabel>
+              </StatItem>
+            </StatsContainer>
 
-      <ProblemContainer>
-        <ProblemHeader>
-          <ProblemTitle>{currentProblem.title}</ProblemTitle>
-          <ProblemMeta>
-            <DifficultyBadge difficulty={currentProblem.difficulty}>
-              {currentProblem.difficulty}
-            </DifficultyBadge>
-            <span>Estimated Time: {currentProblem.estimatedTime}</span>
-            <span>Type: {currentProblem.type.replace('_', ' ').toUpperCase()}</span>
-          </ProblemMeta>
-        </ProblemHeader>
+            <EnhancedGrid>
+              {COMPANIES.map((company) => (
+                <EnhancedSelectableCard
+                  key={company.name}
+                  selected={selectedCompany?.name === company.name}
+                  onClick={() => handleCompanySelect(company)}
+                >
+                  <EnhancedCardTitle>{company.name}</EnhancedCardTitle>
+                  <EnhancedCardDescription>
+                    {company.description}
+                  </EnhancedCardDescription>
+                  {company.category && (
+                    <EnhancedCardMeta>
+                      <FiFilter size={12} />
+                      {company.category}
+                    </EnhancedCardMeta>
+                  )}
+                </EnhancedSelectableCard>
+              ))}
+            </EnhancedGrid>
+          </EnhancedCard>
+        </EnhancedSection>
 
-        <ProblemDescription>{currentProblem.description}</ProblemDescription>
+        {/* Step 2: Role Selection */}
+        <EnhancedSection>
+          <EnhancedCard>
+            <EnhancedSectionTitle>
+              Step 2: Select Role Level
+            </EnhancedSectionTitle>
+            <EnhancedSectionSubtitle>
+              Choose your target role level
+            </EnhancedSectionSubtitle>
+            <EnhancedGrid>
+              {ROLES.map((role) => (
+                <EnhancedSelectableCard
+                  key={role.id}
+                  selected={selectedRole?.id === role.id}
+                  onClick={() => handleRoleSelect(role)}
+                >
+                  <EnhancedCardTitle>{role.name}</EnhancedCardTitle>
+                  <EnhancedCardDescription>
+                    {role.description}
+                  </EnhancedCardDescription>
+                  <EnhancedCardMeta>
+                    <FiClock size={12} />
+                    {role.level} level
+                  </EnhancedCardMeta>
+                </EnhancedSelectableCard>
+              ))}
+            </EnhancedGrid>
+          </EnhancedCard>
+        </EnhancedSection>
 
-        <EditorContainer>
-          {currentProblem.type === 'machine_coding' && (
-            <CodeEditor
-              code={code}
-              onChange={setCode}
-              onSubmit={async (code) => {
-                await handleSubmit({
-                  problemId: currentProblem.id,
-                  type: 'machine_coding',
-                  code,
-                  submittedAt: new Date() as any
-                });
-              }}
-            />
-          )}
-        </EditorContainer>
-      </ProblemContainer>
+        {/* Step 3: Round Selection */}
+        <EnhancedSection>
+          <EnhancedCard>
+            <EnhancedSectionTitle>
+              Step 3: Select Interview Round
+            </EnhancedSectionTitle>
+            <EnhancedSectionSubtitle>
+              Choose the specific round you want to practice
+            </EnhancedSectionSubtitle>
+            <EnhancedGrid>
+              {ROUNDS.map((round) => (
+                <EnhancedSelectableCard
+                  key={round.id}
+                  selected={selectedRound?.id === round.id}
+                  onClick={() => handleRoundSelect(round)}
+                >
+                  <EnhancedCardTitle>{round.name}</EnhancedCardTitle>
+                  <EnhancedCardDescription>
+                    {round.description}
+                  </EnhancedCardDescription>
+                  <EnhancedCardMeta>
+                    <FiClock size={12} />
+                    {round.duration} min • {round.type}
+                  </EnhancedCardMeta>
+                </EnhancedSelectableCard>
+              ))}
+            </EnhancedGrid>
+          </EnhancedCard>
+        </EnhancedSection>
 
-      <NavigationContainer>
-        <Button onClick={() => router.push('/mock-interview-setup')}>
-          <FiX size={16} />
-          Exit Interview
-        </Button>
-        
-        <Button 
-          variant="primary"
-          disabled={evaluating}
-        >
-          {evaluating ? 'Evaluating...' : 'Submit & Continue'}
-          <FiArrowRight size={16} />
-        </Button>
-      </NavigationContainer>
-    </ContentContainer>
-  </PageContainer>
+        {error && <ErrorMessage>{error}</ErrorMessage>}
+
+        <EnhancedButtonContainer>
+          <Button
+            onClick={handleStartInterview}
+            disabled={!canProceed || loading}
+            size="large"
+            style={{
+              background:
+                canProceed && !loading
+                  ? `linear-gradient(135deg, ${themeObject.primary} 0%, ${themeObject.accent} 100%)`
+                  : undefined,
+              boxShadow:
+                canProceed && !loading
+                  ? `0 6px 20px ${themeObject.primary}25`
+                  : undefined,
+            }}
+          >
+            {loading ? (
+              <>
+                <LoadingSpinner
+                  style={{ width: "16px", height: "16px", margin: 0 }}
+                />
+                Starting Interview...
+              </>
+            ) : (
+              <>
+                <FiPlay size={16} />
+                Start Mock Interview
+              </>
+            )}
+          </Button>
+        </EnhancedButtonContainer>
+      </CompactMainContainer>
+    </InterviewContainer>
   );
-} 
+}

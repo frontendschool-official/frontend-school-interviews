@@ -1,8 +1,9 @@
-import { useAuth } from "../../hooks/useAuth";
+
 import { useEffect, useState } from "react";
 import Layout from "@/components/Layout";
 import FeatureSection from "./feature";
 import HeroSection from "./hero";
+import PricingSection from "./Pricing";
 
 export default function HomePage() {
   const [mounted, setMounted] = useState(false);
@@ -25,6 +26,7 @@ export default function HomePage() {
       <HeroSection />
 
       <FeatureSection />
+      <PricingSection />
     </Layout>
   );
 }

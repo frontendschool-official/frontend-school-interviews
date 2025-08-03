@@ -6,4 +6,5 @@ export { useInterviewAttempt } from './useInterviewAttempt';
 export { useAuth } from './useAuth';
 export { useProblems } from './useProblems';
 export { useThemeContext } from './useTheme';
-export { useStyledTheme } from './useStyledTheme'; 
+export { useStyledTheme } from './useStyledTheme';
+export { useDashboardData } from './useDashboardData'; 

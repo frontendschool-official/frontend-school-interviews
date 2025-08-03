@@ -91,8 +91,7 @@ const Layout = ({
   return (
     <PageContainer>
       {showNavBar && <NavBar />}
-      {isLoading && <Loader text={loadingText} />}
-      {children}
+      {isLoading ? <Loader text={loadingText} /> : <>{children}</>}
     </PageContainer>
   );
 };

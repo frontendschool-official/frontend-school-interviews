@@ -1,9 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import styled, { keyframes } from "styled-components";
 import { useAuth } from "../hooks/useAuth";
 import GoogleSignInButton from "../components/GoogleSignInButton";
 import Layout from "@/components/Layout";
+import OnboardingModal from "../components/OnboardingModal";
 import { FcGoogle } from 'react-icons/fc';
 import { FaCode, FaRobot, FaChartLine, FaLaptopCode } from 'react-icons/fa';
 
@@ -329,14 +330,32 @@ const CheckIcon = styled.span`
 `;
 
 export default function LoginPage() {
-  const { user, signIn, loading } = useAuth();
+  const { user, userProfile, signIn, loading } = useAuth();
   const router = useRouter();
+  const [showOnboarding, setShowOnboarding] = useState(false);
   
   useEffect(() => {
-    if (user) {
-      router.replace("/problems");
+    if (user && userProfile) {
+      if (!userProfile.onboardingCompleted) {
+        setShowOnboarding(true);
+      } else {
+        router.replace("/problems");
+      }
     }
-  }, [user, router]);
+  }, [user, userProfile, router]);
+
+  const handleSignIn = async () => {
+    const result = await signIn();
+    if (result.success) {
+      // The onboarding will be shown automatically when userProfile loads
+      // and onboardingCompleted is false
+    }
+  };
+
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false);
+    router.replace("/problems");
+  };
 
   return (
     <Layout showNavBar={false}>
@@ -407,11 +426,16 @@ export default function LoginPage() {
             </RightSubtitle>
             
             <LoginCard>
-              <StyledGoogleSignInButton onClick={signIn} disabled={loading}>
+              <StyledGoogleSignInButton onClick={handleSignIn} disabled={loading}>
                 <FcGoogle size={20} />
                 {loading ? "Signing in..." : "Sign in with Google"}
               </StyledGoogleSignInButton>
             </LoginCard>
+            
+            <OnboardingModal 
+              isOpen={showOnboarding} 
+              onComplete={handleOnboardingComplete} 
+            />
             
             <BenefitsList>
               <BenefitItem>

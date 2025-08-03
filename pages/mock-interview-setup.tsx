@@ -579,7 +579,7 @@ interface Round {
   name: string;
   description: string;
   duration: number; // in minutes
-  type: 'Machine Coding' | 'System Design' | 'JavaScript Concepts' | 'DSA';
+  type: 'Machine Coding' | 'System Design' | 'JavaScript Concepts' | 'DSA' | 'Theory';
 }
 
 // Expanded company data with categories
@@ -923,12 +923,14 @@ const ROUNDS: Round[] = [
   { id: 'round2', name: 'Round 2', description: 'System design and architecture discussion', duration: 60, type: 'System Design' },
   { id: 'round3', name: 'Round 3', description: 'JavaScript concepts and frontend fundamentals', duration: 30, type: 'JavaScript Concepts' },
   { id: 'round4', name: 'Round 4', description: 'Data structures and algorithms', duration: 45, type: 'DSA' },
+  { id: 'theory', name: 'Theory Round', description: 'JavaScript theory and concepts assessment', duration: 30, type: 'Theory' },
 ];
 
 export default function MockInterviewSetup() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const { themeObject } = useThemeContext();
+  const { type } = router.query;
   
   const [step, setStep] = useState<'setup' | 'overview' | 'loading'>('setup');
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
@@ -965,6 +967,25 @@ export default function MockInterviewSetup() {
       router.push('/login');
     }
   }, [user, authLoading, router]);
+
+  // Handle type parameter from URL
+  useEffect(() => {
+    if (type && typeof type === 'string') {
+      const interviewType = type.toLowerCase();
+      
+      // Find the appropriate round based on the type
+      const matchingRound = ROUNDS.find(round => 
+        round.type.toLowerCase().replace(' ', '_') === interviewType ||
+        round.type.toLowerCase().replace(' ', '') === interviewType ||
+        round.type.toLowerCase() === interviewType
+      );
+      
+      if (matchingRound) {
+        setSelectedRound(matchingRound);
+        setSelectedInterviewType(matchingRound.type);
+      }
+    }
+  }, [type]);
 
   const handleCompanySelect = (company: Company) => {
     setSelectedCompany(company);
@@ -1021,15 +1042,14 @@ export default function MockInterviewSetup() {
       // Create interview session
       const sessionData = {
         userId: user.uid,
-        company: selectedCompany.name,
-        role: selectedRole.name,
-        round: selectedRound.name,
-        interviewType: selectedInterviewType,
+        companyName: selectedCompany.name,
+        roleLevel: selectedRole.name,
+        roundName: selectedRound.name,
+        roundType: selectedInterviewType.toLowerCase().replace(' ', '_') as 'dsa' | 'machine_coding' | 'system_design' | 'theory',
         problems,
-        startTime: null,
-        status: 'Not Started' as const,
-        score: null,
-        feedback: null
+        currentProblemIndex: 0,
+        status: 'active' as const,
+        startedAt: new Date()
       };
 
       const session = await createMockInterviewSession(sessionData);
@@ -1081,178 +1101,6 @@ export default function MockInterviewSetup() {
       <NavBar />
       
       <CompactMainContainer>
-        <PageHeader style={{ padding: '1.5rem', marginBottom: '1rem' }}>
-          <PageTitle style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>Mock Interview Setup</PageTitle>
-          <PageSubtitle style={{ fontSize: '1rem' }}>Configure your AI-powered mock interview experience</PageSubtitle>
-          
-          {/* Multi-Step Interview Stepper */}
-          <StepperContainer>
-            <StepperWrapper>
-              {/* Setup Phase */}
-              <StepItem 
-                active={!selectedCompany} 
-                completed={false} 
-                disabled={false}
-                onClick={() => !selectedCompany && setSelectedCompany(null)}
-              >
-                <StepStatus active={!selectedCompany} completed={false}>
-                  {!selectedCompany ? 'Current' : 'Pending'}
-                </StepStatus>
-                <StepCircle active={!selectedCompany} completed={false} disabled={false}>
-                  <StepIcon active={!selectedCompany} completed={false} disabled={false}>
-                    <FiBookOpen size={16} />
-                  </StepIcon>
-                </StepCircle>
-                <StepLabel active={!selectedCompany} completed={false} disabled={false}>
-                  Setup
-                </StepLabel>
-                <StepDescription active={!selectedCompany} completed={false} disabled={false}>
-                  Configure interview
-                </StepDescription>
-              </StepItem>
-              
-              <StepConnector completed={!!selectedCompany} />
-              
-              {/* Coding Phase */}
-              <StepItem 
-                active={!!selectedCompany && !selectedRole} 
-                completed={!!selectedCompany} 
-                disabled={!selectedCompany}
-                onClick={() => selectedCompany && !selectedRole && setSelectedRole(null)}
-              >
-                <StepStatus active={!!selectedCompany && !selectedRole} completed={!!selectedCompany}>
-                  {!selectedCompany ? 'Locked' : !selectedRole ? 'Current' : 'Completed'}
-                </StepStatus>
-                <StepCircle active={!!selectedCompany && !selectedRole} completed={!!selectedCompany} disabled={!selectedCompany}>
-                  <StepIcon active={!!selectedCompany && !selectedRole} completed={!!selectedCompany} disabled={!selectedCompany}>
-                    <FiCode size={16} />
-                  </StepIcon>
-                </StepCircle>
-                <StepLabel active={!!selectedCompany && !selectedRole} completed={!!selectedCompany} disabled={!selectedCompany}>
-                  Coding
-                </StepLabel>
-                <StepDescription active={!!selectedCompany && !selectedRole} completed={!!selectedCompany} disabled={!selectedCompany}>
-                  Solve problems
-                </StepDescription>
-              </StepItem>
-              
-              <StepConnector completed={!!(selectedCompany && selectedRole)} />
-              
-              {/* System Design Phase */}
-              <StepItem 
-                active={!!selectedCompany && !!selectedRole && !selectedRound} 
-                completed={!!(selectedCompany && selectedRole)} 
-                disabled={!(selectedCompany && selectedRole)}
-                onClick={() => (selectedCompany && selectedRole) && !selectedRound && setSelectedRound(null)}
-              >
-                <StepStatus active={!!selectedCompany && !!selectedRole && !selectedRound} completed={!!(selectedCompany && selectedRole)}>
-                  {!(selectedCompany && selectedRole) ? 'Locked' : !selectedRound ? 'Current' : 'Completed'}
-                </StepStatus>
-                <StepCircle active={!!selectedCompany && !!selectedRole && !selectedRound} completed={!!(selectedCompany && selectedRole)} disabled={!(selectedCompany && selectedRole)}>
-                  <StepIcon active={!!selectedCompany && !!selectedRole && !selectedRound} completed={!!(selectedCompany && selectedRole)} disabled={!(selectedCompany && selectedRole)}>
-                    <FiTarget size={16} />
-                  </StepIcon>
-                </StepCircle>
-                <StepLabel active={!!selectedCompany && !!selectedRole && !selectedRound} completed={!!(selectedCompany && selectedRole)} disabled={!(selectedCompany && selectedRole)}>
-                  System Design
-                </StepLabel>
-                <StepDescription active={!!selectedCompany && !!selectedRole && !selectedRound} completed={!!(selectedCompany && selectedRole)} disabled={!(selectedCompany && selectedRole)}>
-                  Architecture design
-                </StepDescription>
-              </StepItem>
-              
-              <StepConnector completed={!!(selectedCompany && selectedRole && selectedRound)} />
-              
-              {/* Evaluation Phase */}
-              <StepItem 
-                active={!!selectedCompany && !!selectedRole && !!selectedRound} 
-                completed={!!(selectedCompany && selectedRole && selectedRound)} 
-                disabled={!(selectedCompany && selectedRole && selectedRound)}
-                onClick={() => (selectedCompany && selectedRole && selectedRound) && handleGenerateProblems()}
-              >
-                <StepStatus active={!!selectedCompany && !!selectedRole && !!selectedRound} completed={!!(selectedCompany && selectedRole && selectedRound)}>
-                  {!(selectedCompany && selectedRole && selectedRound) ? 'Locked' : 'Ready'}
-                </StepStatus>
-                <StepCircle active={!!selectedCompany && !!selectedRole && !!selectedRound} completed={!!(selectedCompany && selectedRole && selectedRound)} disabled={!(selectedCompany && selectedRole && selectedRound)}>
-                  <StepIcon active={!!selectedCompany && !!selectedRole && !!selectedRound} completed={!!(selectedCompany && selectedRole && selectedRound)} disabled={!(selectedCompany && selectedRole && selectedRound)}>
-                    <FiBarChart2 size={16} />
-                  </StepIcon>
-                </StepCircle>
-                <StepLabel active={!!selectedCompany && !!selectedRole && !!selectedRound} completed={!!(selectedCompany && selectedRole && selectedRound)} disabled={!(selectedCompany && selectedRole && selectedRound)}>
-                  Evaluation
-                </StepLabel>
-                <StepDescription active={!!selectedCompany && !!selectedRole && !!selectedRound} completed={!!(selectedCompany && selectedRole && selectedRound)} disabled={!(selectedCompany && selectedRole && selectedRound)}>
-                  AI assessment
-                </StepDescription>
-              </StepItem>
-              
-              <StepConnector completed={!!(selectedCompany && selectedRole && selectedRound)} />
-              
-              {/* Results Phase */}
-              <StepItem 
-                active={!!selectedCompany && !!selectedRole && !!selectedRound} 
-                completed={!!(selectedCompany && selectedRole && selectedRound)} 
-                disabled={!(selectedCompany && selectedRole && selectedRound)}
-                onClick={() => (selectedCompany && selectedRole && selectedRound) && handleGenerateProblems()}
-              >
-                <StepStatus active={!!selectedCompany && !!selectedRole && !!selectedRound} completed={!!(selectedCompany && selectedRole && selectedRound)}>
-                  {!(selectedCompany && selectedRole && selectedRound) ? 'Locked' : 'Ready'}
-                </StepStatus>
-                <StepCircle active={!!selectedCompany && !!selectedRole && !!selectedRound} completed={!!(selectedCompany && selectedRole && selectedRound)} disabled={!(selectedCompany && selectedRole && selectedRound)}>
-                  <StepIcon active={!!selectedCompany && !!selectedRole && !!selectedRound} completed={!!(selectedCompany && selectedRole && selectedRound)} disabled={!(selectedCompany && selectedRole && selectedRound)}>
-                    <FiAward size={16} />
-                  </StepIcon>
-                </StepCircle>
-                <StepLabel active={!!selectedCompany && !!selectedRole && !!selectedRound} completed={!!(selectedCompany && selectedRole && selectedRound)} disabled={!(selectedCompany && selectedRole && selectedRound)}>
-                  Results
-                </StepLabel>
-                <StepDescription active={!!selectedCompany && !!selectedRole && !!selectedRound} completed={!!(selectedCompany && selectedRole && selectedRound)} disabled={!(selectedCompany && selectedRole && selectedRound)}>
-                  View feedback
-                </StepDescription>
-              </StepItem>
-            </StepperWrapper>
-          </StepperContainer>
-          
-          {/* Phase Indicator */}
-          <PhaseIndicator>
-            <PhaseBadge active={!selectedCompany} completed={false}>
-              <FiBookOpen size={14} />
-              Setup
-            </PhaseBadge>
-            <PhaseBadge active={!!selectedCompany && !selectedRole} completed={!!selectedCompany}>
-              <FiCode size={14} />
-              Coding
-            </PhaseBadge>
-            <PhaseBadge active={!!selectedCompany && !!selectedRole && !selectedRound} completed={!!(selectedCompany && selectedRole)}>
-              <FiTarget size={14} />
-              System Design
-            </PhaseBadge>
-            <PhaseBadge active={!!selectedCompany && !!selectedRole && !!selectedRound} completed={!!(selectedCompany && selectedRole && selectedRound)}>
-              <FiBarChart2 size={14} />
-              Evaluation
-            </PhaseBadge>
-            <PhaseBadge active={false} completed={false}>
-              <FiAward size={14} />
-              Results
-            </PhaseBadge>
-          </PhaseIndicator>
-          
-          <InterviewProgress>
-            {!selectedCompany && "Step 1 of 5: Configure your interview settings"}
-            {selectedCompany && !selectedRole && "Step 2 of 5: Ready to start coding problems"}
-            {selectedCompany && selectedRole && !selectedRound && "Step 3 of 5: Prepare for system design challenges"}
-            {selectedCompany && selectedRole && selectedRound && "Step 4 of 5: AI will evaluate your performance"}
-          </InterviewProgress>
-          
-          <EnhancedProgressBar>
-            <ProgressFill progress={
-              selectedCompany && selectedRole && selectedRound ? 80 :
-              selectedCompany && selectedRole ? 60 :
-              selectedCompany ? 40 : 20
-            } />
-          </EnhancedProgressBar>
-        </PageHeader>
-
         {step === 'setup' && (
           <>
             {/* Step 1: Company Selection */}

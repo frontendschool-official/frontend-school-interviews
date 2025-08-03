@@ -26,7 +26,7 @@ const Card = styled.div`
   overflow: hidden;
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: 0;
@@ -41,7 +41,7 @@ const Card = styled.div`
     transform: translateY(-3px);
     box-shadow: 0 8px 25px ${({ theme }) => theme.border}30;
     border-color: ${({ theme }) => theme.neutral}30;
-    
+
     &::before {
       opacity: 1;
     }
@@ -107,7 +107,7 @@ const DifficultyBadge = styled.span<{ difficulty: string }>`
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.4px;
-  background: ${({ difficulty }) => {
+  border: 1px solid ${({ difficulty }) => {
     switch (difficulty) {
       case "easy":
         return "#10b981"; // Green
@@ -119,7 +119,18 @@ const DifficultyBadge = styled.span<{ difficulty: string }>`
         return "#6b7280"; // Gray
     }
   }};
-  color: white;
+  color: ${({ difficulty }) => {
+    switch (difficulty) {
+      case "easy":
+        return "#10b981"; // Green
+      case "medium":
+        return "#f59e0b"; // Orange
+      case "hard":
+        return "#ef4444"; // Red
+      default:
+        return "#6b7280"; // Gray
+    }
+  }};
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 `;
 
@@ -130,7 +141,24 @@ const CategoryBadge = styled.span<{ type: ProblemType }>`
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.4px;
-  background: ${({ type }) => {
+  border: 1px solid
+    ${({ type }) => {
+      switch (type) {
+        case "dsa":
+          return "#3b82f6"; // Blue
+        case "machine_coding":
+          return "#8b5cf6"; // Purple
+        case "system_design":
+          return "#06b6d4"; // Cyan
+        case "interview":
+          return "#10b981"; // Green
+        case "user_generated":
+          return "#f59e0b"; // Orange
+        default:
+          return "#6b7280"; // Gray
+      }
+    }};
+  color: ${({ type }) => {
     switch (type) {
       case "dsa":
         return "#3b82f6"; // Blue
@@ -146,7 +174,6 @@ const CategoryBadge = styled.span<{ type: ProblemType }>`
         return "#6b7280"; // Gray
     }
   }};
-  color: white;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 `;
 
@@ -166,7 +193,7 @@ const TechnologyTag = styled.span`
   font-weight: 500;
   border: 1px solid #d1d5db;
   transition: all 0.2s ease;
-  
+
   &:hover {
     background: #e5e7eb;
     border-color: #9ca3af;
@@ -174,7 +201,7 @@ const TechnologyTag = styled.span`
 `;
 
 const SolveButton = styled(Link)`
-  align-self: flex-start;
+  align-self: flex-end;
   padding: 0.6rem 1.2rem;
   background: ${({ theme }) => theme.primary};
   color: ${({ theme }) => theme.bodyBg};
@@ -243,15 +270,24 @@ export default function ProblemCard({ problem, status }: ProblemCardProps) {
     if (isPredefined) {
       return title;
     }
-    
+
     const userProblem = problem as any;
+    console.log(userProblem, "userProblem");
     try {
-      if (userProblem.interviewType === "coding" && userProblem.machineCodingProblem) {
-        return JSON.parse(userProblem.machineCodingProblem)?.title || "Machine Coding Problem";
-      } else if (userProblem.interviewType === "dsa" && userProblem.dsaProblem) {
-        return JSON.parse(userProblem.dsaProblem)?.title || "DSA Problem";
+      if (
+        userProblem.interviewType === "coding" &&
+        userProblem.machineCodingProblem
+      ) {
+        return (
+          userProblem.machineCodingProblem?.title || "Machine Coding Problem"
+        );
+      } else if (
+        userProblem.interviewType === "dsa" &&
+        userProblem.dsaProblem
+      ) {
+        return userProblem.dsaProblem?.title || "DSA Problem";
       } else if (userProblem.machineCodingProblem) {
-        return JSON.parse(userProblem.machineCodingProblem)?.title || "Coding Problem";
+        return userProblem.machineCodingProblem?.title || "Coding Problem";
       } else {
         return "Custom Problem";
       }
@@ -259,7 +295,7 @@ export default function ProblemCard({ problem, status }: ProblemCardProps) {
       return "Custom Problem";
     }
   };
-
+  console.log(problem, "problem");
   return (
     <Card>
       <BadgeContainer>
@@ -278,15 +314,15 @@ export default function ProblemCard({ problem, status }: ProblemCardProps) {
         {!isPredefined && (
           <>
             <Meta>Companies: {(problem as any).companies || "N/A"}</Meta>
-            <Meta>
+            {/* <Meta>
               Type:{" "}
               {(problem as any).interviewType ||
                 ((problem as any).systemDesignProblem ? "design" : "coding")}
-            </Meta>
+            </Meta> */}
           </>
         )}
 
-        {category && <Meta>Category: {category}</Meta>}
+        {/* {category && <Meta>Category: {category}</Meta>} */}
 
         {estimatedTime && <Meta>Estimated Time: {estimatedTime}</Meta>}
 
@@ -302,7 +338,7 @@ export default function ProblemCard({ problem, status }: ProblemCardProps) {
         )}
       </ProblemInfo>
 
-      <SolveButton href={`/interview/${problem.id}`}>Start Solving</SolveButton>
+      <SolveButton href={`/problems/${problem.id}`}>Start Solving</SolveButton>
     </Card>
   );
 }

@@ -421,15 +421,14 @@ export default function MockInterview({
         // Create mock interview session
         const sessionData = {
           userId: user.uid,
-          company: companyName,
-          role: roleLevel,
-          round: roundName,
-          interviewType: roundType,
+          companyName: companyName,
+          roleLevel: roleLevel,
+          roundName: roundName,
+          roundType: roundType,
           problems: [],
-          startTime: null,
-          status: 'Not Started' as const,
-          score: null,
-          feedback: null
+          currentProblemIndex: 0,
+          status: 'active' as const,
+          startedAt: new Date()
         };
 
         const newSession = await createMockInterviewSession(sessionData);
@@ -604,20 +603,19 @@ Keep practicing and reviewing the feedback to improve your skills!`;
             const initializeSession = async () => {
               if (!user) return;
               try {
-                const sessionData = {
-                  userId: user.uid,
-                  company: companyName,
-                  role: roleLevel,
-                  round: roundName,
-                  interviewType: roundType,
-                  problems: [],
-                  startTime: null,
-                  status: 'Not Started' as const,
-                  score: null,
-                  feedback: null
-                };
-                const newSession = await createMockInterviewSession(sessionData);
-                setSession(newSession);
+                              const sessionData = {
+                userId: user.uid,
+                companyName: companyName,
+                roleLevel: roleLevel,
+                roundName: roundName,
+                roundType: roundType,
+                problems: [],
+                currentProblemIndex: 0,
+                status: 'active' as const,
+                startedAt: new Date()
+              };
+              const newSession = await createMockInterviewSession(sessionData);
+              setSession(newSession);
                 setStartTime(new Date());
                 await generateNextProblem();
               } catch (error) {
