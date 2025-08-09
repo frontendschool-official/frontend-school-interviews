@@ -17,7 +17,7 @@ interface AuthContextValue {
   loading: boolean;
   profileLoading: boolean;
   signIn: () => Promise<SignInResult>;
-  signOut: () => Promise<void>;
+  signOut: () => Promise<{ success: boolean; error?: unknown }>;
   updateProfile: (updates: any) => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -28,7 +28,7 @@ const AuthContext = createContext<AuthContextValue>({
   loading: true,
   profileLoading: false,
   signIn: async () => ({ success: false }),
-  signOut: async () => {},
+  signOut: async () => ({ success: false }),
   updateProfile: async () => {},
   refreshProfile: async () => {},
 });
@@ -65,7 +65,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
+    console.log('🔥 Setting up auth state listener...');
     const unsubscribe = onUserStateChange(async (firebaseUser) => {
+      console.log('🔥 Auth state changed:', firebaseUser ? 'User logged in' : 'User logged out');
+      console.log('🔥 Firebase user object:', firebaseUser);
       setUser(firebaseUser);
       
       if (firebaseUser) {
@@ -76,7 +79,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       setLoading(false);
     });
-    return () => unsubscribe();
+    
+    console.log('🔥 Auth listener setup complete');
+    return () => {
+      console.log('🔥 Cleaning up auth listener');
+      unsubscribe();
+    };
   }, []);
 
   const [isNewUser, setIsNewUser] = useState(false);
@@ -103,10 +111,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     try {
+      console.log('🔥 Starting sign out process...');
+      console.log('🔥 Current user state:', user);
+      console.log('🔥 Current profile state:', userProfile);
+      
       await signOutUser();
+      
+      console.log('🔥 Firebase signOut completed, clearing local state...');
       setUserProfile(null);
+      setUser(null);
+      console.log('🔥 Local state cleared successfully');
+      
+      return { success: true };
     } catch (error) {
-      console.error('Sign-out error', error);
+      console.error('🔥 Sign-out error:', error);
+      // Even if there's an error with Firebase, clear local state
+      setUserProfile(null);
+      setUser(null);
+      console.log('🔥 Local state cleared despite error');
+      return { success: false, error };
     }
   };
 

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import styled from "styled-components";
 import {
   FiPlay,
   FiClock,
@@ -21,213 +20,122 @@ import {
 import { useAuth } from "../hooks/useAuth";
 import { useThemeContext } from "../hooks/useTheme";
 import NavBar from "../components/NavBar";
-import { MockInterviewSession, MockInterviewProblem } from "../types/problem";
+import { MockInterviewSession } from "../types/problem";
 import {
   createMockInterviewSession,
-  getProblemsByCompanyRoleRound,
 } from "../services/firebase";
-import { generateMockInterviewProblem } from "../services/geminiApi";
+import MockInterviewComponent from "../components/MockInterview";
 import {
-  PageContainer,
-  MainContainer,
-  PageHeader,
-  PageTitle,
-  PageSubtitle,
-  Card,
-  SelectableCard,
-  CardTitle,
-  CardDescription,
-  CardMeta,
-  Grid,
   Button,
-  ButtonContainer,
-  LoadingContainer,
-  LoadingSpinner,
-  LoadingText,
-  Modal,
-  ModalContent,
-  ModalTitle,
-  ModalInfo,
-  InfoRow,
-  InfoLabel,
-  InfoValue,
-  ModalButtons,
-  Section,
-  SectionTitle,
-  SectionSubtitle,
-  ErrorMessage,
 } from "../styles/SharedUI";
 
-// Enhanced themed components
-const InterviewContainer = styled.div`
-  background: ${({ theme }) => theme.bodyBg};
-  min-height: 100vh;
-  transition: all 0.3s ease;
-`;
+// Enhanced themed components with Tailwind CSS classes
+const EnhancedPageContainer = ({ children, className = "", ...props }: any) => (
+  <div className={`min-h-screen bg-bodyBg transition-all duration-300 ${className}`} {...props}>
+    {children}
+  </div>
+);
 
-const CompactMainContainer = styled(MainContainer)`
-  padding: 15px;
-  max-width: 1400px;
-`;
+const CompactMainContainer = ({ children, className = "", ...props }: any) => (
+  <div className={`p-4 max-w-7xl mx-auto ${className}`} {...props}>
+    {children}
+  </div>
+);
 
-const EnhancedCard = styled(Card)`
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 16px ${({ theme }) => theme.border}10;
-  border: 1px solid ${({ theme }) => theme.border};
-  transition: all 0.3s ease;
-  animation: ${({ theme }) => theme.fadeInUp || "none"} 0.6s ease-out;
+const EnhancedCard = ({ children, className = "", ...props }: any) => (
+  <div className={`p-6 mb-6 rounded-xl shadow-lg border border-border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${className}`} {...props}>
+    {children}
+  </div>
+);
 
-  &:hover {
-    box-shadow: 0 6px 20px ${({ theme }) => theme.border}20;
-    transform: translateY(-1px);
-  }
-`;
+const EnhancedGrid = ({ children, className = "", ...props }: any) => (
+  <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mt-4 ${className}`} {...props}>
+    {children}
+  </div>
+);
 
-const EnhancedGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 0.75rem;
-  margin-top: 1rem;
-`;
+const EnhancedSelectableCard = ({ children, selected = false, className = "", onClick, ...props }: any) => (
+  <div 
+    className={`p-4 rounded-lg transition-all duration-300 relative overflow-hidden hover:-translate-y-1 hover:shadow-lg cursor-pointer ${
+      selected ? 'border-primary shadow-lg bg-primary/5' : ''
+    } ${className}`} 
+    onClick={onClick}
+    {...props}
+  >
+    {children}
+    {selected && (
+      <div className="absolute top-3 right-3 w-5 h-5 bg-primary text-white rounded-full flex items-center justify-center text-xs font-bold">
+        ✓
+      </div>
+    )}
+  </div>
+);
 
-const EnhancedSelectableCard = styled(SelectableCard)`
-  padding: 1rem;
-  border-radius: 10px;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
+const EnhancedSection = ({ children, className = "", ...props }: any) => (
+  <div className={`mb-6 ${className}`} {...props}>
+    {children}
+  </div>
+);
 
-  &::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      ${({ theme }) => theme.primary}10 50%,
-      transparent 100%
-    );
-    transition: left 0.5s ease;
-  }
+const EnhancedSectionTitle = ({ children, className = "", ...props }: any) => (
+  <h3 className={`text-xl mb-2 font-semibold bg-gradient-to-r from-neutral-800 to-neutral-600 bg-clip-text text-transparent ${className}`} {...props}>
+    {children}
+  </h3>
+);
 
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px ${({ theme }) => theme.border}25;
+const EnhancedSectionSubtitle = ({ children, className = "", ...props }: any) => (
+  <p className={`text-sm mb-4 text-neutral-600 ${className}`} {...props}>
+    {children}
+  </p>
+);
 
-    &::before {
-      left: 100%;
-    }
-  }
+const EnhancedCardTitle = ({ children, className = "", ...props }: any) => (
+  <h4 className={`text-base mb-1 font-semibold ${className}`} {...props}>
+    {children}
+  </h4>
+);
 
-  ${({ selected, theme }) =>
-    selected &&
-    `
-    border-color: ${theme.primary};
-    box-shadow: 0 4px 15px ${theme.primary}25;
-    background: ${theme.primary}05;
-    
-    &::after {
-      content: '✓';
-      position: absolute;
-      top: 0.75rem;
-      right: 0.75rem;
-      width: 20px;
-      height: 20px;
-      background: ${theme.primary};
-      color: white;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.7rem;
-      font-weight: bold;
-      animation: ${theme.pulse || "none"} 0.6s ease-in-out;
-    }
-  `}
-`;
+const EnhancedCardDescription = ({ children, className = "", ...props }: any) => (
+  <p className={`text-sm mb-2 leading-relaxed ${className}`} {...props}>
+    {children}
+  </p>
+);
 
-const EnhancedSection = styled(Section)`
-  margin-bottom: 1.5rem;
-  animation: ${({ theme }) => theme.fadeInUp || "none"} 0.6s ease-out;
-`;
+const EnhancedCardMeta = ({ children, className = "", ...props }: any) => (
+  <div className={`text-xs gap-1 text-neutral-600 flex items-center ${className}`} {...props}>
+    {children}
+  </div>
+);
 
-const EnhancedSectionTitle = styled(SectionTitle)`
-  font-size: 1.2rem;
-  margin-bottom: 0.5rem;
-  background: linear-gradient(
-    135deg,
-    ${({ theme }) => theme.neutralDark} 0%,
-    ${({ theme }) => theme.neutral} 100%
-  );
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-`;
+const EnhancedButtonContainer = ({ children, className = "", ...props }: any) => (
+  <div className={`mt-6 text-center ${className}`} {...props}>
+    {children}
+  </div>
+);
 
-const EnhancedSectionSubtitle = styled(SectionSubtitle)`
-  font-size: 0.9rem;
-  margin-bottom: 1rem;
-  color: ${({ theme }) => theme.neutral};
-`;
+const EnhancedButtonGroup = ({ children, className = "", ...props }: any) => (
+  <div className={`flex justify-center gap-4 my-3 flex-wrap ${className}`} {...props}>
+    {children}
+  </div>
+);
 
-const EnhancedCardTitle = styled(CardTitle)`
-  font-size: 1rem;
-  margin-bottom: 0.25rem;
-  font-weight: 600;
-`;
+const EnhancedInfoCard = ({ children, className = "", ...props }: any) => (
+  <div className={`text-center p-3 bg-secondary rounded-lg border border-border min-w-20 ${className}`} {...props}>
+    {children}
+  </div>
+);
 
-const EnhancedCardDescription = styled(CardDescription)`
-  font-size: 0.8rem;
-  margin-bottom: 0.5rem;
-  line-height: 1.4;
-`;
+const EnhancedInfoValue = ({ children, className = "", ...props }: any) => (
+  <div className={`text-xl font-bold text-primary mb-1 ${className}`} {...props}>
+    {children}
+  </div>
+);
 
-const EnhancedCardMeta = styled(CardMeta)`
-  font-size: 0.7rem;
-  gap: 0.25rem;
-  color: ${({ theme }) => theme.neutral};
-`;
-
-const EnhancedButtonContainer = styled(ButtonContainer)`
-  margin-top: 1.5rem;
-  text-align: center;
-`;
-
-const StatsContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  margin: 0.75rem 0;
-  flex-wrap: wrap;
-`;
-
-const StatItem = styled.div`
-  text-align: center;
-  padding: 0.75rem;
-  background: ${({ theme }) => theme.secondary};
-  border-radius: 8px;
-  border: 1px solid ${({ theme }) => theme.border};
-  min-width: 80px;
-`;
-
-const StatNumber = styled.div`
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: ${({ theme }) => theme.primary};
-  margin-bottom: 0.25rem;
-`;
-
-const StatLabel = styled.div`
-  font-size: 0.7rem;
-  color: ${({ theme }) => theme.neutral};
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-`;
+const EnhancedInfoLabel = ({ children, className = "", ...props }: any) => (
+  <div className={`text-xs text-neutral-600 uppercase tracking-wider ${className}`} {...props}>
+    {children}
+  </div>
+);
 
 // Types
 interface Company {
@@ -390,13 +298,31 @@ export default function MockInterview() {
     useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showOverview, setShowOverview] = useState(false);
-  const [currentProblemIndex, setCurrentProblemIndex] = useState(0);
-  const [problems, setProblems] = useState<MockInterviewProblem[]>([]);
   const [session, setSession] = useState<MockInterviewSession | null>(null);
 
-  // Handle type parameter from URL
+  // Load setup data from localStorage or handle type parameter from URL
   useEffect(() => {
+    // First try to load from localStorage (from setup page)
+    const setupData = localStorage.getItem('mockInterviewSetup');
+    if (setupData) {
+      try {
+        const parsed = JSON.parse(setupData);
+        if (parsed.company) setSelectedCompany(parsed.company);
+        if (parsed.role) setSelectedRole(parsed.role);
+        if (parsed.round) {
+          setSelectedRound(parsed.round);
+          setSelectedInterviewType(parsed.round.type);
+        }
+        // Clear the setup data after loading
+        localStorage.removeItem('mockInterviewSetup');
+        return;
+      } catch (error) {
+        console.error('Error parsing setup data:', error);
+        localStorage.removeItem('mockInterviewSetup');
+      }
+    }
+
+    // Fallback to type parameter from URL
     if (type && typeof type === "string") {
       const interviewType = type.toLowerCase();
 
@@ -447,33 +373,6 @@ export default function MockInterview() {
     setError(null);
 
     try {
-      // Check if problems already exist for this combination
-      const existingProblems = await getProblemsByCompanyRoleRound(
-        selectedCompany.name,
-        selectedRole.name,
-        selectedRound.name,
-        selectedInterviewType
-      );
-
-      let interviewProblems: MockInterviewProblem[] = [];
-
-      if (existingProblems.length > 0) {
-        // Use existing problems
-        interviewProblems = existingProblems;
-      } else {
-        // Generate new problems using Gemini API
-        const problemPromises = Array.from({ length: 3 }, () =>
-          generateMockInterviewProblem(
-            selectedInterviewType.toLowerCase().replace(" ", "_") as any,
-            selectedCompany.name,
-            selectedRole.name,
-            "medium"
-          )
-        );
-
-        interviewProblems = await Promise.all(problemPromises);
-      }
-
       // Create interview session
       const sessionData = {
         userId: user.uid,
@@ -485,7 +384,7 @@ export default function MockInterview() {
           | "machine_coding"
           | "system_design"
           | "theory",
-        problems: interviewProblems,
+        problems: [],
         currentProblemIndex: 0,
         status: "active" as const,
         startedAt: new Date(),
@@ -493,7 +392,6 @@ export default function MockInterview() {
 
       const newSession = await createMockInterviewSession(sessionData);
       setSession(newSession);
-      setProblems(interviewProblems);
 
       // Start the interview
       setStep("interview");
@@ -505,32 +403,17 @@ export default function MockInterview() {
     }
   };
 
-  const handleNextProblem = () => {
-    if (currentProblemIndex < problems.length - 1) {
-      setCurrentProblemIndex(currentProblemIndex + 1);
-    } else {
-      // Interview completed
-      setStep("loading");
-      // Navigate to results or completion page
-      router.push("/mock-interviews");
-    }
-  };
 
-  const handlePreviousProblem = () => {
-    if (currentProblemIndex > 0) {
-      setCurrentProblemIndex(currentProblemIndex - 1);
-    }
-  };
 
   if (authLoading) {
     return (
-      <PageContainer>
+      <div className="min-h-screen bg-bodyBg">
         <NavBar />
-        <LoadingContainer>
-          <LoadingSpinner />
-          <LoadingText>Loading...</LoadingText>
-        </LoadingContainer>
-      </PageContainer>
+        <div className="flex flex-col items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <p className="mt-4 text-neutral-600">Loading...</p>
+        </div>
+      </div>
     );
   }
 
@@ -538,146 +421,21 @@ export default function MockInterview() {
     return null;
   }
 
-  if (step === "interview" && problems.length > 0) {
-    const currentProblem = problems[currentProblemIndex];
-
+  if (step === "interview" && session) {
     return (
-      <InterviewContainer>
-        <NavBar />
-        <CompactMainContainer>
-          <PageHeader>
-            <PageTitle>Mock Interview - {selectedCompany?.name}</PageTitle>
-            <PageSubtitle>
-              {selectedRole?.name} • {selectedRound?.name} • Problem{" "}
-              {currentProblemIndex + 1} of {problems.length}
-            </PageSubtitle>
-          </PageHeader>
-
-          <EnhancedCard>
-            <EnhancedSectionTitle>
-              Problem {currentProblemIndex + 1}
-            </EnhancedSectionTitle>
-            <EnhancedSectionSubtitle>
-              {currentProblem.title}
-            </EnhancedSectionSubtitle>
-
-            <div
-              style={{
-                background: themeObject.secondary,
-                padding: "1rem",
-                borderRadius: "8px",
-                marginBottom: "1rem",
-                border: `1px solid ${themeObject.border}`,
-              }}
-            >
-              <h3 style={{ marginBottom: "0.5rem", color: themeObject.text }}>
-                Problem Description:
-              </h3>
-              <p style={{ color: themeObject.neutral, lineHeight: "1.6" }}>
-                {currentProblem.description}
-              </p>
-            </div>
-
-            {currentProblem.examples && currentProblem.examples.length > 0 && (
-              <div
-                style={{
-                  background: themeObject.primary + "10",
-                  padding: "1rem",
-                  borderRadius: "8px",
-                  marginBottom: "1rem",
-                  border: `1px solid ${themeObject.primary + "20"}`,
-                }}
-              >
-                <h4
-                  style={{ marginBottom: "0.5rem", color: themeObject.primary }}
-                >
-                  Examples:
-                </h4>
-                {currentProblem.examples.map((example, index) => (
-                  <div key={index} style={{ marginBottom: "0.5rem" }}>
-                    <strong style={{ color: themeObject.text }}>
-                      Example {index + 1}:
-                    </strong>
-                    <p
-                      style={{
-                        color: themeObject.neutral,
-                        margin: "0.25rem 0",
-                      }}
-                    >
-                      {typeof example === "string"
-                        ? example
-                        : JSON.stringify(example)}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div
-              style={{
-                background: themeObject.accent + "10",
-                padding: "1rem",
-                borderRadius: "8px",
-                marginBottom: "1rem",
-                border: `1px solid ${themeObject.accent + "20"}`,
-              }}
-            >
-              <h4 style={{ marginBottom: "0.5rem", color: themeObject.accent }}>
-                Your Answer:
-              </h4>
-              <textarea
-                style={{
-                  width: "100%",
-                  minHeight: "200px",
-                  padding: "1rem",
-                  border: `1px solid ${themeObject.border}`,
-                  borderRadius: "8px",
-                  background: themeObject.secondary,
-                  color: themeObject.text,
-                  fontFamily: "monospace",
-                  fontSize: "0.9rem",
-                  resize: "vertical",
-                }}
-                placeholder="Write your answer here..."
-              />
-            </div>
-
-            <EnhancedButtonContainer>
-              <Button
-                variant="secondary"
-                onClick={handlePreviousProblem}
-                disabled={currentProblemIndex === 0}
-                style={{ marginRight: "1rem" }}
-              >
-                <FiArrowRight
-                  size={16}
-                  style={{ transform: "rotate(180deg)" }}
-                />
-                Previous
-              </Button>
-
-              <Button onClick={handleNextProblem} size="large">
-                {currentProblemIndex === problems.length - 1 ? (
-                  <>
-                    <FiCheck size={16} />
-                    Complete Interview
-                  </>
-                ) : (
-                  <>
-                    Next Problem
-                    <FiArrowRight size={16} />
-                  </>
-                )}
-              </Button>
-            </EnhancedButtonContainer>
-          </EnhancedCard>
-        </CompactMainContainer>
-      </InterviewContainer>
+      <MockInterviewComponent
+        interviewId={session?.id || "mock-interview"}
+        problems={session?.problems || []}
+        onComplete={(result: any) => {
+          console.log("Interview completed:", result);
+          router.push("/mock-interviews");
+        }}
+      />
     );
   }
 
   return (
-    <InterviewContainer>
+    <div className="min-h-screen bg-bodyBg">
       <NavBar />
 
       <CompactMainContainer>
@@ -704,16 +462,16 @@ export default function MockInterview() {
               Choose the company you want to practice interviewing for
             </EnhancedSectionSubtitle>
 
-            <StatsContainer>
-              <StatItem>
-                <StatNumber>{COMPANIES.length}</StatNumber>
-                <StatLabel>Companies</StatLabel>
-              </StatItem>
-              <StatItem>
-                <StatNumber>{selectedCompany ? 1 : 0}</StatNumber>
-                <StatLabel>Selected</StatLabel>
-              </StatItem>
-            </StatsContainer>
+            <div className="flex gap-4 mb-4">
+              <div className="text-center p-3 bg-secondary rounded-lg border border-border min-w-20">
+                <div className="text-xl font-bold text-primary mb-1">{COMPANIES.length}</div>
+                <div className="text-xs text-neutral-600 uppercase tracking-wider">Companies</div>
+              </div>
+              <div className="text-center p-3 bg-secondary rounded-lg border border-border min-w-20">
+                <div className="text-xl font-bold text-primary mb-1">{selectedCompany ? 1 : 0}</div>
+                <div className="text-xs text-neutral-600 uppercase tracking-wider">Selected</div>
+              </div>
+            </div>
 
             <EnhancedGrid>
               {COMPANIES.map((company) => (
@@ -798,29 +556,18 @@ export default function MockInterview() {
           </EnhancedCard>
         </EnhancedSection>
 
-        {error && <ErrorMessage>{error}</ErrorMessage>}
+        {error && <div className="text-red-500 text-center mb-4">{error}</div>}
 
         <EnhancedButtonContainer>
           <Button
             onClick={handleStartInterview}
             disabled={!canProceed || loading}
-            size="large"
-            style={{
-              background:
-                canProceed && !loading
-                  ? `linear-gradient(135deg, ${themeObject.primary} 0%, ${themeObject.accent} 100%)`
-                  : undefined,
-              boxShadow:
-                canProceed && !loading
-                  ? `0 6px 20px ${themeObject.primary}25`
-                  : undefined,
-            }}
+            size="lg"
+            className={canProceed && !loading ? "bg-gradient-to-r from-primary to-accent shadow-lg" : ""}
           >
             {loading ? (
               <>
-                <LoadingSpinner
-                  style={{ width: "16px", height: "16px", margin: 0 }}
-                />
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                 Starting Interview...
               </>
             ) : (
@@ -832,6 +579,6 @@ export default function MockInterview() {
           </Button>
         </EnhancedButtonContainer>
       </CompactMainContainer>
-    </InterviewContainer>
+    </div>
   );
 }

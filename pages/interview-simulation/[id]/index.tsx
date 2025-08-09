@@ -1,405 +1,297 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import styled from "styled-components";
-import { useAuth } from "../../../hooks/useAuth";
-import { useThemeContext } from "../../../hooks/useTheme";
-import NavBar from "../../../components/NavBar";
-import Layout, { PageContainer } from "../../../components/Layout";
-import { InterviewRound, MockInterviewSession } from "../../../types/problem";
-import { db } from "../../../services/firebase";
-import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { useAuth } from "@/hooks/useAuth";
+import { FiArrowLeft, FiCheck, FiClock, FiPlay, FiPause, FiRotateCcw } from "react-icons/fi";
+import {
+  doc,
+  getDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+} from "firebase/firestore";
+import { db } from "@/services/firebase";
 
-const Container = styled.div`
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-  min-height: 100vh;
-  background: ${({ theme }) => theme.bodyBg};
-  font-family: system-ui, -apple-system, sans-serif;
-`;
-
-const Header = styled.div`
-  text-align: center;
-  margin-bottom: 40px;
-  padding: 20px;
-  background: ${({ theme }) => theme.secondary};
-  border-radius: 12px;
-  box-shadow: 0 2px 8px ${({ theme }) => theme.border}20;
-  border: 1px solid ${({ theme }) => theme.border};
-`;
-
-const Title = styled.h1`
-  color: ${({ theme }) => theme.primary};
-  margin-bottom: 10px;
-  font-size: 2.5rem;
-  font-weight: 700;
-`;
-
-const Subtitle = styled.p`
-  color: ${({ theme }) => theme.neutral};
-  font-size: 1.1rem;
-  margin-bottom: 0;
-`;
-
-const RoundsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: 24px;
-  margin-top: 30px;
-`;
-
-const RoundCard = styled.div<{ isCompleted?: boolean; isActive?: boolean }>`
-  background: ${({ theme, isCompleted, isActive }) => 
-    isCompleted ? theme.success + '20' : 
-    isActive ? theme.primary + '20' : theme.secondary};
-  border: 2px solid ${({ theme, isCompleted, isActive }) => 
-    isCompleted ? theme.success : 
-    isActive ? theme.primary : theme.border};
-  border-radius: 12px;
-  padding: 24px;
-  transition: all 0.3s ease;
-  cursor: ${({ isCompleted, isActive }) => isCompleted ? 'default' : 'pointer'};
-  position: relative;
-  overflow: hidden;
-
-  &:hover {
-    transform: ${({ isCompleted }) => isCompleted ? 'none' : 'translateY(-4px)'};
-    box-shadow: ${({ isCompleted, theme }) => 
-      isCompleted ? 'none' : `0 8px 25px ${theme.border}40`};
-  }
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: ${({ theme, isCompleted, isActive }) => 
-      isCompleted ? theme.success : 
-      isActive ? theme.primary : theme.border};
-  }
-`;
-
-const RoundHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-`;
-
-const RoundTitle = styled.h3`
-  color: ${({ theme }) => theme.text};
-  font-size: 1.3rem;
-  font-weight: 600;
-  margin: 0;
-`;
-
-const RoundStatus = styled.span<{ status: 'pending' | 'active' | 'completed' }>`
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 500;
-  background: ${({ theme, status }) => 
-    status === 'completed' ? theme.success + '20' :
-    status === 'active' ? theme.primary + '20' : theme.border};
-  color: ${({ theme, status }) => 
-    status === 'completed' ? theme.success :
-    status === 'active' ? theme.primary : theme.neutral};
-  border: 1px solid ${({ theme, status }) => 
-    status === 'completed' ? theme.success :
-    status === 'active' ? theme.primary : theme.border};
-`;
-
-const RoundDescription = styled.p`
-  color: ${({ theme }) => theme.neutral};
-  font-size: 0.95rem;
-  line-height: 1.5;
-  margin-bottom: 16px;
-`;
-
-const RoundDetails = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 20px;
-`;
-
-const DetailTag = styled.span`
-  background: ${({ theme }) => theme.border};
-  color: ${({ theme }) => theme.text};
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  font-weight: 500;
-`;
-
-const StartButton = styled.button<{ disabled?: boolean }>`
-  background: ${({ theme, disabled }) => 
-    disabled ? theme.border : theme.primary};
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: ${({ disabled }) => disabled ? 'not-allowed' : 'pointer'};
-  transition: all 0.3s ease;
-  width: 100%;
-
-  &:hover {
-    background: ${({ theme, disabled }) => 
-      disabled ? theme.border : theme.primary + 'dd'};
-    transform: ${({ disabled }) => disabled ? 'none' : 'translateY(-2px)'};
-  }
-
-  &:disabled {
-    opacity: 0.6;
-  }
-`;
-
-const LoadingContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 400px;
-  font-size: 1.2rem;
-  color: ${({ theme }) => theme.neutral};
-`;
-
-const ErrorContainer = styled.div`
-  text-align: center;
-  padding: 40px;
-  color: ${({ theme }) => theme.error};
-  font-size: 1.1rem;
-`;
-
-const ProgressBar = styled.div`
-  width: 100%;
-  height: 8px;
-  background: ${({ theme }) => theme.border};
-  border-radius: 4px;
-  margin: 20px 0;
-  overflow: hidden;
-`;
-
-const ProgressFill = styled.div<{ progress: number }>`
-  height: 100%;
-  background: ${({ theme }) => theme.primary};
-  width: ${({ progress }) => progress}%;
-  transition: width 0.3s ease;
-`;
-
-interface SimulationData {
+interface InterviewRound {
   id: string;
-  userId: string;
+  name: string;
+  description: string;
+  duration: string;
+  status: "pending" | "active" | "completed";
+  problems: any[];
+}
+
+interface InterviewSession {
+  id: string;
   companyName: string;
   roleLevel: string;
   rounds: InterviewRound[];
   currentRound: number;
-  completedRounds: number[];
-  status: 'active' | 'completed';
-  createdAt: any;
+  status: "active" | "completed";
+  startedAt: Date;
+  totalScore?: number;
 }
 
 export default function InterviewSimulationDetail() {
   const router = useRouter();
   const { id } = router.query;
   const { user } = useAuth();
-  const { theme } = useThemeContext();
-  
-  const [simulation, setSimulation] = useState<SimulationData | null>(null);
-  const [sessions, setSessions] = useState<MockInterviewSession[]>([]);
+  const [session, setSession] = useState<InterviewSession | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentTime, setCurrentTime] = useState(0);
 
   useEffect(() => {
-    if (id && user) {
-      fetchSimulationData();
-    }
+    if (!id || !user) return;
+
+    const fetchSession = async () => {
+      try {
+        setLoading(true);
+        const sessionDoc = await getDoc(doc(db, "interview_simulations", id as string));
+        
+        if (!sessionDoc.exists()) {
+          setError("Interview session not found");
+          return;
+        }
+
+        const sessionData = sessionDoc.data() as InterviewSession;
+        setSession(sessionData);
+      } catch (err) {
+        console.error("Error fetching session:", err);
+        setError("Failed to load interview session");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSession();
   }, [id, user]);
 
-  const fetchSimulationData = async () => {
-    try {
-      setLoading(true);
-      
-      // Fetch simulation data
-      const simulationDoc = await getDoc(doc(db, "interview_simulations", id as string));
-      
-      if (!simulationDoc.exists()) {
-        setError("Simulation not found");
-        return;
-      }
+  useEffect(() => {
+    if (!session || session.status === "completed") return;
 
-      const simulationData = simulationDoc.data() as SimulationData;
-      setSimulation(simulationData);
+    const interval = setInterval(() => {
+      setCurrentTime(prev => prev + 1);
+    }, 1000);
 
-      // Fetch completed sessions for this simulation
-      const sessionsQuery = query(
-        collection(db, "mock_interview_sessions"),
-        where("simulationId", "==", id),
-        where("userId", "==", user.uid)
-      );
-      
-      const sessionsSnapshot = await getDocs(sessionsQuery);
-      const sessionsData = sessionsSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as MockInterviewSession[];
-      
-      setSessions(sessionsData);
-    } catch (err) {
-      console.error("Error fetching simulation data:", err);
-      setError("Failed to load simulation data");
-    } finally {
-      setLoading(false);
+    return () => clearInterval(interval);
+  }, [session]);
+
+  const formatTime = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+
+    if (hours > 0) {
+      return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+    return `${minutes}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handleRoundClick = (roundIndex: number) => {
+    if (!session) return;
+    
+    const round = session.rounds[roundIndex];
+    if (round.status === "completed") {
+      // Show results
+      router.push(`/interview-simulation/${id}/result`);
+    } else if (round.status === "active" || roundIndex === session.currentRound) {
+      // Start/continue round
+      router.push(`/interview-simulation/${id}/${roundIndex + 1}`);
     }
   };
 
-  const getRoundStatus = (roundIndex: number): 'pending' | 'active' | 'completed' => {
-    if (!simulation) return 'pending';
-    
-    if (simulation.completedRounds.includes(roundIndex)) {
-      return 'completed';
-    }
-    
-    if (simulation.currentRound === roundIndex) {
-      return 'active';
-    }
-    
-    return 'pending';
-  };
-
-  const canStartRound = (roundIndex: number): boolean => {
-    if (!simulation) return false;
-    
-    // Can start if it's the current round or if previous round is completed
-    if (roundIndex === simulation.currentRound) return true;
-    if (roundIndex > 0 && simulation.completedRounds.includes(roundIndex - 1)) return true;
-    
-    return false;
-  };
-
-  const startRound = (roundIndex: number) => {
-    if (!canStartRound(roundIndex)) return;
-    
-    router.push(`/interview-simulation/${id}/${roundIndex}`);
-  };
-
-  const viewResult = () => {
-    router.push(`/interview-simulation/${id}/result`);
+  const handleBack = () => {
+    router.push("/interview-simulation");
   };
 
   const calculateProgress = (): number => {
-    if (!simulation) return 0;
-    return (simulation.completedRounds.length / simulation.rounds.length) * 100;
+    if (!session) return 0;
+    const completedRounds = session.rounds.filter(r => r.status === "completed").length;
+    return (completedRounds / session.rounds.length) * 100;
   };
 
   if (loading) {
     return (
-      <Layout>
-        <NavBar />
-        <PageContainer>
-          <LoadingContainer>
-            Loading simulation...
-          </LoadingContainer>
-        </PageContainer>
-      </Layout>
+      <div className="min-h-screen bg-bodyBg flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-text">Loading interview session...</p>
+        </div>
+      </div>
     );
   }
 
-  if (error || !simulation) {
+  if (error || !session) {
     return (
-      <Layout>
-        <NavBar />
-        <PageContainer>
-          <ErrorContainer>
-            {error || "Simulation not found"}
-          </ErrorContainer>
-        </PageContainer>
-      </Layout>
+      <div className="min-h-screen bg-bodyBg flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500 text-6xl mb-4">⚠️</div>
+          <h2 className="text-2xl font-bold text-text mb-2">Error</h2>
+          <p className="text-text/70 mb-4">{error || "Session not found"}</p>
+          <button
+            onClick={handleBack}
+            className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-accent transition-colors"
+          >
+            Back to Simulations
+          </button>
+        </div>
+      </div>
     );
   }
-
-  const progress = calculateProgress();
-  const isCompleted = simulation.status === 'completed';
 
   return (
-    <Layout>
-      <NavBar />
-      <PageContainer>
-        <Container>
-          <Header>
-            <Title>{simulation.companyName} Interview Simulation</Title>
-            <Subtitle>
-              {simulation.roleLevel} • {simulation.rounds.length} Rounds
-            </Subtitle>
-            
-            <ProgressBar>
-              <ProgressFill progress={progress} />
-            </ProgressBar>
-            
-            <div style={{ fontSize: '0.9rem', color: theme.neutral }}>
-              {simulation.completedRounds.length} of {simulation.rounds.length} rounds completed
+    <div className="min-h-screen bg-bodyBg">
+      <div className="max-w-6xl mx-auto py-8 px-4">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <button
+            onClick={handleBack}
+            className="flex items-center gap-2 px-4 py-2 border border-border rounded-lg text-text hover:bg-secondary transition-colors"
+          >
+            <FiArrowLeft />
+            Back
+          </button>
+          <h1 className="text-2xl font-bold text-text">Interview Session</h1>
+          <div className="flex items-center gap-2 text-sm text-text/70">
+            <FiClock className="w-4 h-4" />
+            {formatTime(currentTime)}
+          </div>
+        </div>
+
+        {/* Session Info */}
+        <div className="text-center mb-12 p-6 bg-secondary rounded-xl border border-border shadow-sm">
+          <h2 className="text-3xl font-bold text-primary mb-2">
+            {session.companyName} Interview
+          </h2>
+          <p className="text-neutral text-lg mb-4">
+            {session.roleLevel} • {session.rounds.length} rounds
+          </p>
+          
+          {/* Progress Bar */}
+          <div className="w-full bg-border rounded-full h-2 mb-4">
+            <div 
+              className="bg-primary h-2 rounded-full transition-all duration-300"
+              style={{ width: `${calculateProgress()}%` }}
+            ></div>
+          </div>
+          
+          <p className="text-text/70">
+            {Math.round(calculateProgress())}% Complete
+          </p>
+        </div>
+
+        {/* Rounds Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {session.rounds.map((round, index) => (
+            <div
+              key={round.id}
+              onClick={() => handleRoundClick(index)}
+              className={`p-6 border-2 rounded-xl transition-all duration-300 relative overflow-hidden cursor-pointer ${
+                round.status === "completed"
+                  ? "border-green-500 bg-green-50"
+                  : round.status === "active" || index === session.currentRound
+                  ? "border-primary bg-primary/10 hover:-translate-y-1 hover:shadow-lg"
+                  : "border-border bg-secondary hover:border-primary/50"
+              }`}
+            >
+              {/* Top accent bar */}
+              <div 
+                className={`absolute top-0 left-0 right-0 h-1 transition-all duration-300 ${
+                  round.status === "completed"
+                    ? "bg-green-500"
+                    : round.status === "active" || index === session.currentRound
+                    ? "bg-primary"
+                    : "bg-border"
+                }`}
+              ></div>
+
+              {/* Round Header */}
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-semibold text-text">
+                  Round {index + 1}
+                </h3>
+                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                  round.status === "completed"
+                    ? "bg-green-100 text-green-800"
+                    : round.status === "active"
+                    ? "bg-primary/20 text-primary"
+                    : "bg-gray-100 text-gray-600"
+                }`}>
+                  {round.status === "completed" ? "Completed" : 
+                   round.status === "active" ? "Active" : "Pending"}
+                </span>
+              </div>
+
+              {/* Round Content */}
+              <div className="space-y-3">
+                <h4 className="font-semibold text-text">{round.name}</h4>
+                <p className="text-text/70 text-sm">{round.description}</p>
+                
+                <div className="flex items-center gap-2 text-sm text-text/60">
+                  <FiClock className="w-4 h-4" />
+                  {round.duration}
+                </div>
+
+                {round.status === "completed" && (
+                  <div className="flex items-center gap-2 text-sm text-green-600">
+                    <FiCheck className="w-4 h-4" />
+                    Completed
+                  </div>
+                )}
+
+                {round.status === "active" && (
+                  <div className="flex items-center gap-2 text-sm text-primary">
+                    <FiPlay className="w-4 h-4" />
+                    In Progress
+                  </div>
+                )}
+              </div>
             </div>
-          </Header>
+          ))}
+        </div>
 
-          <RoundsGrid>
-            {simulation.rounds.map((round, index) => {
-              const status = getRoundStatus(index);
-              const canStart = canStartRound(index);
-              const session = sessions.find(s => s.roundName === round.name);
-              
-              return (
-                <RoundCard 
-                  key={index}
-                  isCompleted={status === 'completed'}
-                  isActive={status === 'active'}
-                >
-                  <RoundHeader>
-                    <RoundTitle>Round {index + 1}: {round.name}</RoundTitle>
-                    <RoundStatus status={status}>
-                      {status === 'completed' ? 'Completed' :
-                       status === 'active' ? 'Active' : 'Pending'}
-                    </RoundStatus>
-                  </RoundHeader>
+        {/* Action Buttons */}
+        {session.status === "active" && (
+          <div className="flex justify-center gap-4 mt-12">
+            <button
+              onClick={() => router.push(`/interview-simulation/${id}/${session.currentRound + 1}`)}
+              className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-accent transition-colors"
+            >
+              <FiPlay />
+              Continue Interview
+            </button>
+            
+            <button
+              onClick={() => router.push(`/interview-simulation/${id}/result`)}
+              className="flex items-center gap-2 px-6 py-3 border border-border rounded-lg text-text hover:bg-secondary transition-colors"
+            >
+              <FiCheck />
+              View Results
+            </button>
+          </div>
+        )}
 
-                  <RoundDescription>{round.description}</RoundDescription>
-
-                  <RoundDetails>
-                    <DetailTag>{round.duration}</DetailTag>
-                    <DetailTag>{round.difficulty}</DetailTag>
-                    {round.focusAreas.slice(0, 2).map((area, i) => (
-                      <DetailTag key={i}>{area}</DetailTag>
-                    ))}
-                  </RoundDetails>
-
-                  {status === 'completed' ? (
-                    <StartButton disabled>
-                      ✓ Round Completed
-                    </StartButton>
-                  ) : (
-                    <StartButton 
-                      onClick={() => startRound(index)}
-                      disabled={!canStart}
-                    >
-                      {status === 'active' ? 'Continue Round' : 'Start Round'}
-                    </StartButton>
-                  )}
-                </RoundCard>
-              );
-            })}
-          </RoundsGrid>
-
-          {isCompleted && (
-            <div style={{ textAlign: 'center', marginTop: '40px' }}>
-              <StartButton onClick={viewResult}>
-                View Final Results
-              </StartButton>
+        {session.status === "completed" && (
+          <div className="text-center mt-12">
+            <div className="bg-green-50 border border-green-200 rounded-xl p-6">
+              <div className="text-green-500 text-4xl mb-4">🎉</div>
+              <h3 className="text-xl font-semibold text-text mb-2">
+                Interview Completed!
+              </h3>
+              <p className="text-text/70 mb-4">
+                Great job! You've completed all rounds of the interview.
+              </p>
+              <button
+                onClick={() => router.push(`/interview-simulation/${id}/result`)}
+                className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-accent transition-colors"
+              >
+                View Detailed Results
+              </button>
             </div>
-          )}
-        </Container>
-      </PageContainer>
-    </Layout>
+          </div>
+        )}
+      </div>
+    </div>
   );
-} 
+}

@@ -1,286 +1,9 @@
 import React, { useState } from 'react';
-import styled, { keyframes } from 'styled-components';
-import { useThemeContext } from '../../../hooks/useTheme';
 import { useRouter } from 'next/router';
 
-// Animations
-const fadeInUp = keyframes`
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-`;
 
-const pulse = keyframes`
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-`;
-
-const gradientShift = keyframes`
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-`;
-
-// Styled Components
-const PricingSection = styled.section`
-  padding: 6rem 2rem;
-  background: ${({ theme }) => theme.bodyBg};
-  position: relative;
-  overflow: hidden;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, 
-      ${({ theme }) => theme.neutral}05 0%, 
-      ${({ theme }) => theme.neutralLight}05 50%, 
-      ${({ theme }) => theme.neutral}05 100%);
-    background-size: 400% 400%;
-    animation: ${gradientShift} 8s ease infinite;
-    z-index: -1;
-  }
-`;
-
-const Container = styled.div`
-  max-width: 1200px;
-  margin: 0 auto;
-`;
-
-const SectionTitle = styled.h2`
-  font-size: clamp(2rem, 4vw, 3rem);
-  font-weight: 700;
-  text-align: center;
-  margin-bottom: 1rem;
-  color: ${({ theme }) => theme.text};
-  animation: ${fadeInUp} 1s ease-out;
-`;
-
-const SectionSubtitle = styled.p`
-  font-size: 1.2rem;
-  text-align: center;
-  margin-bottom: 4rem;
-  color: ${({ theme }) => theme.text};
-  opacity: 0.8;
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
-  animation: ${fadeInUp} 1s ease-out 0.2s both;
-`;
-
-const PricingGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 2rem;
-  margin-top: 3rem;
-`;
-
-const PricingCard = styled.div<{ isPopular?: boolean }>`
-  background: ${({ theme, isPopular }) => 
-    isPopular 
-      ? `linear-gradient(135deg, ${theme.primary}10 0%, ${theme.accent}10 100%)`
-      : theme.secondary};
-  border: 2px solid ${({ theme, isPopular }) => 
-    isPopular ? theme.primary : theme.border};
-  border-radius: 20px;
-  padding: 2.5rem;
-  text-align: center;
-  position: relative;
-  transition: all 0.3s ease;
-  animation: ${fadeInUp} 1s ease-out;
-  
-  &:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 20px 40px ${({ theme }) => theme.border}30;
-  }
-  
-  ${({ isPopular }) => isPopular && `
-    transform: scale(1.05);
-    z-index: 1;
-    
-    &:hover {
-      transform: scale(1.05) translateY(-10px);
-    }
-  `}
-`;
-
-const PopularBadge = styled.div`
-  position: absolute;
-  top: -15px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: ${({ theme }) => theme.primary};
-  color: ${({ theme }) => theme.bodyBg};
-  padding: 0.5rem 1.5rem;
-  border-radius: 25px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  animation: ${pulse} 2s infinite;
-`;
-
-const PlanName = styled.h3`
-  font-size: 1.8rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-  color: ${({ theme }) => theme.text};
-`;
-
-const Price = styled.div`
-  font-size: 3rem;
-  font-weight: 800;
-  color: ${({ theme }) => theme.primary};
-  margin-bottom: 0.5rem;
-`;
-
-const PricePeriod = styled.div`
-  font-size: 1rem;
-  color: ${({ theme }) => theme.text};
-  opacity: 0.7;
-  margin-bottom: 2rem;
-`;
-
-const Savings = styled.div`
-  background: ${({ theme }) => theme.primary}20;
-  color: ${({ theme }) => theme.primary};
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  margin-bottom: 2rem;
-  display: inline-block;
-`;
-
-const FeaturesList = styled.ul`
-  list-style: none;
-  padding: 0;
-  margin: 0 0 2rem 0;
-  text-align: left;
-`;
-
-const FeatureItem = styled.li`
-  padding: 0.75rem 0;
-  color: ${({ theme }) => theme.text};
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  
-  &::before {
-    content: '✓';
-    color: ${({ theme }) => theme.primary};
-    font-weight: bold;
-    font-size: 1.2rem;
-  }
-`;
-
-const CTAButton = styled.button<{ isPopular?: boolean }>`
-  width: 100%;
-  padding: 1rem 2rem;
-  border-radius: 50px;
-  font-weight: 700;
-  font-size: 1.1rem;
-  border: none;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-  
-  background: ${({ theme, isPopular }) => 
-    isPopular 
-      ? `linear-gradient(135deg, ${theme.primary} 0%, ${theme.accent} 100%)`
-      : 'transparent'};
-  color: ${({ theme, isPopular }) => 
-    isPopular ? theme.bodyBg : theme.text};
-  border: 2px solid ${({ theme, isPopular }) => 
-    isPopular ? theme.primary : theme.neutralDark};
-  
-  &:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 35px ${({ theme, isPopular }) => 
-      isPopular ? `${theme.primary}60` : `${theme.neutral}30`};
-    
-    ${({ isPopular, theme }) => !isPopular && `
-      background: ${theme.neutralDark};
-      color: ${theme.bodyBg};
-    `}
-  }
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-    transition: left 0.5s;
-  }
-  
-  &:hover::before {
-    left: 100%;
-  }
-`;
-
-const MoneyBackGuarantee = styled.div`
-  text-align: center;
-  margin-top: 3rem;
-  padding: 2rem;
-  background: ${({ theme }) => theme.secondary};
-  border-radius: 15px;
-  border: 1px solid ${({ theme }) => theme.border};
-  animation: ${fadeInUp} 1s ease-out 0.6s both;
-`;
-
-const GuaranteeTitle = styled.h4`
-  font-size: 1.3rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: ${({ theme }) => theme.text};
-`;
-
-const GuaranteeText = styled.p`
-  color: ${({ theme }) => theme.text};
-  opacity: 0.8;
-  margin: 0;
-`;
-
-const GetStartedButton = styled.button`
-  width: 100%;
-  padding: 1rem 2rem;
-  border: none;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  background: ${({ theme }) => theme.primary};
-  color: ${({ theme }) => theme.bodyBg};
-  
-  &:hover {
-    background: ${({ theme }) => theme.accent};
-    transform: translateY(-2px);
-  }
-`;
 
 const Pricing: React.FC = () => {
-  const { themeObject } = useThemeContext();
   const router = useRouter();
 
   const plans = [
@@ -333,48 +56,66 @@ const Pricing: React.FC = () => {
 
 
   return (
-    <PricingSection>
-      <Container>
-        <SectionTitle>Choose Your Plan</SectionTitle>
-        <SectionSubtitle>
+    <section className="py-24 px-8 bg-bodyBg relative overflow-hidden bg-gradient-to-br from-neutral/5 via-neutralLight/5 to-neutral/5 bg-[length:400%_400%] animate-[gradientShift_8s_ease_infinite]">
+      <div className="max-w-6xl mx-auto">
+        <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-center mb-4 text-text animate-[fadeInUp_1s_ease-out]">Choose Your Plan</h2>
+        <p className="text-xl text-center mb-16 text-text opacity-80 max-w-2xl mx-auto animate-[fadeInUp_1s_ease-out_0.2s_both]">
           Start your interview preparation journey with our comprehensive plans. 
           Choose the one that fits your goals and timeline.
-        </SectionSubtitle>
+        </p>
         
-        <PricingGrid>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
           {plans.map((plan, index) => (
-            <PricingCard key={plan.name} isPopular={plan.isPopular}>
-              {plan.isPopular && <PopularBadge>Most Popular</PopularBadge>}
-              
-              <PlanName>{plan.name}</PlanName>
-              <Price>{plan.price}</Price>
-              <PricePeriod>{plan.period}</PricePeriod>
-              
-              {plan.savings && (
-                <Savings>{plan.savings}</Savings>
+            <div 
+              key={plan.name} 
+              className={`bg-secondary border-2 rounded-2xl p-10 text-center relative transition-all duration-300 animate-[fadeInUp_1s_ease-out] hover:-translate-y-2 hover:shadow-xl hover:shadow-border/30 ${
+                plan.isPopular 
+                  ? 'bg-gradient-to-br from-primary/10 to-accent/10 border-primary scale-105 z-10 hover:scale-105 hover:-translate-y-2' 
+                  : 'border-border'
+              }`}
+            >
+              {plan.isPopular && (
+                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-primary text-bodyBg px-6 py-2 rounded-full text-sm font-semibold animate-[pulse_2s_infinite]">
+                  Most Popular
+                </div>
               )}
               
-              <FeaturesList>
-                {plan.features.map((feature, featureIndex) => (
-                  <FeatureItem key={featureIndex}>{feature}</FeatureItem>
-                ))}
-              </FeaturesList>
+              <h3 className="text-2xl font-bold mb-4 text-text">{plan.name}</h3>
+              <div className="text-5xl font-extrabold text-primary mb-2">{plan.price}</div>
+              <div className="text-base text-text opacity-70 mb-8">{plan.period}</div>
               
-              <GetStartedButton onClick={() => router.push('/premium')}>
+              {plan.savings && (
+                <div className="bg-primary/20 text-primary px-4 py-2 rounded-full text-sm font-semibold mb-8 inline-block">
+                  {plan.savings}
+                </div>
+              )}
+              
+              <ul className="list-none p-0 m-0 mb-8 text-left">
+                {plan.features.map((feature, featureIndex) => (
+                  <li key={featureIndex} className="py-3 text-text flex items-center gap-3 before:content-['✓'] before:text-primary before:font-bold before:text-xl">
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+              
+              <button 
+                onClick={() => router.push('/premium')}
+                className="w-full py-4 px-8 border-none rounded-xl font-semibold text-base cursor-pointer transition-all duration-300 bg-primary text-bodyBg hover:bg-accent hover:-translate-y-1"
+              >
                 Get Started
-              </GetStartedButton>
-            </PricingCard>
+              </button>
+            </div>
           ))}
-        </PricingGrid>
+        </div>
         
-        <MoneyBackGuarantee>
-          <GuaranteeTitle>30-Day Money-Back Guarantee</GuaranteeTitle>
-          <GuaranteeText>
+        <div className="text-center mt-12 p-8 bg-secondary rounded-2xl border border-border animate-[fadeInUp_1s_ease-out_0.6s_both]">
+          <h4 className="text-xl font-semibold mb-2 text-text">30-Day Money-Back Guarantee</h4>
+          <p className="text-text opacity-80 m-0">
             Not satisfied? Get a full refund within 30 days. No questions asked.
-          </GuaranteeText>
-        </MoneyBackGuarantee>
-      </Container>
-    </PricingSection>
+          </p>
+        </div>
+      </div>
+    </section>
   );
 };
 

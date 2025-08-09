@@ -1,4 +1,3 @@
-import styled from "styled-components";
 import Link from "next/link";
 import {
   getProblemCardInfo,
@@ -13,219 +12,49 @@ interface ProblemCardProps {
   status?: "attempted" | "solved" | "unsolved";
 }
 
-const Card = styled.div`
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 16px;
-  padding: 1.5rem;
-  background: ${({ theme }) => theme.secondary};
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: ${({ theme }) => theme.neutralDark};
-    opacity: 0;
-    transition: opacity 0.3s ease;
+// Helper functions for badge colors
+const getStatusBadgeColor = (status?: string) => {
+  switch (status) {
+    case "solved":
+      return "bg-green-500";
+    case "attempted":
+      return "bg-yellow-500";
+    default:
+      return "bg-gray-500";
   }
+};
 
-  &:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px ${({ theme }) => theme.border}30;
-    border-color: ${({ theme }) => theme.neutral}30;
-
-    &::before {
-      opacity: 1;
-    }
+const getDifficultyBadgeColor = (difficulty: string) => {
+  switch (difficulty) {
+    case "easy":
+      return "border-green-500 text-green-500";
+    case "medium":
+      return "border-yellow-500 text-yellow-500";
+    case "hard":
+      return "border-red-500 text-red-500";
+    default:
+      return "border-gray-500 text-gray-500";
   }
-`;
+};
 
-const Title = styled.h4`
-  margin: 0;
-  color: ${({ theme }) => theme.text};
-  font-size: 1.1rem;
-  line-height: 1.3;
-  font-weight: 600;
-  margin-bottom: 0.25rem;
-`;
-
-const Meta = styled.p`
-  margin: 0;
-  font-size: 0.8rem;
-  color: ${({ theme }) => theme.text};
-  opacity: 0.7;
-  line-height: 1.4;
-`;
-
-const BadgeContainer = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
-`;
-
-const BadgeGroup = styled.div`
-  display: flex;
-  gap: 0.4rem;
-  flex-wrap: wrap;
-`;
-
-const StatusBadge = styled.span<{ status?: string }>`
-  padding: 0.3rem 0.8rem;
-  border-radius: 16px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  background: ${({ status }) => {
-    switch (status) {
-      case "solved":
-        return "#10b981"; // Green
-      case "attempted":
-        return "#f59e0b"; // Orange
-      default:
-        return "#6b7280"; // Gray
-    }
-  }};
-  color: white;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-`;
-
-const DifficultyBadge = styled.span<{ difficulty: string }>`
-  padding: 0.3rem 0.6rem;
-  border-radius: 10px;
-  font-size: 0.65rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  border: 1px solid ${({ difficulty }) => {
-    switch (difficulty) {
-      case "easy":
-        return "#10b981"; // Green
-      case "medium":
-        return "#f59e0b"; // Orange
-      case "hard":
-        return "#ef4444"; // Red
-      default:
-        return "#6b7280"; // Gray
-    }
-  }};
-  color: ${({ difficulty }) => {
-    switch (difficulty) {
-      case "easy":
-        return "#10b981"; // Green
-      case "medium":
-        return "#f59e0b"; // Orange
-      case "hard":
-        return "#ef4444"; // Red
-      default:
-        return "#6b7280"; // Gray
-    }
-  }};
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-`;
-
-const CategoryBadge = styled.span<{ type: ProblemType }>`
-  padding: 0.3rem 0.6rem;
-  border-radius: 10px;
-  font-size: 0.65rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  border: 1px solid
-    ${({ type }) => {
-      switch (type) {
-        case "dsa":
-          return "#3b82f6"; // Blue
-        case "machine_coding":
-          return "#8b5cf6"; // Purple
-        case "system_design":
-          return "#06b6d4"; // Cyan
-        case "interview":
-          return "#10b981"; // Green
-        case "user_generated":
-          return "#f59e0b"; // Orange
-        default:
-          return "#6b7280"; // Gray
-      }
-    }};
-  color: ${({ type }) => {
-    switch (type) {
-      case "dsa":
-        return "#3b82f6"; // Blue
-      case "machine_coding":
-        return "#8b5cf6"; // Purple
-      case "system_design":
-        return "#06b6d4"; // Cyan
-      case "interview":
-        return "#10b981"; // Green
-      case "user_generated":
-        return "#f59e0b"; // Orange
-      default:
-        return "#6b7280"; // Gray
-    }
-  }};
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-`;
-
-const TechnologyTags = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-top: 0.4rem;
-`;
-
-const TechnologyTag = styled.span`
-  background: #f3f4f6;
-  color: #374151;
-  padding: 0.25rem 0.5rem;
-  border-radius: 6px;
-  font-size: 0.7rem;
-  font-weight: 500;
-  border: 1px solid #d1d5db;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: #e5e7eb;
-    border-color: #9ca3af;
+const getCategoryBadgeColor = (type: ProblemType) => {
+  switch (type) {
+    case "dsa":
+      return "border-blue-500 text-blue-500";
+    case "machine_coding":
+      return "border-purple-500 text-purple-500";
+    case "system_design":
+      return "border-cyan-500 text-cyan-500";
+    case "theory":
+      return "border-pink-500 text-pink-500";
+    case "interview":
+      return "border-green-500 text-green-500";
+    case "user_generated":
+      return "border-yellow-500 text-yellow-500";
+    default:
+      return "border-gray-500 text-gray-500";
   }
-`;
-
-const SolveButton = styled(Link)`
-  align-self: flex-end;
-  padding: 0.6rem 1.2rem;
-  background: ${({ theme }) => theme.primary};
-  color: ${({ theme }) => theme.bodyBg};
-  text-decoration: none;
-  border-radius: 10px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px ${({ theme }) => theme.border};
-  margin-top: auto;
-
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 16px ${({ theme }) => theme.border};
-    background: ${({ theme }) => theme.accent};
-  }
-`;
-
-const ProblemInfo = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-`;
+};
 
 export default function ProblemCard({ problem, status }: ProblemCardProps) {
   // Handle different problem types
@@ -272,7 +101,6 @@ export default function ProblemCard({ problem, status }: ProblemCardProps) {
     }
 
     const userProblem = problem as any;
-    console.log(userProblem, "userProblem");
     try {
       if (
         userProblem.interviewType === "coding" &&
@@ -286,6 +114,11 @@ export default function ProblemCard({ problem, status }: ProblemCardProps) {
         userProblem.dsaProblem
       ) {
         return userProblem.dsaProblem?.title || "DSA Problem";
+      } else if (
+        userProblem.interviewType === "theory" &&
+        userProblem.theoryProblem
+      ) {
+        return userProblem.theoryProblem?.title || "Theory Problem";
       } else if (userProblem.machineCodingProblem) {
         return userProblem.machineCodingProblem?.title || "Coding Problem";
       } else {
@@ -295,50 +128,66 @@ export default function ProblemCard({ problem, status }: ProblemCardProps) {
       return "Custom Problem";
     }
   };
-  console.log(problem, "problem");
-  return (
-    <Card>
-      <BadgeContainer>
-        <StatusBadge status={status}>{status || "New"}</StatusBadge>
-        <BadgeGroup>
-          <CategoryBadge type={type}>{type.replace("_", " ")}</CategoryBadge>
-          <DifficultyBadge difficulty={difficulty}>
-            {difficulty}
-          </DifficultyBadge>
-        </BadgeGroup>
-      </BadgeContainer>
 
-      <ProblemInfo>
-        <Title>{getProblemTitle()}</Title>
+  return (
+    <div className="border border-border rounded-2xl p-6 bg-secondary flex flex-col gap-3 transition-all duration-300 relative overflow-hidden hover:-translate-y-1 hover:shadow-lg hover:shadow-border/30 hover:border-neutral/30 group">
+      <div className="absolute top-0 left-0 right-0 h-1 bg-neutralDark opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+      
+      <div className="flex justify-between items-start gap-2 mb-3">
+        <span className={`px-3 py-1 rounded-2xl text-xs font-semibold uppercase tracking-wider text-white shadow-sm ${getStatusBadgeColor(status)}`}>
+          {status || "New"}
+        </span>
+        <div className="flex gap-1.5 flex-wrap">
+          <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold uppercase tracking-wider border ${getCategoryBadgeColor(type)} shadow-sm`}>
+            {type.replace("_", " ")}
+          </span>
+          <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold uppercase tracking-wider border ${getDifficultyBadgeColor(difficulty)} shadow-sm`}>
+            {difficulty}
+          </span>
+        </div>
+      </div>
+
+      <div className="flex-1 flex flex-col gap-2">
+        <h4 className="m-0 text-text text-lg leading-tight font-semibold mb-1">
+          {getProblemTitle()}
+        </h4>
 
         {!isPredefined && (
           <>
-            <Meta>Companies: {(problem as any).companies || "N/A"}</Meta>
-            {/* <Meta>
-              Type:{" "}
-              {(problem as any).interviewType ||
-                ((problem as any).systemDesignProblem ? "design" : "coding")}
-            </Meta> */}
+            <p className="m-0 text-sm text-text opacity-70 leading-relaxed">
+              Companies: {(problem as any).companies || "N/A"}
+            </p>
           </>
         )}
 
-        {/* {category && <Meta>Category: {category}</Meta>} */}
-
-        {estimatedTime && <Meta>Estimated Time: {estimatedTime}</Meta>}
+        {estimatedTime && (
+          <p className="m-0 text-sm text-text opacity-70 leading-relaxed">
+            Estimated Time: {estimatedTime}
+          </p>
+        )}
 
         {technologies.length > 0 && (
-          <TechnologyTags>
+          <div className="flex flex-wrap gap-1.5 mt-1.5">
             {technologies.slice(0, 3).map((tech: string, index: number) => (
-              <TechnologyTag key={index}>{tech}</TechnologyTag>
+              <span key={index} className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs font-medium border border-gray-300 transition-all duration-200 hover:bg-gray-200 hover:border-gray-400">
+                {tech}
+              </span>
             ))}
             {technologies.length > 3 && (
-              <TechnologyTag>+{technologies.length - 3} more</TechnologyTag>
+              <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs font-medium border border-gray-300 transition-all duration-200 hover:bg-gray-200 hover:border-gray-400">
+                +{technologies.length - 3} more
+              </span>
             )}
-          </TechnologyTags>
+          </div>
         )}
-      </ProblemInfo>
+      </div>
 
-      <SolveButton href={`/problems/${problem.id}`}>Start Solving</SolveButton>
-    </Card>
+      <Link 
+        href={`/problems/${problem.id}`}
+        className="self-end px-5 py-2.5 bg-primary text-bodyBg no-underline rounded-lg text-sm font-semibold transition-all duration-300 shadow-md shadow-border mt-auto hover:-translate-y-1 hover:shadow-lg hover:shadow-border hover:bg-accent"
+      >
+        Start Solving
+      </Link>
+    </div>
   );
 }

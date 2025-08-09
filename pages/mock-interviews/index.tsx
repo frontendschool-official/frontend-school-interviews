@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/router';
-import styled from 'styled-components';
 import { useAuth } from '@/hooks/useAuth';
 import Layout from '@/components/Layout';
 import MockInterviewHub from '@/components/mock-interviews/MockInterviewHub';

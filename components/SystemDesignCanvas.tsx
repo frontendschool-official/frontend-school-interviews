@@ -1,19 +1,10 @@
 import dynamic from 'next/dynamic';
 import { forwardRef, useState, useImperativeHandle, useCallback } from 'react';
-import styled from 'styled-components';
 
 const Excalidraw = dynamic(
   () => import('@excalidraw/excalidraw').then((mod) => mod.Excalidraw),
   { ssr: false }
 );
-
-const Wrapper = styled.div`
-  width: 100%;
-  height: 100%;
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 4px;
-  overflow: hidden;
-`;
 
 interface SystemDesignCanvasProps {
   onSubmit?: (code: string, drawingImage: string) => Promise<void>;
@@ -91,26 +82,46 @@ const SystemDesignCanvas = forwardRef<any, SystemDesignCanvasProps>(({ onSubmit,
   }), [excalidrawRef, isReady]);
 
   return (
-    <Wrapper>
+    <div className="w-full h-full border border-border rounded overflow-hidden">
       {isLoading && (
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          height: '100%',
-          color: '#666',
-          fontSize: '14px'
-        }}>
-          Loading system design canvas...
+        <div className="flex items-center justify-center h-full text-gray-500 text-sm">
+          Loading System Design Canvas...
         </div>
       )}
-      <Excalidraw 
+      
+      <Excalidraw
         ref={handleExcalidrawRef}
-        onChange={(elements, appState, files) => {
-          // Handle changes if needed
+        initialData={{
+          elements: [],
+          appState: {
+            viewBackgroundColor: '#ffffff',
+            gridSize: 20,
+            zoom: { value: 1 as any },
+            scrollX: 0,
+            scrollY: 0,
+          },
         }}
+        theme="light"
+        UIOptions={{
+          canvasActions: {
+            saveToActiveFile: false,
+            loadScene: false,
+            export: false,
+            saveAsImage: false,
+            clearCanvas: true,
+            toggleTheme: false,
+            changeViewBackgroundColor: false,
+          },
+          dockedSidebarBreakpoint: 0,
+          welcomeScreen: false,
+        }}
+        langCode="en-US"
+        gridModeEnabled={true}
+        zenModeEnabled={false}
+        viewModeEnabled={false}
+        name="System Design Canvas"
       />
-    </Wrapper>
+    </div>
   );
 });
 

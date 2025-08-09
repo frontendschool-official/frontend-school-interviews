@@ -69,6 +69,15 @@ export default async function handler(
     });
     }
 
+    // Validate insights structure before returning
+    if (!insights || !insights.data || !insights.data.rounds) {
+      console.error('Invalid insights structure:', insights);
+      return res.status(500).json({
+        error: 'Generated insights have invalid structure',
+        details: 'Missing required data fields'
+      });
+    }
+
     // Return the structured response
     return res.status(200).json({
       success: true,

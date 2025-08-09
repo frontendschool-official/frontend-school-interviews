@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import styled from 'styled-components';
 import { useAuth } from '@/hooks/useAuth';
 import Layout from '@/components/Layout';
 import InterviewHistory from '@/components/history/InterviewHistory';

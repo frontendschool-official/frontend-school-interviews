@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '@/hooks/useAuth';
 import Layout from '@/components/Layout';
-import { LoadingContainer, LoadingSpinner, LoadingText } from '@/styles/SharedUI';
+// Loading components removed from SharedUI, using inline Tailwind instead
 
 export default function MockInterviewSetupPage() {
   const { user, loading } = useAuth();
@@ -38,10 +38,10 @@ export default function MockInterviewSetupPage() {
 
   return (
     <Layout>
-      <LoadingContainer>
-        <LoadingSpinner />
-        <LoadingText>Redirecting to interview setup...</LoadingText>
-      </LoadingContainer>
+              <div className="flex flex-col items-center justify-center min-h-96 py-12">
+          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mb-4"></div>
+          <p className="text-text">Redirecting to interview setup...</p>
+        </div>
     </Layout>
   );
 } 

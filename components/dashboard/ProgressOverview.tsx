@@ -1,154 +1,21 @@
 import React from 'react';
-import styled from 'styled-components';
 import { FiBarChart2, FiTrendingUp } from 'react-icons/fi';
 import { useDashboardData } from '@/hooks/useDashboardData';
-
-const ProgressContainer = styled.div`
-  background: ${({ theme }) => theme.secondary};
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 12px;
-  padding: 1.5rem;
-`;
-
-const Title = styled.h3`
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: ${({ theme }) => theme.text};
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-`;
-
-const ProgressItem = styled.div`
-  margin-bottom: 1.5rem;
-
-  &:last-child {
-    margin-bottom: 0;
-  }
-`;
-
-const ProgressHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
-`;
-
-const ProgressLabel = styled.div`
-  font-weight: 500;
-  color: ${({ theme }) => theme.text};
-  font-size: 0.9rem;
-`;
-
-const ProgressValue = styled.div`
-  font-size: 0.8rem;
-  color: ${({ theme }) => theme.text}80;
-`;
-
-const ProgressBar = styled.div`
-  width: 100%;
-  height: 8px;
-  background: ${({ theme }) => theme.border};
-  border-radius: 4px;
-  overflow: hidden;
-`;
-
-const ProgressFill = styled.div<{ percentage: number; color: string }>`
-  height: 100%;
-  width: ${({ percentage }) => percentage}%;
-  background: ${({ color }) => color};
-  border-radius: 4px;
-  transition: width 0.3s ease;
-`;
-
-const OverallProgress = styled.div`
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid ${({ theme }) => theme.border};
-`;
-
-const OverallHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-`;
-
-const OverallTitle = styled.div`
-  font-weight: 600;
-  color: ${({ theme }) => theme.text};
-`;
-
-const OverallPercentage = styled.div`
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: ${({ theme }) => theme.primary};
-`;
-
-const ProgressStats = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin-top: 1rem;
-`;
-
-const StatItem = styled.div`
-  text-align: center;
-`;
-
-const StatValue = styled.div`
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: ${({ theme }) => theme.text};
-`;
-
-const StatLabel = styled.div`
-  font-size: 0.75rem;
-  color: ${({ theme }) => theme.text}80;
-  margin-top: 0.25rem;
-`;
-
-const LoadingContainer = styled.div`
-  background: ${({ theme }) => theme.secondary};
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 12px;
-  padding: 1.5rem;
-  opacity: 0.7;
-`;
-
-const LoadingSkeleton = styled.div`
-  width: 100%;
-  height: 8px;
-  background: ${({ theme }) => theme.border};
-  border-radius: 4px;
-  margin-bottom: 1.5rem;
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-
-  @keyframes pulse {
-    0%, 100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.5;
-    }
-  }
-`;
 
 export default function ProgressOverview() {
   const { progress, loading } = useDashboardData();
 
   if (loading) {
     return (
-      <LoadingContainer>
-        <Title>
+      <div className="bg-secondary border border-border rounded-xl p-6 opacity-70">
+        <div className="text-xl font-semibold text-text mb-4 flex items-center gap-2">
           <FiBarChart2 />
           Learning Progress
-        </Title>
+        </div>
         {[1, 2, 3, 4].map((index) => (
-          <LoadingSkeleton key={index} />
+          <div key={index} className="w-full h-2 bg-border rounded mb-6 animate-pulse"></div>
         ))}
-      </LoadingContainer>
+      </div>
     );
   }
 
@@ -191,43 +58,49 @@ export default function ProgressOverview() {
   const totalProblems = progressData.reduce((sum, item) => sum + item.total, 0);
 
   return (
-    <ProgressContainer>
-      <Title>
+    <div className="bg-secondary border border-border rounded-xl p-6">
+      <div className="text-xl font-semibold text-text mb-4 flex items-center gap-2">
         <FiBarChart2 />
         Learning Progress
-      </Title>
+      </div>
 
       {progressData.map((item, index) => (
-        <ProgressItem key={index}>
-          <ProgressHeader>
-            <ProgressLabel>{item.label}</ProgressLabel>
-            <ProgressValue>{item.completed}/{item.total}</ProgressValue>
-          </ProgressHeader>
-          <ProgressBar>
-            <ProgressFill percentage={item.percentage} color={item.color} />
-          </ProgressBar>
-        </ProgressItem>
+        <div key={index} className="mb-6 last:mb-0">
+          <div className="flex justify-between items-center mb-2">
+            <span className="font-medium text-text text-sm">{item.label}</span>
+            <span className="text-sm text-text/80">{item.completed}/{item.total}</span>
+          </div>
+          <div className="w-full h-2 bg-border rounded overflow-hidden">
+            <div 
+              className="h-full rounded transition-all duration-300"
+              style={{ width: `${item.percentage}%`, backgroundColor: item.color }}
+            ></div>
+          </div>
+        </div>
       ))}
 
-      <OverallProgress>
-        <OverallHeader>
-          <OverallTitle>Overall Progress</OverallTitle>
-          <OverallPercentage>{overallProgress}%</OverallPercentage>
-        </OverallHeader>
-        <ProgressBar>
-          <ProgressFill percentage={overallProgress} color="#e5231c" />
-        </ProgressBar>
-        <ProgressStats>
-          <StatItem>
-            <StatValue>{totalCompleted}</StatValue>
-            <StatLabel>Completed</StatLabel>
-          </StatItem>
-          <StatItem>
-            <StatValue>{totalProblems - totalCompleted}</StatValue>
-            <StatLabel>Remaining</StatLabel>
-          </StatItem>
-        </ProgressStats>
-      </OverallProgress>
-    </ProgressContainer>
+      <div className="mt-6 pt-6 border-t border-border">
+        <div className="flex justify-between items-center mb-4">
+          <span className="font-semibold text-text">Overall Progress</span>
+          <span className="text-2xl font-bold text-primary">{overallProgress}%</span>
+        </div>
+        <div className="w-full h-2 bg-border rounded overflow-hidden mb-4">
+          <div 
+            className="h-full rounded transition-all duration-300"
+            style={{ width: `${overallProgress}%`, backgroundColor: '#e5231c' }}
+          ></div>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="text-center">
+            <div className="text-xl font-semibold text-text">{totalCompleted}</div>
+            <div className="text-xs text-text/80 mt-1">Completed</div>
+          </div>
+          <div className="text-center">
+            <div className="text-xl font-semibold text-text">{totalProblems - totalCompleted}</div>
+            <div className="text-xs text-text/80 mt-1">Remaining</div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 } 

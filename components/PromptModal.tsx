@@ -1,11 +1,15 @@
 import { useState } from "react";
-import styled from "styled-components";
 
 interface PromptValues {
   designation: string;
   companies: string;
   round: string;
-  interviewType: "coding" | "design" | "dsa";
+  interviewType:
+    | "coding"
+    | "design"
+    | "dsa"
+    | "theory"
+    | "behavioral/managerial";
 }
 
 interface PromptModalProps {
@@ -14,214 +18,136 @@ interface PromptModalProps {
   onSubmit: (values: PromptValues) => void;
 }
 
-const Overlay = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(8px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 1rem;
-`;
-
-const ModalContainer = styled.div`
-  background: ${({ theme }) => theme.secondary};
-  padding: 2.5rem;
-  border-radius: 24px;
-  width: 100%;
-  max-width: 550px;
-  border: 1px solid ${({ theme }) => theme.border};
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  position: relative;
-  overflow: hidden;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: ${({ theme }) => theme.neutralDark};
-  }
-`;
-
-const Heading = styled.h2`
-  margin-bottom: 2rem;
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: ${({ theme }) => theme.neutralDark};
-  text-align: center;
-`;
-
-const FormGroup = styled.div`
-  margin-bottom: 1.5rem;
-  display: flex;
-  flex-direction: column;
-`;
-
-const Label = styled.label`
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-  color: ${({ theme }) => theme.text};
-  font-size: 0.95rem;
-`;
-
-const Input = styled.input`
-  padding: 1rem;
-  border: 2px solid ${({ theme }) => theme.border}50;
-  border-radius: 12px;
-  background: ${({ theme }) => theme.bodyBg};
-  color: ${({ theme }) => theme.text};
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  
-  &:focus {
-    outline: none;
-    border-color: ${({ theme }) => theme.neutralDark};
-    box-shadow: 0 0 0 3px ${({ theme }) => theme.neutral}20;
-  }
-  
-  &::placeholder {
-    color: ${({ theme }) => theme.text}60;
-  }
-`;
-
-const Select = styled.select`
-  padding: 1rem;
-  border: 2px solid ${({ theme }) => theme.border}50;
-  border-radius: 12px;
-  background: ${({ theme }) => theme.bodyBg};
-  color: ${({ theme }) => theme.text};
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  
-  &:focus {
-    outline: none;
-    border-color: ${({ theme }) => theme.neutralDark};
-    box-shadow: 0 0 0 3px ${({ theme }) => theme.neutral}20;
-  }
-`;
-
-const Buttons = styled.div`
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  margin-top: 2rem;
-`;
-
-const Button = styled.button`
-  padding: 1rem 2rem;
-  border: none;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  min-width: 120px;
-  
-  &.primary {
-    background: ${({ theme }) => theme.primary};
-    color: #fff;
-    box-shadow: 0 4px 15px ${({ theme }) => theme.primary}40;
-    
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px ${({ theme }) => theme.primary}60;
-      background: ${({ theme }) => theme.accent};
-    }
-  }
-  
-  &.secondary {
-    background: ${({ theme }) => theme.bodyBg};
-    color: ${({ theme }) => theme.text};
-    border: 2px solid ${({ theme }) => theme.border};
-    
-    &:hover {
-      background: ${({ theme }) => theme.border}20;
-      transform: translateY(-1px);
-    }
-  }
-`;
-
 export default function PromptModal({
   visible,
   onClose,
   onSubmit,
 }: PromptModalProps) {
-  const [designation, setDesignation] = useState<string>("Frontend Developer");
-  const [companies, setCompanies] = useState<string>("");
-  const [round, setRound] = useState<string>("1");
-  const [interviewType, setInterviewType] = useState<"coding" | "design" | "dsa">(
-    "coding"
-  );
+  const [values, setValues] = useState<PromptValues>({
+    designation: "Frontend Developer",
+    companies: "",
+    round: "",
+    interviewType: "coding",
+  });
 
   const handleSubmit = () => {
-    onSubmit({ designation, companies, round, interviewType });
+    if (values.designation && values.companies && values.round) {
+      onSubmit(values);
+      onClose();
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleSubmit();
+    }
   };
 
   if (!visible) return null;
+
   return (
-    <Overlay onClick={onClose}>
-      <ModalContainer onClick={(e) => e.stopPropagation()}>
-        <Heading>Configure Interview</Heading>
-        <FormGroup>
-          <Label htmlFor="designation">Role</Label>
-          <Input
-            id="designation"
-            value={designation}
-            onChange={(e) => setDesignation(e.target.value)}
-          />
-        </FormGroup>
-        <FormGroup>
-          <Label htmlFor="companies">Targeted Companies</Label>
-          <Input
-            id="companies"
-            value={companies}
-            onChange={(e) => setCompanies(e.target.value)}
-          />
-        </FormGroup>
-        <FormGroup>
-          <Label htmlFor="round">Interview Round</Label>
-          <Select
-            id="round"
-            value={round}
-            onChange={(e) => setRound(e.target.value)}
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-secondary p-10 rounded-3xl w-full max-w-lg border border-border shadow-2xl relative overflow-hidden">
+        {/* Top border accent */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-neutralDark"></div>
+
+        <h2 className="text-3xl font-bold text-neutralDark text-center mb-8">
+          Interview Details
+        </h2>
+
+        <div className="space-y-6">
+          <div className="flex flex-col">
+            <label className="font-semibold text-text text-sm mb-2">
+              Job Title / Designation
+            </label>
+            <input
+              type="text"
+              placeholder="e.g., Frontend Developer, React Developer"
+              value={values.designation}
+              onChange={(e) =>
+                setValues({ ...values, designation: e.target.value })
+              }
+              onKeyPress={handleKeyPress}
+              className="p-4 border-2 border-border/50 rounded-xl bg-bodyBg text-text text-base transition-all duration-300 focus:outline-none focus:border-neutralDark focus:shadow-lg focus:shadow-neutral/20 placeholder:text-text/60"
+            />
+          </div>
+
+          <div className="flex flex-col">
+            <label className="font-semibold text-text text-sm mb-2">
+              Companies (Optional)
+            </label>
+            <input
+              type="text"
+              placeholder="e.g., Google, Meta, Amazon"
+              value={values.companies}
+              onChange={(e) =>
+                setValues({ ...values, companies: e.target.value })
+              }
+              onKeyPress={handleKeyPress}
+              className="p-4 border-2 border-border/50 rounded-xl bg-bodyBg text-text text-base transition-all duration-300 focus:outline-none focus:border-neutralDark focus:shadow-lg focus:shadow-neutral/20 placeholder:text-text/60"
+            />
+          </div>
+
+          <div className="flex flex-col">
+            <label className="font-semibold text-text text-sm mb-2">
+              Designation
+            </label>
+            <select
+              value={values.round}
+              onChange={(e) => setValues({ ...values, round: e.target.value })}
+              className="p-4 border-2 border-border/50 rounded-xl bg-bodyBg text-text text-base cursor-pointer transition-all duration-300 focus:outline-none focus:border-neutralDark focus:shadow-lg focus:shadow-neutral/20"
+            >
+              <option value="">Select Designation</option>
+              <option value="SDE1">SDE1 or L3</option>
+              <option value="SDE2">SDE2 or L4</option>
+              <option value="SDE3">SDE3 or L5</option>
+              <option value="SDE4">SDE4 or L6</option>
+              <option value="Architect">Architect or L6+</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col">
+            <label className="font-semibold text-text text-sm mb-2">
+              Interview Type
+            </label>
+            <select
+              value={values.interviewType}
+              onChange={(e) =>
+                setValues({
+                  ...values,
+                  interviewType: e.target
+                    .value as PromptValues["interviewType"],
+                })
+              }
+              className="p-4 border-2 border-border/50 rounded-xl bg-bodyBg text-text text-base cursor-pointer transition-all duration-300 focus:outline-none focus:border-neutralDark focus:shadow-lg focus:shadow-neutral/20"
+            >
+              <option value="coding">Machine Coding</option>
+              <option value="design">System Design</option>
+              <option value="dsa">DSA</option>
+              <option value="theory">Theory</option>
+              <option value="behavioral/managerial">
+                Behavioral/Managerial
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <div className="flex gap-4 mt-8">
+          <button
+            onClick={onClose}
+            className="flex-1 p-4 border-2 border-border/50 rounded-xl bg-secondary text-text text-base font-semibold transition-all duration-300 hover:bg-bodyBg hover:border-border"
           >
-            <option value="1">Round 1</option>
-            <option value="2">Round 2</option>
-            <option value="3">Round 3</option>
-          </Select>
-        </FormGroup>
-        <FormGroup>
-          <Label htmlFor="type">Interview Type</Label>
-          <Select
-            id="type"
-            value={interviewType}
-            onChange={(e) =>
-              setInterviewType(e.target.value as "coding" | "design" | "dsa")
-            }
-          >
-            <option value="coding">Machine Coding</option>
-            <option value="design">System Design</option>
-            <option value="dsa">DSA</option>
-          </Select>
-        </FormGroup>
-        <Buttons>
-          <Button className="secondary" onClick={onClose}>
             Cancel
-          </Button>
-          <Button className="primary" onClick={handleSubmit}>
-            Start
-          </Button>
-        </Buttons>
-      </ModalContainer>
-    </Overlay>
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={!values.designation || !values.round}
+            className="flex-1 p-4 bg-primary text-white rounded-xl text-base font-semibold transition-all duration-300 hover:bg-accent hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+          >
+            Generate Interview
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }

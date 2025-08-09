@@ -1,9 +1,8 @@
-import React, { useEffect } from 'react';
-import { useRouter } from 'next/router';
-import styled from 'styled-components';
-import { useAuth } from '@/hooks/useAuth';
-import Layout from '@/components/Layout';
-import PracticeHub from '@/components/practice/PracticeHub';
+import React, { useEffect } from "react";
+import { useRouter } from "next/router";
+import { useAuth } from "@/hooks/useAuth";
+import Layout from "@/components/Layout";
+import PracticeHub from "@/components/practice/PracticeHub";
 
 export default function PracticePage() {
   const { user, loading } = useAuth();
@@ -11,25 +10,17 @@ export default function PracticePage() {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push('/login');
+      router.push("/login");
     }
   }, [user, loading, router]);
-
-  if (loading) {
-    return (
-      <Layout isLoading={true} loadingText="Loading practice hub...">
-        <div />
-      </Layout>
-    );
-  }
 
   if (!user) {
     return null;
   }
 
   return (
-    <Layout>
+    <Layout isLoading={loading}>
       <PracticeHub />
     </Layout>
   );
-} 
+}

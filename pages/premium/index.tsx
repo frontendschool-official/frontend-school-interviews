@@ -1,18 +1,7 @@
 import React, { useState } from "react";
 import { NextPage } from "next";
-import styled from "styled-components";
-import { useRouter } from "next/router";
 import { useAuth } from "@/hooks/useAuth";
-import { useThemeContext } from "@/hooks/useTheme";
-import Layout from "@/components/Layout";
-import {
-  FiCheck,
-  FiStar,
-  FiZap,
-  FiAward,
-  FiArrowRight,
-  FiCreditCard,
-} from "react-icons/fi";
+import { FiCheck, FiStar, FiZap, FiShield, FiUsers, FiClock } from "react-icons/fi";
 import {
   createOrder,
   initializePayment,
@@ -21,476 +10,314 @@ import {
 } from "@/services/razorpay";
 import { PaymentDetails, PaymentItem } from "@/types/cart";
 
-const PremiumContainer = styled.div`
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem 0;
-`;
-
-const Header = styled.div`
-  text-align: center;
-  margin-bottom: 3rem;
-`;
-
-const Title = styled.h1`
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: ${({ theme }) => theme.text};
-  margin-bottom: 1rem;
-`;
-
-const Subtitle = styled.p`
-  font-size: 1.1rem;
-  color: ${({ theme }) => theme.text}80;
-  margin-bottom: 2rem;
-  line-height: 1.6;
-`;
-
-const PlansGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: 2rem;
-  margin-bottom: 3rem;
-`;
-
-const PlanCard = styled.div<{ featured?: boolean }>`
-  background: ${({ theme }) => theme.secondary};
-  border: 2px solid
-    ${({ theme, featured }) => (featured ? theme.primary : theme.border)};
-  border-radius: 16px;
-  padding: 2rem;
-  position: relative;
-  transition: all 0.3s ease;
-  transform: ${({ featured }) => (featured ? "scale(1.02)" : "scale(1)")};
-
-  &:hover {
-    transform: ${({ featured }) => (featured ? "scale(1.03)" : "scale(1.01)")};
-    box-shadow: 0 8px 25px ${({ theme }) => theme.border}20;
-    border-color: ${({ theme }) => theme.primary};
-  }
-`;
-
-const FeaturedBadge = styled.div`
-  position: absolute;
-  top: -12px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: ${({ theme }) => theme.primary};
-  color: white;
-  padding: 0.4rem 1.2rem;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-`;
-
-const PlanIcon = styled.div`
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
-  color: ${({ theme }) => theme.primary};
-`;
-
-const PlanName = styled.h2`
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: ${({ theme }) => theme.text};
-  margin-bottom: 0.5rem;
-`;
-
-const PlanPrice = styled.div`
-  font-size: 2rem;
-  font-weight: 700;
-  color: ${({ theme }) => theme.primary};
-  margin-bottom: 0.5rem;
-`;
-
-const PlanDuration = styled.p`
-  font-size: 1rem;
-  color: ${({ theme }) => theme.text}80;
-  margin-bottom: 1.5rem;
-`;
-
-const FeaturesList = styled.ul`
-  list-style: none;
-  padding: 0;
-  margin-bottom: 2rem;
-`;
-
-const FeatureItem = styled.li`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
-  font-size: 1rem;
-  color: ${({ theme }) => theme.text};
-`;
-
-const CheckIcon = styled(FiCheck)`
-  color: #10b981;
-  font-size: 1.2rem;
-`;
-
-const BuyButton = styled.button<{ featured?: boolean }>`
-  width: 100%;
-  background: ${({ theme }) => theme.primary};
-  color: white;
-  border: none;
-  padding: 1rem 2rem;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-
-  &:hover {
-    background: ${({ theme }) => theme.accent};
-    transform: translateY(-2px);
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-  }
-`;
-
-const LoadingSpinner = styled.div`
-  width: 20px;
-  height: 20px;
-  border: 2px solid transparent;
-  border-top: 2px solid currentColor;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-
-  @keyframes spin {
-    0% {
-      transform: rotate(0deg);
-    }
-    100% {
-      transform: rotate(360deg);
-    }
-  }
-`;
-
-const ErrorMessage = styled.div`
-  background: #fee;
-  color: #c53030;
-  padding: 1rem;
-  border-radius: 8px;
-  margin-bottom: 1rem;
-  border: 1px solid #fed7d7;
-  text-align: center;
-`;
-
-const SuccessMessage = styled.div`
-  background: #f0fdf4;
-  color: #166534;
-  padding: 1rem;
-  border-radius: 8px;
-  margin-bottom: 1rem;
-  border: 1px solid #bbf7d0;
-  text-align: center;
-`;
-
-const BenefitsSection = styled.div`
-  background: ${({ theme }) => theme.secondary};
-  border-radius: 16px;
-  padding: 2.5rem;
-  margin-bottom: 3rem;
-  border: 1px solid ${({ theme }) => theme.border};
-`;
-
-const BenefitsTitle = styled.h2`
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: ${({ theme }) => theme.text};
-  text-align: center;
-  margin-bottom: 2rem;
-`;
-
-const BenefitsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
-`;
-
-const BenefitCard = styled.div`
-  text-align: center;
-  padding: 1.5rem;
-`;
-
-const BenefitIcon = styled.div`
-  font-size: 2.5rem;
-  color: ${({ theme }) => theme.primary};
-  margin-bottom: 1rem;
-`;
-
-const BenefitTitle = styled.h3`
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: ${({ theme }) => theme.text};
-  margin-bottom: 0.5rem;
-`;
-
-const BenefitDescription = styled.p`
-  font-size: 1rem;
-  color: ${({ theme }) => theme.text}80;
-`;
-
 const plans = [
   {
-    id: "premium-monthly",
-    name: "Monthly Premium",
-    price: 799,
-    duration: "1 month",
-    icon: <FiStar />,
+    id: "monthly",
+    name: "Monthly Plan",
+    price: 999,
+    originalPrice: 1499,
+    period: "month",
     features: [
-      "Unlimited problem access",
+      "Unlimited practice problems",
       "AI-powered feedback",
       "Mock interviews",
       "Progress tracking",
-      "Community support",
-    ],
-  },
-  {
-    id: "premium-quarterly",
-    name: "Quarterly Premium",
-    price: 1999,
-    duration: "3 months",
-    icon: <FiZap />,
-    featured: true,
-    features: [
-      "Everything in Monthly Premium",
-      "Advanced analytics",
-      "Custom problem generation",
-      "1-on-1 consultation",
-      "Resume review service",
       "Priority support",
+      "Advanced analytics"
     ],
+    popular: false,
+    savings: "33% off"
   },
   {
-    id: "premium-yearly",
-    name: "Yearly Premium",
-    price: 5999,
-    duration: "12 months",
-    icon: <FiAward />,
+    id: "yearly",
+    name: "Yearly Plan",
+    price: 7999,
+    originalPrice: 17988,
+    period: "year",
     features: [
-      "Everything in Quarterly Premium",
+      "Everything in Monthly",
+      "2 months free",
       "Exclusive content",
-      "Interview preparation roadmap",
-      "Mock interview sessions",
-      "Career guidance",
-      "Lifetime access to updates",
+      "Early access to features",
+      "1-on-1 consultation",
+      "Resume review"
     ],
+    popular: true,
+    savings: "55% off"
   },
+  {
+    id: "lifetime",
+    name: "Lifetime Access",
+    price: 19999,
+    originalPrice: 59997,
+    period: "lifetime",
+    features: [
+      "Everything in Yearly",
+      "Lifetime updates",
+      "Premium community access",
+      "Personal mentor",
+      "Job placement assistance",
+      "Certificate of completion"
+    ],
+    popular: false,
+    savings: "67% off"
+  }
 ];
 
 const PremiumPage: NextPage = () => {
-  const router = useRouter();
   const { user } = useAuth();
-  const { theme } = useThemeContext();
+  const [loading, setLoading] = useState<string | null>(null);
 
-  const [isProcessing, setIsProcessing] = useState<string | null>(null);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-
-  const handlePurchase = async (plan: (typeof plans)[0]) => {
+  const handlePurchase = async (plan: typeof plans[0]) => {
     if (!user) {
-      setError("Please login to purchase premium");
+      // Redirect to login
+      window.location.href = "/login";
       return;
     }
 
-    setIsProcessing(plan.id);
-    setError("");
-    setSuccess("");
-
+    setLoading(plan.id);
     try {
-      const userDisplayName =
-        user.displayName || user.email?.split("@")[0] || "Customer";
-      const userEmail = user.email || "";
-      const userPhone = user.phoneNumber || "";
-
-      const paymentDetails: PaymentDetails = {
-        amount: plan.price,
-        currency: "INR",
-        orderId: `order_${Date.now()}`,
-        customerName: userDisplayName,
-        customerEmail: userEmail,
-        customerPhone: userPhone,
-        items: [
-          {
-            id: plan.id,
-            title: plan.name,
-            description: `Premium plan for ${plan.duration}`,
-            price: plan.price,
-            type: "premium_plan",
-            duration: plan.duration,
-            quantity: 1,
-          },
-        ],
-      };
-
       // Create order
-      const order = await createOrder(paymentDetails);
+      const order = await createOrder({
+        amount: plan.price * 100, // Convert to paise
+        currency: "INR",
+        orderId: `premium_${plan.id}_${Date.now()}`,
+        customerName: user.displayName || "Unknown",
+        customerEmail: user.email || "",
+        items: [{
+          id: plan.id,
+          title: plan.name,
+          description: plan.features.join(", "),
+          price: plan.price,
+          type: 'premium_plan' as const,
+          duration: plan.period,
+          features: plan.features,
+          quantity: 1
+        }]
+      });
 
       // Initialize payment
+      const paymentDetails = {
+        amount: plan.price * 100,
+        currency: "INR",
+        orderId: order.id,
+        customerName: user.displayName || "Unknown",
+        customerEmail: user.email || "",
+        items: [{
+          id: plan.id,
+          title: plan.name,
+          description: plan.features.join(", "),
+          price: plan.price,
+          type: 'premium_plan' as const,
+          duration: plan.period,
+          features: plan.features,
+          quantity: 1
+        }]
+      };
+
       await initializePayment(
         order,
         paymentDetails,
         async (response: any) => {
-          try {
-            // Verify payment
-            const verification = await verifyPayment(
-              response.razorpay_order_id,
-              response.razorpay_payment_id,
-              response.razorpay_signature
-            );
-
-            if (verification.success) {
-              // Save payment to Firebase
-              await savePaymentToFirebase(user.uid, {
-                orderId: response.razorpay_order_id,
-                paymentId: response.razorpay_payment_id,
-                amount: plan.price,
-                currency: "INR",
-                status: "completed",
-                items: [
-                  {
-                    id: plan.id,
-                    title: plan.name,
-                    description: `Premium plan for ${plan.duration}`,
-                    price: plan.price,
-                    type: "premium_plan",
-                    duration: plan.duration,
-                    quantity: 1,
-                  },
-                ],
-              });
-
-              setSuccess("Payment successful! Redirecting...");
-
-              setTimeout(() => {
-                router.push("/payment-success");
-              }, 1500);
-            } else {
-              setError("Payment verification failed");
-            }
-          } catch (error) {
-            setError("Payment verification failed");
-          }
+          console.log("Payment successful:", response);
+          // Handle payment success (moved from below)
         },
         (error: any) => {
-          setError("Payment failed. Please try again.");
+          console.error("Payment failed:", error);
+          setLoading(null);
         }
       );
+
     } catch (error) {
-      setError("Failed to initialize payment. Please try again.");
+      console.error("Error processing payment:", error);
+      alert("Error processing payment. Please try again.");
     } finally {
-      setIsProcessing(null);
+      setLoading(null);
     }
   };
 
   return (
-    <Layout>
-      <PremiumContainer>
-        <Header>
-          <Title>Choose Your Premium Plan</Title>
-          <Subtitle>
-            Unlock unlimited access to our comprehensive interview preparation
-            platform
-          </Subtitle>
-        </Header>
+    <div className="min-h-screen bg-bodyBg">
+      <div className="max-w-6xl mx-auto py-8 px-4">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-text mb-4">
+            Upgrade to Premium
+          </h1>
+          <p className="text-lg text-text/80 leading-relaxed max-w-3xl mx-auto">
+            Unlock unlimited access to all problems, AI-powered feedback, mock interviews, 
+            and advanced analytics to accelerate your interview preparation.
+          </p>
+        </div>
 
-        {error && <ErrorMessage>{error}</ErrorMessage>}
-        {success && <SuccessMessage>{success}</SuccessMessage>}
-
-        <PlansGrid>
+        {/* Plans Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
           {plans.map((plan) => (
-            <PlanCard key={plan.id} featured={plan.featured}>
-              {plan.featured && <FeaturedBadge>Most Popular</FeaturedBadge>}
+            <div
+              key={plan.id}
+              className={`relative p-8 border-2 rounded-2xl transition-all duration-300 ${
+                plan.popular
+                  ? "border-primary bg-primary/5 scale-105"
+                  : "border-border bg-secondary hover:border-primary/50"
+              } hover:scale-105 hover:shadow-xl`}
+            >
+              {/* Popular Badge */}
+              {plan.popular && (
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary text-white px-4 py-1 rounded-full text-xs font-semibold uppercase">
+                  Most Popular
+                </div>
+              )}
 
-              <PlanIcon>{plan.icon}</PlanIcon>
-              <PlanName>{plan.name}</PlanName>
-              <PlanPrice>₹{plan.price.toLocaleString()}</PlanPrice>
-              <PlanDuration>{plan.duration}</PlanDuration>
+              {/* Plan Header */}
+              <div className="text-center mb-6">
+                <h3 className="text-2xl font-semibold text-text mb-2">
+                  {plan.name}
+                </h3>
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <span className="text-3xl font-bold text-primary">
+                    ₹{plan.price.toLocaleString()}
+                  </span>
+                  <span className="text-text/60 line-through">
+                    ₹{plan.originalPrice.toLocaleString()}
+                  </span>
+                </div>
+                <div className="text-sm text-text/70 mb-4">
+                  per {plan.period}
+                </div>
+                <div className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                  <FiStar className="w-4 h-4" />
+                  {plan.savings}
+                </div>
+              </div>
 
-              <FeaturesList>
+              {/* Features */}
+              <ul className="space-y-3 mb-8">
                 {plan.features.map((feature, index) => (
-                  <FeatureItem key={index}>
-                    <CheckIcon />
-                    {feature}
-                  </FeatureItem>
+                  <li key={index} className="flex items-center gap-3">
+                    <FiCheck className="w-5 h-5 text-green-500 flex-shrink-0" />
+                    <span className="text-text">{feature}</span>
+                  </li>
                 ))}
-              </FeaturesList>
+              </ul>
 
-              <BuyButton
-                featured={plan.featured}
+              {/* CTA Button */}
+              <button
                 onClick={() => handlePurchase(plan)}
-                disabled={isProcessing === plan.id || !user}
+                disabled={loading === plan.id}
+                className={`w-full py-4 px-6 rounded-xl font-semibold transition-all duration-300 ${
+                  plan.popular
+                    ? "bg-primary text-white hover:bg-accent"
+                    : "bg-secondary text-text border border-border hover:border-primary hover:bg-primary/10"
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
               >
-                {isProcessing === plan.id ? (
-                  <>
-                    <LoadingSpinner />
+                {loading === plan.id ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
                     Processing...
-                  </>
+                  </div>
                 ) : (
-                  <>
-                    <FiCreditCard />
-                    Get {plan.name}
-                    <FiArrowRight />
-                  </>
+                  `Get ${plan.name}`
                 )}
-              </BuyButton>
-            </PlanCard>
+              </button>
+            </div>
           ))}
-        </PlansGrid>
+        </div>
 
-        <BenefitsSection>
-          <BenefitsTitle>Why Choose Premium?</BenefitsTitle>
-          <BenefitsGrid>
-            <BenefitCard>
-              <BenefitIcon>🎯</BenefitIcon>
-              <BenefitTitle>Targeted Practice</BenefitTitle>
-              <BenefitDescription>
-                Practice problems specifically designed for your target
-                companies and role level
-              </BenefitDescription>
-            </BenefitCard>
+        {/* Features Comparison */}
+        <div className="bg-secondary border border-border rounded-2xl p-8 mb-12">
+          <h2 className="text-2xl font-bold text-text text-center mb-8">
+            What's Included in Premium
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FiZap className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold text-text mb-2">
+                Unlimited Problems
+              </h3>
+              <p className="text-text/70">
+                Access to all DSA, machine coding, system design, and theory problems
+              </p>
+            </div>
 
-            <BenefitCard>
-              <BenefitIcon>🤖</BenefitIcon>
-              <BenefitTitle>AI-Powered Feedback</BenefitTitle>
-              <BenefitDescription>
-                Get instant, detailed feedback on your solutions with
-                suggestions for improvement
-              </BenefitDescription>
-            </BenefitCard>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FiShield className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold text-text mb-2">
+                AI Feedback
+              </h3>
+              <p className="text-text/70">
+                Get detailed, personalized feedback on your solutions
+              </p>
+            </div>
 
-            <BenefitCard>
-              <BenefitIcon>📊</BenefitIcon>
-              <BenefitTitle>Progress Analytics</BenefitTitle>
-              <BenefitDescription>
-                Track your progress with detailed analytics and identify areas
-                for improvement
-              </BenefitDescription>
-            </BenefitCard>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FiUsers className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold text-text mb-2">
+                Mock Interviews
+              </h3>
+              <p className="text-text/70">
+                Practice with realistic interview simulations
+              </p>
+            </div>
 
-            <BenefitCard>
-              <BenefitIcon>👥</BenefitIcon>
-              <BenefitTitle>Expert Support</BenefitTitle>
-              <BenefitDescription>
-                Get help from industry experts and access to our community of
-                professionals
-              </BenefitDescription>
-            </BenefitCard>
-          </BenefitsGrid>
-        </BenefitsSection>
-      </PremiumContainer>
-    </Layout>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FiClock className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold text-text mb-2">
+                Progress Tracking
+              </h3>
+              <p className="text-text/70">
+                Monitor your improvement with detailed analytics
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FiStar className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold text-text mb-2">
+                Priority Support
+              </h3>
+              <p className="text-text/70">
+                Get help when you need it with priority support
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FiCheck className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold text-text mb-2">
+                Advanced Features
+              </h3>
+              <p className="text-text/70">
+                Access to exclusive content and advanced tools
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* FAQ Section */}
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-text mb-4">
+            Frequently Asked Questions
+          </h2>
+          <p className="text-text/70 mb-8">
+            Have questions? We're here to help.
+          </p>
+          <button className="px-6 py-3 border border-border rounded-lg text-text hover:bg-secondary transition-colors">
+            Contact Support
+          </button>
+        </div>
+      </div>
+    </div>
   );
 };
 

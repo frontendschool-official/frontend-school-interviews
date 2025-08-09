@@ -65,6 +65,38 @@ IMPORTANT: You must respond with ONLY a valid JSON object that follows this exac
 }
 
 Make sure the problem is appropriate for a ${designation} role at ${companies} and suitable for round ${round}. The difficulty should be challenging but achievable within the estimated time. Focus on problems that test algorithmic thinking and data structure knowledge relevant to frontend development.`;
+  } else if (interviewType === 'theory') {
+    jsonSchemaPrompt = `You are an expert interviewer for frontend developers. Create one theory problem for a candidate applying as a ${designation} at ${companies}. This is round ${round}.
+
+IMPORTANT: You must respond with ONLY a valid JSON object that follows this exact schema structure. Do not include any explanatory text before or after the JSON.
+
+{
+  "theoryProblem": {
+    "title": "Clear, concise title for the theory question",
+    "description": "Brief description of the concept being tested",
+    "question": "Detailed question that tests understanding of frontend concepts",
+    "expectedAnswer": "Expected answer points that should be covered",
+    "keyPoints": [
+      "Key point 1 that should be mentioned",
+      "Key point 2 that should be mentioned",
+      "Key point 3 that should be mentioned"
+    ],
+    "difficulty": "medium",
+    "estimatedTime": "15-30 minutes",
+    "category": "JavaScript/React/CSS/Web APIs",
+    "tags": ["javascript", "react", "frontend"],
+    "hints": [
+      "Optional hint 1",
+      "Optional hint 2"
+    ],
+    "followUpQuestions": [
+      "How would you optimize this?",
+      "What are the trade-offs?"
+    ]
+  }
+}
+
+Make sure the question is appropriate for a ${designation} role at ${companies} and suitable for round ${round}. Focus on JavaScript, React, CSS, Web APIs, or other frontend technologies. The difficulty should be challenging but achievable within the estimated time.`;
   } else {
     jsonSchemaPrompt = `You are an expert interviewer for frontend developers. Create one machine coding problem and one system design problem for a candidate applying as a ${designation} at ${companies}. This is round ${round}.
 
@@ -179,7 +211,43 @@ Make sure the problems are appropriate for a ${designation} role at ${companies}
       return {
         machineCodingProblem: '',
         systemDesignProblem: '',
-        dsaProblem: JSON.stringify(sampleDSAProblem.dsaProblem)
+        dsaProblem: JSON.stringify(sampleDSAProblem.dsaProblem),
+        theoryProblem: ''
+      };
+    } else if (interviewType === 'theory') {
+      const sampleTheoryProblem = {
+        theoryProblem: {
+          title: "React Hooks and State Management",
+          description: "Explain the concept of React hooks and how they improve state management in functional components.",
+          question: "What are React hooks? Explain the useState and useEffect hooks with examples. How do they compare to class component lifecycle methods?",
+          expectedAnswer: "React hooks are functions that allow you to use state and other React features in functional components. useState manages local state, useEffect handles side effects. They provide a cleaner alternative to class components.",
+          keyPoints: [
+            "Hooks are functions that start with 'use'",
+            "useState returns current state and setter function",
+            "useEffect replaces componentDidMount, componentDidUpdate, componentWillUnmount",
+            "Hooks must be called at the top level",
+            "Custom hooks can be created for reusable logic"
+          ],
+          difficulty: "medium",
+          estimatedTime: "15-30 minutes",
+          category: "React",
+          tags: ["react", "hooks", "state-management"],
+          hints: [
+            "Think about how hooks solve the problem of sharing stateful logic",
+            "Consider the rules of hooks"
+          ],
+          followUpQuestions: [
+            "How would you optimize re-renders with hooks?",
+            "What are the differences between useCallback and useMemo?"
+          ]
+        }
+      };
+
+      return {
+        machineCodingProblem: '',
+        systemDesignProblem: '',
+        dsaProblem: '',
+        theoryProblem: JSON.stringify(sampleTheoryProblem.theoryProblem)
       };
     } else {
       const sampleProblem: ProblemSchema = {
@@ -311,12 +379,22 @@ Make sure the problems are appropriate for a ${designation} role at ${companies}
       return {
         machineCodingProblem: '',
         systemDesignProblem: '',
-        dsaProblem: JSON.stringify(parsedResponse.dsaProblem)
+        dsaProblem: JSON.stringify(parsedResponse.dsaProblem),
+        theoryProblem: ''
+      };
+    } else if (interviewType === 'theory') {
+      return {
+        machineCodingProblem: '',
+        systemDesignProblem: '',
+        dsaProblem: '',
+        theoryProblem: JSON.stringify(parsedResponse.theoryProblem)
       };
     } else {
       return {
         machineCodingProblem: JSON.stringify(parsedResponse.machineCodingProblem),
-        systemDesignProblem: JSON.stringify(parsedResponse.systemDesignProblem)
+        systemDesignProblem: JSON.stringify(parsedResponse.systemDesignProblem),
+        dsaProblem: '',
+        theoryProblem: ''
       };
     }
   } catch (error) {
@@ -530,7 +608,7 @@ export async function generateMockInterviewProblem(
   roleLevel: string,
   difficulty: 'easy' | 'medium' | 'hard' = 'medium'
 ): Promise<MockInterviewProblem> {
-  const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+  const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 
   let prompt = '';
   let responseStructure = '';
@@ -658,9 +736,10 @@ Make the problem specific to frontend development and ${companyName}'s technolog
 
     const problem = JSON.parse(jsonMatch[0]);
     
-    // Validate the problem structure
-    if (!problem.title || !problem.type || problem.type !== roundType) {
-      throw new Error('Invalid problem structure from Gemini API');
+    // Enhanced validation to ensure all required fields are present
+    if (!validateGeneratedProblem(problem, roundType)) {
+      console.warn('Generated problem missing required fields, using fallback');
+      return generateFallbackProblem(roundType, difficulty);
     }
 
     return problem as MockInterviewProblem;
@@ -668,6 +747,74 @@ Make the problem specific to frontend development and ${companyName}'s technolog
     console.error('Error generating mock interview problem:', error);
     return generateFallbackProblem(roundType, difficulty);
   }
+}
+
+/**
+ * Validate that a generated problem has all required fields
+ */
+function validateGeneratedProblem(problem: any, roundType: string): boolean {
+  // Basic validation
+  if (!problem.title || !problem.title.trim()) {
+    console.warn('Problem missing title');
+    return false;
+  }
+  
+  if (!problem.description || !problem.description.trim()) {
+    console.warn('Problem missing description');
+    return false;
+  }
+  
+  if (!problem.difficulty || !['easy', 'medium', 'hard'].includes(problem.difficulty)) {
+    console.warn('Problem missing or invalid difficulty');
+    return false;
+  }
+  
+  if (!problem.estimatedTime || !problem.estimatedTime.trim()) {
+    console.warn('Problem missing estimated time');
+    return false;
+  }
+  
+  if (!problem.type || problem.type !== roundType) {
+    console.warn('Problem type mismatch');
+    return false;
+  }
+  
+  // Type-specific validation
+  switch (roundType) {
+    case 'dsa':
+      if (!problem.problemStatement || !problem.inputFormat || 
+          !problem.outputFormat || !problem.constraints || 
+          !problem.examples || problem.examples.length === 0) {
+        console.warn('DSA problem missing required fields');
+        return false;
+      }
+      break;
+      
+    case 'machine_coding':
+      if (!problem.requirements || problem.requirements.length === 0 ||
+          !problem.acceptanceCriteria || problem.acceptanceCriteria.length === 0) {
+        console.warn('Machine coding problem missing required fields');
+        return false;
+      }
+      break;
+      
+    case 'system_design':
+      if (!problem.functionalRequirements || problem.functionalRequirements.length === 0 ||
+          !problem.nonFunctionalRequirements || problem.nonFunctionalRequirements.length === 0) {
+        console.warn('System design problem missing required fields');
+        return false;
+      }
+      break;
+      
+    case 'theory':
+      if (!problem.question || !problem.expectedAnswer) {
+        console.warn('Theory problem missing required fields');
+        return false;
+      }
+      break;
+  }
+  
+  return true;
 }
 
 // Fallback problems when API is not available

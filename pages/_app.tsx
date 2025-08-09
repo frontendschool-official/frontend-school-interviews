@@ -1,8 +1,7 @@
 import type { AppProps } from 'next/app';
-import { ThemeProvider } from 'styled-components';
 import { AuthProvider } from '../hooks/useAuth';
 import { ThemeContextProvider, useThemeContext } from '../hooks/useTheme';
-import GlobalStyles from '../styles/GlobalStyles';
+import '../styles/globals.css';
 
 function InnerApp(props: AppProps) {
   const { themeObject, isInitialized } = useThemeContext();
@@ -13,10 +12,7 @@ function InnerApp(props: AppProps) {
   }
   
   return (
-    <ThemeProvider theme={themeObject}>
-      <GlobalStyles />
-      <props.Component {...props.pageProps} />
-    </ThemeProvider>
+    <props.Component {...props.pageProps} />
   );
 }
 

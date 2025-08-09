@@ -1,9 +1,16 @@
-import { useState } from 'react';
-import styled from 'styled-components';
-import { evaluateSubmission } from '../services/geminiApi';
-import { saveSubmission, markProblemAsAttempted } from '../services/firebase';
-import { useAuth } from '../hooks/useAuth';
-import { exportToBlob } from '@excalidraw/excalidraw';
+import { useState } from "react";
+import { evaluateSubmission } from "../services/geminiApi";
+import { saveSubmission, markProblemAsAttempted, saveInterviewProblemDocument } from "../services/firebase";
+import { useAuth } from "../hooks/useAuth";
+import { useAppStore } from "../store";
+
+// Import Excalidraw only on client side
+let exportToBlob: any = null;
+if (typeof window !== "undefined") {
+  import("@excalidraw/excalidraw").then((mod) => {
+    exportToBlob = mod.exportToBlob;
+  });
+}
 
 interface EvaluateButtonProps {
   designation: string;
@@ -11,79 +18,33 @@ interface EvaluateButtonProps {
   excalidrawRef: any;
   problemId: string;
   onEvaluated: (feedback: string) => void;
-  interviewType?: 'coding' | 'design' | 'dsa';
+  interviewType?: "coding" | "design" | "dsa" | "theory";
   problemStatement?: string;
   problemTitle?: string;
 }
 
-const Button = styled.button`
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 4px;
-  color: ${({ theme }) => theme.bodyBg};
-  background-color: ${({ theme }) => theme.primary};
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  
-  &:hover {
-    background-color: ${({ theme }) => theme.accent};
-  }
-  
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-`;
-
-const ErrorMessage = styled.div`
-  margin-top: 1rem;
-  padding: 0.75rem;
-  background-color: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 4px;
-  color: #dc2626;
-  font-size: 0.9rem;
-`;
-
-const RetryButton = styled.button`
-  margin-top: 0.5rem;
-  padding: 0.5rem 1rem;
-  background-color: ${({ theme }) => theme.primary};
-  color: ${({ theme }) => theme.bodyBg};
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  
-  &:hover {
-    background-color: ${({ theme }) => theme.accent};
-  }
-`;
-
-export default function EvaluateButton({ 
-  designation, 
-  code, 
-  excalidrawRef, 
-  problemId, 
+export default function EvaluateButton({
+  designation,
+  code,
+  excalidrawRef,
+  problemId,
   onEvaluated,
-  interviewType = 'coding',
-  problemStatement = '',
-  problemTitle = ''
+  interviewType = "coding",
+  problemStatement = "",
+  problemTitle = "",
 }: EvaluateButtonProps) {
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
-  console.log(code, "code");
+  const isEvaluating = useAppStore((s) => s.isEvaluating);
+  const setIsEvaluating = useAppStore((s) => s.setIsEvaluating);
 
   const handleClick = async () => {
     if (!user) {
-      setError('You must be logged in to evaluate your submission.');
+      setError("You must be logged in to evaluate your submission.");
       return;
     }
 
-    setLoading(true);
+    setIsEvaluating(true);
     setError(null);
 
     // Track problem attempt when user evaluates
@@ -91,131 +52,151 @@ export default function EvaluateButton({
       await markProblemAsAttempted(user.uid, problemId, {
         title: designation,
         type: interviewType,
-        designation,
+        designation: designation,
         companies: "",
-        round: ""
+        round: "",
       });
     } catch (error) {
-      console.error('Error tracking problem attempt:', error);
+      console.error("Error marking problem as attempted:", error);
     }
 
     try {
-      let evaluationData = {
-        designation,
-        code: '',
-        drawingImage: ''
-      };
+      let drawingImage = "";
 
-      // Build comprehensive context with problem statement
-      const contextWithProblem = problemStatement && problemTitle 
-        ? `Problem: ${problemTitle}\n\nProblem Statement:\n${problemStatement}\n\nCandidate's Solution:\n\`\`\`\n${code}\n\`\`\``
-        : code;
-
-      // Handle different evaluation strategies based on interview type
-      if (interviewType === 'design') {
-        // System Design: Generate image from canvas for evaluation
-        if (!excalidrawRef?.current) {
-          throw new Error('System design canvas is not available. Please refresh the page and try again.');
-        }
-
+      // Export drawing if it's a system design problem
+      if (interviewType === "design" && excalidrawRef?.current) {
         try {
-          const elements = excalidrawRef.current.getSceneElements() || [];
-          const appState = excalidrawRef.current.getAppState() || {};
-          const files = excalidrawRef.current.getFiles() || {};
-          
-          if (!elements || elements.length === 0) {
-            throw new Error('Please add some elements to your system design before evaluating.');
-          }
-
-          // Export canvas to blob and convert to base64
-          const blob = await exportToBlob({ 
-            elements, 
-            appState, 
-            files, 
-            mimeType: 'image/png' 
+          const blob = await exportToBlob({
+            elements: excalidrawRef.current.getSceneElements(),
+            appState: excalidrawRef.current.getAppState(),
+            files: excalidrawRef.current.getFiles(),
+            mimeType: "image/png",
           });
 
-          const base64Data = await new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-              const result = reader.result as string;
-              const base64 = result.split(',')[1];
-              resolve(base64);
-            };
-            reader.onerror = () => reject(new Error('Failed to process canvas image'));
+          // Convert blob to base64
+          const reader = new FileReader();
+          drawingImage = await new Promise((resolve) => {
+            reader.onloadend = () => resolve(reader.result as string);
             reader.readAsDataURL(blob);
           });
-
-          evaluationData.drawingImage = base64Data;
-        } catch (error) {
-          console.error('Error processing system design:', error);
-          throw new Error('Failed to process your system design. Please try again.');
+        } catch (drawingError) {
+          console.error("Error exporting drawing:", drawingError);
+          // Continue without drawing if export fails
         }
-      } else {
-        // DSA and Machine Coding: Send all code files for AI evaluation
-        if (!code.trim()) {
-          throw new Error('Please provide some code before evaluating.');
-        }
-
-        // For DSA and machine coding, we send the code with problem context for AI evaluation
-        evaluationData.code = contextWithProblem;
       }
 
-      // Evaluate submission using AI
+      // Prepare evaluation data
+      const evaluationData = {
+        designation: designation,
+        code: code,
+        drawingImage: drawingImage,
+      };
+
+      // Get AI feedback
       const feedback = await evaluateSubmission(evaluationData);
 
-      // Save submission to database
-      await saveSubmission(user.uid, problemId, { 
-        designation, 
-        code: evaluationData.code, 
-        feedback,
-        drawingImage: evaluationData.drawingImage
+      // Save submission to Firebase
+      await saveSubmission(user.uid, problemId, {
+        designation: designation,
+        code: code,
+        feedback: feedback,
       });
 
-      onEvaluated(feedback);
-    } catch (err) {
-      console.error('Evaluation error:', err);
-      
-      let errorMessage = 'An unexpected error occurred during evaluation.';
-      
-      if (err instanceof Error) {
-        if (err.message.includes('network') || err.message.includes('fetch')) {
-          errorMessage = 'Network error. Please check your internet connection and try again.';
-        } else if (err.message.includes('API') || err.message.includes('key') || err.message.includes('AI service')) {
-          errorMessage = 'AI evaluation service is not configured. Please contact support to enable AI feedback.';
-        } else if (err.message.includes('permission') || err.message.includes('unauthorized')) {
-          errorMessage = 'You do not have permission to save this submission.';
-        } else if (err.message.includes('canvas') || err.message.includes('image')) {
-          errorMessage = 'Failed to process your system design. Please try again.';
-        } else {
-          errorMessage = err.message || errorMessage;
+      // Attempt to extract follow-up questions from feedback and store as interview_problems
+      try {
+        const followUps: string[] = [];
+        const lines = String(feedback).split(/\r?\n/);
+        let capture = false;
+        for (const rawLine of lines) {
+          const line = rawLine.trim();
+          if (/^\d+\.\s*follow[- ]?up/i.test(line) || /follow[- ]?up questions?/i.test(line)) {
+            capture = true;
+            continue;
+          }
+          if (capture) {
+            if (/^[-*]\s+/.test(line)) {
+              followUps.push(line.replace(/^[-*]\s+/, "").trim());
+            } else if (/^\d+\.\s+/.test(line)) {
+              followUps.push(line.replace(/^\d+\.\s+/, "").trim());
+            } else if (line === "" || /^#{1,6}\s+/.test(line)) {
+              // Stop on empty line or next section heading
+              break;
+            }
+          }
         }
+
+        if (followUps.length > 0) {
+          const unifiedType =
+            interviewType === "design"
+              ? "system_design"
+              : interviewType === "coding"
+              ? "machine_coding"
+              : interviewType === "dsa"
+              ? "dsa"
+              : "js_concepts";
+
+          // Save each follow-up as its own historical problem entry
+          for (const question of followUps) {
+            await saveInterviewProblemDocument({
+              title: problemTitle || question.substring(0, 80) || "Follow-up Question",
+              type: unifiedType as any,
+              difficulty: "medium",
+              company: "",
+              role: designation || "",
+              problem: {
+                description: question,
+                input_format: "",
+                output_format: "",
+                constraints: "",
+                sample_input: "",
+                sample_output: "",
+                follow_up_questions: [],
+              },
+            });
+          }
+        }
+      } catch (e) {
+        console.warn("Failed to extract/store follow-up questions:", e);
       }
-      
-      setError(errorMessage);
+
+      // Call the callback with feedback
+      onEvaluated(feedback);
+    } catch (error) {
+      console.error("Evaluation error:", error);
+      setError(
+        error instanceof Error
+          ? error.message
+          : "An error occurred during evaluation. Please try again."
+      );
     } finally {
-      setLoading(false);
+      setIsEvaluating(false);
     }
   };
 
   const handleRetry = () => {
     setError(null);
-    handleClick();
   };
 
   return (
-    <div>
-      <Button onClick={handleClick} disabled={loading}>
-        {loading ? 'Evaluating…' : 'Evaluate'}
-      </Button>
-      
+    <div className="mt-4">
+      <button
+        onClick={handleClick}
+        disabled={isEvaluating}
+        className="px-4 py-2 border-none rounded bg-primary text-bodyBg text-sm font-medium cursor-pointer transition-all duration-200 hover:bg-accent disabled:opacity-60 disabled:cursor-not-allowed"
+      >
+        {isEvaluating ? "Evaluating..." : "Evaluate Submission"}
+      </button>
+
       {error && (
-        <ErrorMessage>
-          <div>{error}</div>
-          <RetryButton onClick={handleRetry}>
+        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded text-red-600 text-sm">
+          <p className="mb-2">{error}</p>
+          <button
+            onClick={handleRetry}
+            className="px-4 py-2 bg-primary text-bodyBg border-none rounded cursor-pointer text-sm hover:bg-accent"
+          >
             Try Again
-          </RetryButton>
-        </ErrorMessage>
+          </button>
+        </div>
       )}
     </div>
   );

@@ -3,7 +3,7 @@
 ## Framework
 - Next.js 14+ with App Router
 - TypeScript
-- styled component (Dark Mode supported)
+- Tailwind
 
 ## State Management
 - Zustand store for interview config & answers

@@ -1,29 +1,31 @@
-import styled from 'styled-components';
+import React from 'react';
 import { FcGoogle } from 'react-icons/fc';
 import { useAuth } from '../hooks/useAuth';
 
-const Button = styled.button`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 4px;
-  background-color: ${({ theme }) => theme.primary};
-  color: ${({ theme }) => theme.bodyBg};
-  font-weight: 500;
-  box-shadow: 0 2px 4px ${({ theme }) => theme.border};
-  &:hover {
-    background-color: ${({ theme }) => theme.accent};
-  }
-`;
+interface GoogleSignInButtonProps {
+  className?: string;
+  children?: React.ReactNode;
+}
 
-export default function GoogleSignInButton() {
+export default function GoogleSignInButton({ className = '', children }: GoogleSignInButtonProps) {
   const { signIn, loading } = useAuth();
+
+  const handleSignIn = async () => {
+    try {
+      await signIn();
+    } catch (error) {
+      console.error('Sign in error:', error);
+    }
+  };
+
   return (
-    <Button onClick={signIn} disabled={loading} aria-label="Sign in with Google">
-      <FcGoogle size={20} />
-      Sign in with Google
-    </Button>
+    <button
+      onClick={handleSignIn}
+      disabled={loading}
+      className={`flex items-center gap-2 px-6 py-3 bg-white text-gray-700 border border-gray-300 rounded-lg font-medium cursor-pointer transition-all duration-200 hover:bg-gray-50 hover:shadow-md disabled:opacity-60 disabled:cursor-not-allowed ${className}`}
+    >
+      <FcGoogle className="text-xl" />
+      {children || (loading ? 'Signing in...' : 'Continue with Google')}
+    </button>
   );
 }

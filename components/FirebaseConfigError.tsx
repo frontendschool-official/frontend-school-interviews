@@ -1,83 +1,35 @@
-import styled from 'styled-components';
+import React from 'react';
+import { FiAlertTriangle } from 'react-icons/fi';
 
-const ErrorContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  padding: 2rem;
-  text-align: center;
-  background: ${({ theme }) => theme.bodyBg};
-  color: ${({ theme }) => theme.text};
-`;
+interface FirebaseConfigErrorProps {
+  error?: string;
+}
 
-const ErrorTitle = styled.h1`
-  color: #e53e3e;
-  margin-bottom: 1rem;
-  font-size: 1.5rem;
-`;
-
-const ErrorMessage = styled.p`
-  margin-bottom: 1.5rem;
-  max-width: 600px;
-  line-height: 1.6;
-`;
-
-const CodeBlock = styled.pre`
-  background: ${({ theme }) => theme.secondary};
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 8px;
-  padding: 1rem;
-  margin: 1rem 0;
-  overflow-x: auto;
-  font-size: 0.9rem;
-  color: ${({ theme }) => theme.text};
-`;
-
-const StepList = styled.ol`
-  text-align: left;
-  max-width: 600px;
-  margin: 1rem auto;
-  
-  li {
-    margin-bottom: 0.5rem;
-    line-height: 1.5;
-  }
-`;
-
-export default function FirebaseConfigError() {
+export default function FirebaseConfigError({ error }: FirebaseConfigErrorProps) {
   return (
-    <ErrorContainer>
-      <ErrorTitle>Firebase Configuration Missing</ErrorTitle>
-      <ErrorMessage>
-        The application requires Firebase configuration to function properly. 
-        Please set up your Firebase project and add the required environment variables.
-      </ErrorMessage>
-      
-      <StepList>
-        <li>Create a Firebase project at <a href="https://console.firebase.google.com" target="_blank" rel="noopener noreferrer">Firebase Console</a></li>
-        <li>Add a web app to your Firebase project</li>
-        <li>Copy the Firebase configuration values</li>
-        <li>Create a <code>.env.local</code> file in your project root with the following content:</li>
-      </StepList>
-      
-      <CodeBlock>
-{`# Firebase Configuration
-NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key_here
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project_id.firebaseapp.com
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project_id.appspot.com
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
-NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
-
-# Gemini API Configuration (optional)
-NEXT_PUBLIC_GEMINI_API_KEY=your_gemini_api_key_here`}
-      </CodeBlock>
-      
-      <ErrorMessage>
-        After adding the environment variables, restart your development server.
-      </ErrorMessage>
-    </ErrorContainer>
+    <div className="flex flex-col items-center justify-center min-h-screen p-8 text-center">
+      <div className="bg-red-50 border border-red-200 rounded-lg p-8 max-w-md">
+        <div className="text-red-500 text-4xl mb-4">
+          <FiAlertTriangle />
+        </div>
+        <h1 className="text-xl font-semibold text-red-800 mb-2">
+          Configuration Error
+        </h1>
+        <p className="text-red-700 mb-4">
+          {error || 'Firebase configuration is missing or invalid. Please check your environment variables.'}
+        </p>
+        <div className="text-sm text-red-600">
+          <p>Required environment variables:</p>
+          <ul className="list-disc list-inside mt-2 text-left">
+            <li>NEXT_PUBLIC_FIREBASE_API_KEY</li>
+            <li>NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN</li>
+            <li>NEXT_PUBLIC_FIREBASE_PROJECT_ID</li>
+            <li>NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET</li>
+            <li>NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID</li>
+            <li>NEXT_PUBLIC_FIREBASE_APP_ID</li>
+          </ul>
+        </div>
+      </div>
+    </div>
   );
 } 

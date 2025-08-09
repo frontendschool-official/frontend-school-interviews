@@ -27,7 +27,7 @@ async function generateInterviewInsights(
   companyName: string,
   roleLevel: string
 ): Promise<InterviewInsightsData> {
-  const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+  const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 
   const prompt = `You are an expert frontend interview coach.
 
@@ -73,6 +73,7 @@ Provide realistic total rounds and duration based on ${companyName}'s typical in
 
   if (!apiKey) {
     console.warn('No Gemini API key configured. Using fallback data.');
+    console.log('Expected environment variable: NEXT_PUBLIC_GEMINI_API_KEY');
     // Return sample data if no API key is configured
     return {
       totalRounds: 5,

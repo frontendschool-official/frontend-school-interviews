@@ -1,10 +1,9 @@
-import { useState } from 'react';
-import { useRouter } from 'next/router';
-import { generateInterviewQuestions } from '@/services/geminiApi';
-import { saveProblemSet } from '@/services/firebase';
-import { useAuth } from '@/hooks/useAuth';
-import { Problem } from '@/hooks/useProblems';
-import { InterviewType, ProblemData } from '@/types/problem';
+import { useState } from "react";
+import { useRouter } from "next/router";
+import { generateInterviewQuestions } from "@/services/geminiApi";
+import { saveProblemSet } from "@/services/firebase";
+import { useAuth } from "@/hooks/useAuth";
+import { InterviewType, ProblemData } from "@/types/problem";
 
 export interface InterviewGenerationParams {
   designation: string;
@@ -28,7 +27,7 @@ export const useInterviewGeneration = () => {
 
   const generateInterview = async (values: InterviewGenerationParams) => {
     if (!user) {
-      setState({ loading: false, error: 'User must be authenticated' });
+      setState({ loading: false, error: "User must be authenticated" });
       return null;
     }
 
@@ -36,7 +35,7 @@ export const useInterviewGeneration = () => {
 
     try {
       const { designation, companies, round, interviewType } = values;
-      console.log('Starting interview with values:', values);
+      console.log("Starting interview with values:", values);
 
       const result = await generateInterviewQuestions({
         designation,
@@ -44,7 +43,7 @@ export const useInterviewGeneration = () => {
         round,
         interviewType,
       });
-      console.log('Generated result:', result);
+      console.log("Generated result:", result);
 
       const problemData: any = {
         userId: user.uid,
@@ -54,24 +53,27 @@ export const useInterviewGeneration = () => {
         interviewType,
       };
 
-      if (interviewType === 'dsa') {
+      if (interviewType === "dsa") {
         problemData.dsaProblem = result.dsaProblem;
-        console.log('Setting DSA problem data:', problemData);
+        console.log("Setting DSA problem data:", problemData);
+      } else if (interviewType === "theory") {
+        problemData.theoryProblem = result.theoryProblem;
+        console.log("Setting theory problem data:", problemData);
       } else {
         problemData.machineCodingProblem = result.machineCodingProblem;
         problemData.systemDesignProblem = result.systemDesignProblem;
-        console.log('Setting coding/design problem data:', problemData);
       }
-
       const docRef = await saveProblemSet(user.uid, problemData);
-      console.log('Problem saved with docRef:', docRef);
 
       const newProblem: ProblemData = {
         id: docRef.id,
         userId: user.uid,
-        title: interviewType === 'dsa' 
-          ? 'DSA Problem'
-          : 'Coding Problem',
+        title:
+          interviewType === "dsa"
+            ? "DSA Problem"
+            : interviewType === "theory"
+            ? "Theory Problem"
+            : "Coding Problem",
         designation,
         companies,
         round,
@@ -79,22 +81,25 @@ export const useInterviewGeneration = () => {
         ...problemData,
       };
 
-      console.log('New problem object:', newProblem);
+      console.log("New problem object:", newProblem);
       setState({ loading: false, error: null });
-      
+
       return { problem: newProblem, docRef };
     } catch (error) {
-      console.error('Error starting interview', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to generate interview';
+      console.error("Error starting interview", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to generate interview";
       setState({ loading: false, error: errorMessage });
       return null;
     }
   };
 
-  const startInterviewAndNavigate = async (values: InterviewGenerationParams) => {
+  const startInterviewAndNavigate = async (
+    values: InterviewGenerationParams
+  ) => {
     const result = await generateInterview(values);
     if (result) {
-      router.push(`/interview/${result.docRef.id}`);
+      router.push(`/problems/${result.docRef.id}`);
     }
     return result;
   };
@@ -104,4 +109,4 @@ export const useInterviewGeneration = () => {
     generateInterview,
     startInterviewAndNavigate,
   };
-}; 
+};

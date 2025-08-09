@@ -14,29 +14,31 @@ import {
 import SystemDesignCanvas from "@/components/SystemDesignCanvas";
 import EvaluateButton from "@/components/EvaluateButton";
 import DSAProblemRenderer from "@/container/interviews/dsa";
-import { Button } from "@/styles/SharedUI";
 import { Loader } from "@/components/Loader";
+import { Button } from "@/components/ui/Button";
+import {
+  FiCheckCircle,
+  FiCode,
+  FiAlertTriangle,
+  FiChevronLeft,
+  FiLayers,
+  FiTarget,
+} from "react-icons/fi";
+import { HiOfficeBuilding } from "react-icons/hi";
 import {
   MainContent,
   ProblemPanel,
   Resizer,
   ProblemHeader,
   ProblemContent,
-  CollapseButton,
   EditorPanel,
-  EditorHeader,
-  EditorTabs,
-  Tab,
-  ActionButtons,
   EditorContainer,
-  OutputPanel,
-  OutputHeader,
-  OutputContent,
-  AuthMessage,
 } from "@/container/interviews/interviews.styled";
 import MachineCodingProblem from "@/container/interviews/machine-coding";
 import SystemDesignProblem from "@/container/interviews/system-design";
 import Layout from "@/components/Layout";
+import TheoryEditor from "@/components/TheoryEditor";
+import TheoryProblemRenderer from "@/components/TheoryProblem";
 
 export default function InterviewPage() {
   const router = useRouter();
@@ -86,162 +88,139 @@ export default function InterviewPage() {
       error={error || undefined}
       handleRetry={handleRetry}
       handleBack={handleBack}
+      fullWidth
     >
       {problem ? (
         <>
           <MainContent>
-            <ProblemPanel
-              ref={problemPanelRef}
-              isCollapsed={isProblemPanelCollapsed}
-              style={{
-                width: isProblemPanelCollapsed
-                  ? "50px"
-                  : `${problemPanelWidth}px`,
-              }}
-            >
-              {!isProblemPanelCollapsed && (
-                <>
-                  <ProblemHeader>
-                    <h1>{problem.machineCodingProblem?.title || problem.systemDesignProblem?.title || problem.dsaProblem?.title || "Problem"}</h1>
-                    <div className="meta-info">
-                      <span>
-                        <strong>Companies:</strong> {problem.companies || "N/A"}
-                      </span>
-                      <span>
-                        <strong>Round:</strong> {problem.round}
-                      </span>
-                      <span>
-                        <strong>Type:</strong> {problem.interviewType}
-                      </span>
-                    </div>
-                    {!user && (
-                      <AuthMessage>
-                        <strong>Note:</strong> You can view and practice this
-                        problem. Sign in to submit your solution and get AI
-                        feedback.
-                      </AuthMessage>
-                    )}
-                  </ProblemHeader>
-                  <ProblemContent>
-                    {problem.interviewType === "design" ? (
-                      problem.systemDesignProblem ? (
-                        <SystemDesignProblem
-                          problem={problem.systemDesignProblem}
-                        />
-                      ) : (
-                        "No system design problem available"
-                      )
-                    ) : problem.interviewType === "dsa" ? (
-                      problem.dsaProblem ? (
-                        <DSAProblemRenderer problem={problem.dsaProblem} />
-                      ) : (
-                        "No DSA problem available"
-                      )
-                    ) : problem.machineCodingProblem ? (
-                      <MachineCodingProblem
-                        problem={problem.machineCodingProblem}
-                      />
-                    ) : (
-                      "No machine coding problem available"
-                    )}
-                  </ProblemContent>
-                </>
-              )}
-              <CollapseButton onClick={toggleProblemPanel}>
-                {isProblemPanelCollapsed ? ">" : "<"}
-              </CollapseButton>
-              <Resizer onMouseDown={handleResizeStart} />
-            </ProblemPanel>
+            {/* Hide ProblemPanel for theory problems */}
+            {problem.interviewType !== "theory" && (
+              <ProblemPanel
+                ref={problemPanelRef}
+                isCollapsed={isProblemPanelCollapsed}
+                style={{
+                  width: isProblemPanelCollapsed
+                    ? "50px"
+                    : `${problemPanelWidth}px`,
+                  minWidth: isProblemPanelCollapsed ? "50px" : "25%",
+                  maxWidth: isProblemPanelCollapsed ? "50px" : "40%",
+                }}
+              >
+                {!isProblemPanelCollapsed && (
+                  <>
+                    <ProblemContent>
+                      {problem.interviewType === "design" &&
+                        problem.systemDesignProblem && (
+                          <SystemDesignProblem
+                            problem={problem.systemDesignProblem}
+                          />
+                        )}
+                      {problem.interviewType === "dsa" &&
+                        problem.dsaProblem && (
+                          <DSAProblemRenderer problem={problem.dsaProblem} />
+                        )}
+                      {problem.interviewType === "coding" &&
+                        problem.machineCodingProblem && (
+                          <MachineCodingProblem
+                            problem={problem.machineCodingProblem}
+                          />
+                        )}
+                    </ProblemContent>
+                  </>
+                )}
+                <button
+                  onClick={toggleProblemPanel}
+                  className="absolute top-4 right-2 z-20 p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 hover:shadow-md"
+                  title={
+                    isProblemPanelCollapsed ? "Expand panel" : "Collapse panel"
+                  }
+                >
+                  <FiChevronLeft
+                    className={`w-4 h-4 text-gray-600 dark:text-gray-400 transform transition-transform duration-200 ${
+                      isProblemPanelCollapsed ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+                <Resizer onMouseDown={handleResizeStart} />
+              </ProblemPanel>
+            )}
 
             <EditorPanel>
-              <EditorHeader>
-                <ActionButtons>
-                  {problem.interviewType === "coding" && (
-                    <EvaluateButton
-                      designation={problem.designation}
-                      code={code}
-                      excalidrawRef={excalidrawRef}
-                      problemId={problem.id || ""}
-                      onEvaluated={handleEvaluated}
-                      interviewType="coding"
-                      problemTitle={
-                        problem.machineCodingProblem?.title ||
-                        problem.designation
-                      }
-                      problemStatement={
-                        problem.machineCodingProblem?.description || ""
-                      }
-                    />
-                  )}
-                  {problem.interviewType === "design" && isCanvasReady && (
-                    <EvaluateButton
-                      designation={problem.designation}
-                      code={code}
-                      excalidrawRef={excalidrawRef}
-                      problemId={problem.id || ""}
-                      onEvaluated={handleEvaluated}
-                      interviewType="design"
-                      problemTitle={
-                        problem.systemDesignProblem?.title ||
-                        problem.designation
-                      }
-                      problemStatement={
-                        problem.systemDesignProblem?.description || ""
-                      }
-                    />
-                  )}
-                  {problem.interviewType === "dsa" && (
-                    <Button variant="success">Submit Solution</Button>
-                  )}
-                </ActionButtons>
-              </EditorHeader>
               <EditorContainer>
-                {problem.interviewType === "design" ? (
+                {problem?.interviewType === "design" && (
                   <SystemDesignCanvas
                     ref={excalidrawRef}
                     onReady={() => setCanvasReady(true)}
                   />
-                ) : problem.interviewType === "dsa" ? (
-                  <DSAEditor
-                    code={code}
-                    onChange={handleCodeUpdate}
-                    problemId={problem.id || ""}
-                    problemTitle={
-                      problem.dsaProblem?.title || problem.designation
-                    }
-                    problemStatement={
-                      problem.dsaProblem?.problemStatement || ""
-                    }
-                    testCases={
-                      problem.dsaProblem?.examples?.map((example, index) => ({
-                        id: (index + 1).toString(),
-                        input: example.input,
-                        expectedOutput: example.output,
-                        status: undefined,
-                      })) || []
-                    }
-                  />
-                ) : (
+                )}
+                {problem?.interviewType === "dsa" && (
+                  <DSAEditor code={code} onChange={handleCodeUpdate} />
+                )}
+                {problem?.interviewType === "theory" &&
+                  problem.theoryProblem && (
+                    <TheoryEditor
+                      problem={problem.theoryProblem}
+                      problemId={problem.id || ""}
+                      onEvaluationComplete={handleEvaluated}
+                    />
+                  )}
+                {problem?.interviewType === "coding" && (
                   <CodeEditor code={code} onChange={handleCodeUpdate} />
                 )}
               </EditorContainer>
-              {problem.interviewType !== "dsa" && (
-                <OutputPanel isVisible={feedback !== null}>
-                  <OutputHeader>
-                    <h4>AI Feedback</h4>
-                    <ActionButtons>
-                      <Button variant="secondary" onClick={clearFeedback}>
-                        Clear
-                      </Button>
-                      <Button variant="success">Save</Button>
-                    </ActionButtons>
-                  </OutputHeader>
-                  <OutputContent>
-                    {feedback ||
-                      "No feedback yet. Click 'Evaluate' to get started."}
-                  </OutputContent>
-                </OutputPanel>
-              )}
+              <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      Solution
+                    </h2>
+                    <div className="h-1 w-1 bg-gray-400 rounded-full"></div>
+                    <span className="text-sm text-gray-500 dark:text-gray-400 capitalize">
+                      {problem?.interviewType} Editor
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    {problem?.interviewType === "coding" &&
+                      problem?.machineCodingProblem && (
+                        <EvaluateButton
+                          designation={problem.designation}
+                          code={code}
+                          excalidrawRef={excalidrawRef}
+                          problemId={problem?.id || ""}
+                          onEvaluated={handleEvaluated}
+                          interviewType="coding"
+                          problemTitle={
+                            problem?.machineCodingProblem?.title ||
+                            problem?.designation
+                          }
+                          problemStatement={
+                            problem?.machineCodingProblem?.description || ""
+                          }
+                        />
+                      )}
+                    {problem?.interviewType === "design" && isCanvasReady && (
+                      <EvaluateButton
+                        designation={problem?.designation}
+                        code={code}
+                        excalidrawRef={excalidrawRef}
+                        problemId={problem?.id || ""}
+                        onEvaluated={handleEvaluated}
+                        interviewType="design"
+                        problemTitle={
+                          problem?.systemDesignProblem?.title ||
+                          problem?.designation
+                        }
+                        problemStatement={
+                          problem?.systemDesignProblem?.description || ""
+                        }
+                      />
+                    )}
+                    {problem?.interviewType === "dsa" && (
+                      <Button variant="primary">Submit Solution</Button>
+                    )}
+                  </div>
+                </div>
+              </div>
             </EditorPanel>
           </MainContent>
         </>
@@ -253,9 +232,14 @@ export default function InterviewPage() {
       <FeedbackModal
         isOpen={showFeedbackModal}
         onClose={closeFeedbackModal}
-        feedback={feedbackData || {}}
-        problemTitle={problem?.designation || "Problem"}
-        loading={false}
+        feedback={
+          typeof feedbackData === "object" && feedbackData
+            ? feedbackData?.overallFeedback ||
+              feedbackData?.rawFeedback ||
+              "No feedback available"
+            : ""
+        }
+        isLoading={false}
       />
     </Layout>
   );
