@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from './useAuth';
-import { getUserProgress, getUserProfile, updateUserStreak } from '../services/firebase';
 import { UserStats } from '../types/user';
+import { apiClient } from '../lib/api-client';
 
 interface DashboardData {
   stats: {
@@ -33,6 +33,7 @@ export const useDashboardData = (): DashboardData => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userProgress, setUserProgress] = useState<any[]>([]);
+  const [problemStats, setProblemStats] = useState<any>(null);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -45,12 +46,35 @@ export const useDashboardData = (): DashboardData => {
         setLoading(true);
         setError(null);
 
-        // Fetch user progress data
-        const progress = await getUserProgress(user.uid);
-        setUserProgress(progress);
+        // Fetch user progress data using API
+        const progressResponse = await fetch(`/api/user-profile/progress?userId=${user.uid}`);
+        if (progressResponse.ok) {
+          const progressData = await progressResponse.json();
+          setUserProgress(progressData.progress || []);
+        } else {
+          console.error('Error fetching user progress:', progressResponse.statusText);
+        }
 
-        // Update user streak (this will only update if needed)
-        await updateUserStreak(user.uid);
+        // Fetch problem statistics
+        const statsResponse = await apiClient.getProblemStats();
+        if (statsResponse.error) {
+          console.error('Error fetching problem stats:', statsResponse.error);
+        } else {
+          setProblemStats(statsResponse.data);
+        }
+
+        // Update user streak using API
+        const streakResponse = await fetch('/api/user-profile/update-streak', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ userId: user.uid }),
+        });
+        
+        if (!streakResponse.ok) {
+          console.error('Error updating user streak:', streakResponse.statusText);
+        }
 
         setLoading(false);
       } catch (err) {
@@ -96,11 +120,12 @@ export const useDashboardData = (): DashboardData => {
       theory: 0,
     };
 
+    // Get total problems from API response
     const totalByType = {
-      dsa: 20, // Mock totals - these could come from a problems collection
-      machineCoding: 15,
-      systemDesign: 10,
-      theory: 25,
+      dsa: problemStats?.dsa || 0,
+      machineCoding: problemStats?.machineCoding || 0,
+      systemDesign: problemStats?.systemDesign || 0,
+      theory: problemStats?.theory || 0,
     };
 
     // Count completed problems by type
@@ -127,22 +152,22 @@ export const useDashboardData = (): DashboardData => {
       dsa: {
         completed: completedByType.dsa,
         total: totalByType.dsa,
-        percentage: Math.round((completedByType.dsa / totalByType.dsa) * 100),
+        percentage: totalByType.dsa > 0 ? Math.round((completedByType.dsa / totalByType.dsa) * 100) : 0,
       },
       machineCoding: {
         completed: completedByType.machineCoding,
         total: totalByType.machineCoding,
-        percentage: Math.round((completedByType.machineCoding / totalByType.machineCoding) * 100),
+        percentage: totalByType.machineCoding > 0 ? Math.round((completedByType.machineCoding / totalByType.machineCoding) * 100) : 0,
       },
       systemDesign: {
         completed: completedByType.systemDesign,
         total: totalByType.systemDesign,
-        percentage: Math.round((completedByType.systemDesign / totalByType.systemDesign) * 100),
+        percentage: totalByType.systemDesign > 0 ? Math.round((completedByType.systemDesign / totalByType.systemDesign) * 100) : 0,
       },
       theory: {
         completed: completedByType.theory,
         total: totalByType.theory,
-        percentage: Math.round((completedByType.theory / totalByType.theory) * 100),
+        percentage: totalByType.theory > 0 ? Math.round((completedByType.theory / totalByType.theory) * 100) : 0,
       },
     };
   };

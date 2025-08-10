@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useAuth } from "./useAuth";
-import { markProblemAsAttempted } from "../services/firebase";
 import { ParsedProblemData } from "../types/problem";
 
 export const useInterviewAttempt = (problem: ParsedProblemData | null) => {
@@ -12,13 +11,27 @@ export const useInterviewAttempt = (problem: ParsedProblemData | null) => {
 
     setIsTrackingAttempt(true);
     try {
-      await markProblemAsAttempted(user.uid, problem.id || "", {
-        title: problem.designation,
-        type: problem.interviewType,
-        designation: problem.designation,
-        companies: problem.companies || "",
-        round: problem.round,
+      const response = await fetch("/api/problems/mark-attempted", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: user.uid,
+          problemId: problem.id || "",
+          attemptData: {
+            title: problem.designation,
+            type: problem.interviewType,
+            designation: problem.designation,
+            companies: problem.companies || "",
+            round: problem.round,
+          },
+        }),
       });
+
+      if (!response.ok) {
+        throw new Error("Failed to track problem attempt");
+      }
     } catch (error) {
       console.error("Error tracking problem attempt:", error);
     } finally {

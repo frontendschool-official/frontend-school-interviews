@@ -134,4 +134,95 @@
   .delay-400 {
     animation-delay: 400ms;
   }
+
+  /* Syntax highlighting for markdown code blocks */
+  .markdown-content pre[class*="language-"] {
+    background: var(--color-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 1rem;
+    overflow-x: auto;
+    margin: 1rem 0;
+  }
+
+  .markdown-content code[class*="language-"] {
+    color: var(--color-text);
+    background: transparent;
+    font-family: 'Fira Code', 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+
+  /* Syntax highlighting tokens */
+  .token.comment,
+  .token.prolog,
+  .token.doctype,
+  .token.cdata {
+    color: var(--color-neutral);
+    font-style: italic;
+  }
+
+  .token.punctuation {
+    color: var(--color-text);
+  }
+
+  .token.property,
+  .token.tag,
+  .token.constant,
+  .token.symbol,
+  .token.deleted {
+    color: #f87171; /* red-400 */
+  }
+
+  .token.boolean,
+  .token.number {
+    color: #fb923c; /* orange-400 */
+  }
+
+  .token.selector,
+  .token.attr-name,
+  .token.string,
+  .token.char,
+  .token.builtin,
+  .token.inserted {
+    color: #34d399; /* emerald-400 */
+  }
+
+  .token.operator,
+  .token.entity,
+  .token.url,
+  .language-css .token.string,
+  .style .token.string,
+  .token.variable {
+    color: #60a5fa; /* blue-400 */
+  }
+
+  .token.atrule,
+  .token.attr-value,
+  .token.function,
+  .token.class-name {
+    color: #a78bfa; /* violet-400 */
+  }
+
+  .token.keyword {
+    color: #f472b6; /* pink-400 */
+  }
+
+  .token.regex,
+  .token.important {
+    color: #fbbf24; /* amber-400 */
+  }
+
+  .token.important,
+  .token.bold {
+    font-weight: bold;
+  }
+
+  .token.italic {
+    font-style: italic;
+  }
+
+  .token.entity {
+    cursor: help;
+  }
 }

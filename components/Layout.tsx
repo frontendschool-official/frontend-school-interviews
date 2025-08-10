@@ -24,7 +24,7 @@ const Layout = ({
   handleBack?: () => void;
   fullWidth?: boolean;
 }) => {
-  if (isError) {
+  if (isError && !isLoading) {
     return (
       <div className="min-h-screen bg-bodyBg">
         <div className="flex flex-col items-center justify-center h-screen">

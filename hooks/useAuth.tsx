@@ -4,11 +4,13 @@ import {
   signInWithGoogle,
   signOutUser,
   onUserStateChange,
+} from '../services/firebase/auth';
+import {
   createUserProfile,
   getUserProfile,
   updateUserProfile,
   updateLastLogin,
-} from '../services/firebase';
+} from '../services/firebase/user-profile';
 import { UserProfile, SignInResult } from '../types/user';
 
 interface AuthContextValue {

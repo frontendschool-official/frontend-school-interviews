@@ -8,39 +8,8 @@ export default function InterviewHistory() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('date');
 
-  // Mock data - replace with actual data from your backend
-  const mockProblems: Problem[] = [
-    {
-      id: '1',
-      title: 'Two Sum',
-      description: 'Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.',
-      type: 'dsa',
-      difficulty: 'easy',
-      estimatedTime: '15 min',
-      status: 'completed',
-      score: 95
-    },
-    {
-      id: '2',
-      title: 'Build a Todo App',
-      description: 'Create a full-stack todo application with React frontend and Node.js backend.',
-      type: 'machine-coding',
-      difficulty: 'medium',
-      estimatedTime: '45 min',
-      status: 'in-progress',
-      score: 78
-    },
-    {
-      id: '3',
-      title: 'Design a URL Shortener',
-      description: 'Design a URL shortening service like bit.ly with high availability and scalability.',
-      type: 'system-design',
-      difficulty: 'hard',
-      estimatedTime: '60 min',
-      status: 'completed',
-      score: 88
-    }
-  ];
+  // TODO: Replace with actual data from Firebase
+  const mockProblems: Problem[] = [];
 
   const filteredProblems = mockProblems.filter(problem => {
     const matchesType = activeType === 'all' || problem.type === activeType;

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { NextPage } from 'next';
 import Layout from '@/components/Layout';
-import { createOrder, initializePayment, verifyPayment, savePaymentToFirebase } from '@/services/razorpay';
+import { createOrder, initializePayment, verifyPayment, savePaymentToFirebase } from '@/services/payment/razorpay';
 import { PaymentDetails } from '@/types/cart';
 
 

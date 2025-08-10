@@ -9,8 +9,8 @@ import {
   FiMessageSquare,
 } from "react-icons/fi";
 import { BiBrain } from "react-icons/bi";
-import { evaluateSubmission } from "../services/geminiApi";
 import { useAuth } from "../hooks/useAuth";
+import { useEvaluateSubmission } from "../hooks/useApi";
 
 // Dynamically import Monaco editor to avoid SSR issues
 const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
@@ -35,6 +35,7 @@ export default function DSAEditor({
   const [output, setOutput] = useState<string>("");
   const [evaluation, setEvaluation] = useState<any>(null);
   const [showEvaluation, setShowEvaluation] = useState(false);
+  const { execute: evaluateCode } = useEvaluateSubmission();
 
   const handleRunCode = useCallback(async () => {
     setIsRunning(true);
@@ -102,12 +103,8 @@ export default function DSAEditor({
     setEvaluation(null);
 
     try {
-      const result = await evaluateSubmission({
-        designation: "DSA Problem",
-        code: code,
-        drawingImage: "",
-      });
-      setEvaluation(result);
+      const result = await evaluateCode("DSA Problem", code, "");
+      setEvaluation((result.data as any)?.feedback || result.error || "Evaluation failed");
       setShowEvaluation(true);
     } catch (error) {
       setOutput(

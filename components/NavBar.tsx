@@ -30,6 +30,7 @@ export default function NavBar() {
       label: "Interview Simulation",
       auth: true,
     },
+    { href: "/api-docs", label: "API Docs", auth: false },
     // { href: "/premium", label: "Premium", auth: false },
   ];
 
@@ -131,10 +132,10 @@ export default function NavBar() {
                 aria-label="Frontend School Homepage"
               >
                 <div className="hidden sm:block">
-                  <Logo size="md" showText={true} />
+                  <Logo size="md" withText={true} />
                 </div>
                 <div className="block sm:hidden">
-                  <Logo size="sm" showText={false} />
+                  <Logo size="sm" withText={false} />
                 </div>
               </a>
             </Link>
@@ -301,7 +302,7 @@ export default function NavBar() {
         <div className="flex flex-col h-full">
           {/* Drawer Header */}
           <div className="flex items-center justify-between p-4 border-b border-border">
-            <Logo size="md" showText={true} />
+            <Logo size="md" withText={true} />
             <button
               onClick={closeMobileMenu}
               className="p-2 rounded-lg text-text hover:bg-neutral/10 focus:outline-none focus:ring-2 focus:ring-primary transition-colors duration-200"

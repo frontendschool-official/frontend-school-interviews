@@ -17,7 +17,7 @@ import {
   FiUser,
   FiSettings,
 } from "react-icons/fi";
-import { evaluateMockInterviewSubmission } from "../services/geminiApi";
+import { evaluateMockInterviewSubmission } from "../services/ai/evaluation";
 import { MockInterviewProblem, MockInterviewEvaluation, MockInterviewResult } from "../types/problem";
 
 interface MockInterviewProps {

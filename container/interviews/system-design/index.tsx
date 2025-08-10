@@ -1,10 +1,6 @@
-import { DifficultyBadge, TechnologyTag } from "../../../styles/SharedUI";
+import { DifficultyBadge, TechnologyTag } from "@/styles/SharedUI";
 import { ISystemDesignProblem } from "../interviews.types";
-import {
-  ProblemSection,
-  TechnologyTags,
-  ScaleInfo,
-} from "../interviews.styled";
+import MarkdownRenderer from "@/components/MarkdownRenderer";
 
 interface SystemDesignProblemProps {
   problem: ISystemDesignProblem;
@@ -25,36 +21,49 @@ const SystemDesignProblem = ({ problem }: SystemDesignProblemProps) => (
           <span className="text-sm text-neutral">{problem?.estimatedTime}</span>
         </div>
       </div>
-      <p className="text-neutral leading-relaxed">{problem?.description}</p>
+      <MarkdownRenderer 
+        content={problem?.description || ""} 
+        className="text-neutral leading-relaxed"
+      />
     </div>
 
     {/* Requirements */}
-      <div>
-        <h3 className="font-medium text-text mb-3">Functional Requirements</h3>
-        <ul className="space-y-2 text-left">
-          {problem?.functionalRequirements?.map((req, index) => (
-            <li
-              key={index}
-              className="flex items-start gap-2 text-neutral text-sm align-baseline"
-            >
-              <span className="text-primary mt-1">•</span>
-              <span>{req}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
+    <div>
+      <h3 className="font-medium text-text mb-3">Functional Requirements</h3>
+      <ul className="space-y-3 text-left">
+        {problem?.functionalRequirements?.map((req, index) => (
+          <li
+            key={index}
+            className="flex items-start gap-2 text-neutral text-sm align-baseline"
+          >
+            <span className="text-primary mt-1">•</span>
+            <div className="flex-1">
+              <MarkdownRenderer 
+                content={req} 
+                className="text-neutral text-sm"
+              />
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
     <div>
       <h3 className="font-medium text-text mb-3">
         Non-Functional Requirements
       </h3>
-      <ul className="space-y-2">
+      <ul className="space-y-3">
         {problem?.nonFunctionalRequirements?.map((req, index) => (
           <li
             key={index}
             className="flex items-start gap-2 text-neutral text-sm"
           >
             <span className="text-primary mt-1">•</span>
-            <span>{req}</span>
+            <div className="flex-1">
+              <MarkdownRenderer 
+                content={req} 
+                className="text-neutral text-sm"
+              />
+            </div>
           </li>
         ))}
       </ul>
@@ -63,14 +72,19 @@ const SystemDesignProblem = ({ problem }: SystemDesignProblemProps) => (
     {problem?.constraints && problem.constraints.length > 0 && (
       <div>
         <h3 className="font-medium text-text mb-3">Constraints</h3>
-        <ul className="space-y-2">
+        <ul className="space-y-3">
           {problem.constraints.map((constraint, index) => (
             <li
               key={index}
               className="flex items-start gap-2 text-neutral text-sm"
             >
               <span className="text-amber-500 mt-1">•</span>
-              <span>{constraint}</span>
+              <div className="flex-1">
+                <MarkdownRenderer 
+                  content={constraint} 
+                  className="text-neutral text-sm"
+                />
+              </div>
             </li>
           ))}
         </ul>
@@ -105,7 +119,7 @@ const SystemDesignProblem = ({ problem }: SystemDesignProblemProps) => (
       problem.expectedDeliverables.length > 0 && (
         <div>
           <h3 className="font-medium text-text mb-3">Expected Deliverables</h3>
-          <ol className="space-y-2">
+          <ol className="space-y-3">
             {problem.expectedDeliverables.map((deliverable, index) => (
               <li
                 key={index}
@@ -114,7 +128,12 @@ const SystemDesignProblem = ({ problem }: SystemDesignProblemProps) => (
                 <span className="text-primary mt-1 font-medium">
                   {index + 1}.
                 </span>
-                <span>{deliverable}</span>
+                <div className="flex-1">
+                  <MarkdownRenderer 
+                    content={deliverable} 
+                    className="text-neutral text-sm"
+                  />
+                </div>
               </li>
             ))}
           </ol>
@@ -137,14 +156,19 @@ const SystemDesignProblem = ({ problem }: SystemDesignProblemProps) => (
     {problem?.followUpQuestions && problem.followUpQuestions.length > 0 && (
       <div>
         <h3 className="font-medium text-text mb-3">Follow-up Questions</h3>
-        <ul className="space-y-2">
+        <ul className="space-y-3">
           {problem.followUpQuestions.map((question, index) => (
             <li
               key={index}
               className="flex items-start gap-2 text-neutral text-sm"
             >
               <span className="text-primary mt-1">•</span>
-              <span>{question}</span>
+              <div className="flex-1">
+                <MarkdownRenderer 
+                  content={question} 
+                  className="text-neutral text-sm"
+                />
+              </div>
             </li>
           ))}
         </ul>

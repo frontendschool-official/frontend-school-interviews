@@ -193,6 +193,7 @@ const ProblemsPage: React.FC = () => {
       }
 
       const result = await startInterviewAndNavigate(values);
+      console.log("startInterviewAndNavigate", result);
       if (result && result?.problem) {
         // addProblem(result?.problem);
         closeModal();

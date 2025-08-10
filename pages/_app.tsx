@@ -2,6 +2,7 @@ import type { AppProps } from 'next/app';
 import { AuthProvider } from '../hooks/useAuth';
 import { ThemeContextProvider, useThemeContext } from '../hooks/useTheme';
 import '../styles/globals.css';
+import 'swagger-ui-react/swagger-ui.css';
 
 function InnerApp(props: AppProps) {
   const { themeObject, isInitialized } = useThemeContext();

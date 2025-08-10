@@ -1,4 +1,4 @@
-import { PaymentDetails, RazorpayOrder, PaymentResponse } from '../types/cart';
+import { PaymentDetails, RazorpayOrder, PaymentResponse } from '../../types/cart';
 
 declare global {
   interface Window {

@@ -71,63 +71,7 @@ interface InterviewSimulationSlice {
   setSessions: (sessions: MockInterviewSession[]) => void;
 }
 
-// Mock Interview slice
-interface MockInterviewSlice {
-  // Setup state
-  setupStep: "setup" | "overview" | "loading";
-  mockSelectedCompany: any | null;
-  mockSelectedRole: any | null;
-  selectedRound: any | null;
-  selectedInterviewType: string;
-  searchQuery: string;
-  selectedCategory: string;
-
-  // Active interview
-  session: MockInterviewSession | null;
-  currentProblem: MockInterviewProblem | null;
-  currentProblemIndex: number;
-  code: string;
-  answer: string;
-  evaluations: any[];
-  overallFeedback: string;
-  totalScore: number;
-  startTime: Date | null;
-  elapsedTime: number;
-  attemptedProblems: number[];
-  problemSolutions: Record<number, { code: string; answer: string }>;
-
-  // UI state
-  isProblemPanelCollapsed: boolean;
-  showResults: boolean;
-  navigating: boolean;
-
-  // Actions
-  setSetupStep: (step: "setup" | "overview" | "loading") => void;
-  setMockSelectedCompany: (company: any) => void;
-  setMockSelectedRole: (role: any) => void;
-  setSelectedRound: (round: any) => void;
-  setSelectedInterviewType: (type: string) => void;
-  setSearchQuery: (query: string) => void;
-  setSelectedCategory: (category: string) => void;
-  setSession: (session: MockInterviewSession | null) => void;
-  setCurrentProblem: (problem: MockInterviewProblem | null) => void;
-  setCurrentProblemIndex: (index: number) => void;
-  setCode: (code: string) => void;
-  setAnswer: (answer: string) => void;
-  setEvaluations: (evaluations: any[]) => void;
-  setOverallFeedback: (feedback: string) => void;
-  setTotalScore: (score: number) => void;
-  setStartTime: (time: Date | null) => void;
-  setElapsedTime: (time: number) => void;
-  addAttemptedProblem: (index: number) => void;
-  setProblemSolution: (
-    index: number,
-    solution: { code: string; answer: string }
-  ) => void;
-  setIsProblemPanelCollapsed: (collapsed: boolean) => void;
-  setShowResults: (show: boolean) => void;
-  setNavigating: (navigating: boolean) => void;
-}
+// Mock Interview slice removed - using real Firebase data instead
 
 // Interview slice (evaluation states)
 interface InterviewSlice {
@@ -138,8 +82,7 @@ interface InterviewSlice {
 export type AppState = ProblemsSlice &
   UiSlice &
   InterviewSlice &
-  InterviewSimulationSlice &
-  MockInterviewSlice;
+  InterviewSimulationSlice;
 
 export const useAppStore = create<AppState>()(
   devtools(
@@ -195,60 +138,7 @@ export const useAppStore = create<AppState>()(
         setCurrentRound: (round) => set({ currentRound: round }),
         setSessions: (sessions) => set({ sessions }),
 
-        // Mock Interview slice
-        setupStep: "setup",
-        mockSelectedCompany: null,
-        mockSelectedRole: null,
-        selectedRound: null,
-        selectedInterviewType: "",
-        searchQuery: "",
-        selectedCategory: "All",
-        session: null,
-        currentProblem: null,
-        currentProblemIndex: 0,
-        code: "",
-        answer: "",
-        evaluations: [],
-        overallFeedback: "",
-        totalScore: 0,
-        startTime: null,
-        elapsedTime: 0,
-        attemptedProblems: [],
-        problemSolutions: {},
-        isProblemPanelCollapsed: false,
-        showResults: false,
-        navigating: false,
-        setSetupStep: (step) => set({ setupStep: step }),
-        setMockSelectedCompany: (company) =>
-          set({ mockSelectedCompany: company }),
-        setMockSelectedRole: (role) => set({ mockSelectedRole: role }),
-        setSelectedRound: (round) => set({ selectedRound: round }),
-        setSelectedInterviewType: (type) =>
-          set({ selectedInterviewType: type }),
-        setSearchQuery: (query) => set({ searchQuery: query }),
-        setSelectedCategory: (category) => set({ selectedCategory: category }),
-        setSession: (session) => set({ session }),
-        setCurrentProblem: (problem) => set({ currentProblem: problem }),
-        setCurrentProblemIndex: (index) => set({ currentProblemIndex: index }),
-        setCode: (code) => set({ code }),
-        setAnswer: (answer) => set({ answer }),
-        setEvaluations: (evaluations) => set({ evaluations }),
-        setOverallFeedback: (feedback) => set({ overallFeedback: feedback }),
-        setTotalScore: (score) => set({ totalScore: score }),
-        setStartTime: (time) => set({ startTime: time }),
-        setElapsedTime: (time) => set({ elapsedTime: time }),
-        addAttemptedProblem: (index) =>
-          set((state) => ({
-            attemptedProblems: [...state.attemptedProblems, index],
-          })),
-        setProblemSolution: (index, solution) =>
-          set((state) => ({
-            problemSolutions: { ...state.problemSolutions, [index]: solution },
-          })),
-        setIsProblemPanelCollapsed: (collapsed) =>
-          set({ isProblemPanelCollapsed: collapsed }),
-        setShowResults: (show) => set({ showResults: show }),
-        setNavigating: (navigating) => set({ navigating: navigating }),
+
       }),
       {
         name: "frontend-school-store",
@@ -256,7 +146,6 @@ export const useAppStore = create<AppState>()(
           // Only persist UI state, not sensitive data
           activeProblemFilter: state.activeProblemFilter,
           promptModalOpen: state.promptModalOpen,
-          selectedCategory: state.selectedCategory,
         }),
       }
     ),

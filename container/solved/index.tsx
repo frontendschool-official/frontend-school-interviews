@@ -4,8 +4,10 @@ import { useAuth } from "@/hooks/useAuth";
 import {
   getUserProgress,
   getDetailedFeedback,
+} from "@/services/firebase/user-progress";
+import {
   getProblemById,
-} from "@/services/firebase";
+} from "@/services/firebase/problems";
 import {
   FiCheck,
   FiClock,

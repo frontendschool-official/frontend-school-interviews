@@ -1,10 +1,14 @@
-import { useEffect, useRef } from 'react';
-import { getAllProblems, getSubmissionsForUser } from '@/services/firebase';
-import { useAuth } from './useAuth';
-import { ProblemData, ParsedProblemData, PredefinedProblem } from '@/types/problem';
-import { useAppStore } from '@/store';
+import { useEffect, useRef } from "react";
+import { useAuth } from "./useAuth";
+import { apiClient } from "@/lib/api-client";
+import {
+  ProblemData,
+  ParsedProblemData,
+  PredefinedProblem,
+} from "@/types/problem";
+import { useAppStore } from "@/store";
 
-export type ProblemStatus = 'attempted' | 'solved' | 'unsolved';
+export type ProblemStatus = "attempted" | "solved" | "unsolved";
 
 export type Problem = ProblemData | ParsedProblemData | PredefinedProblem;
 
@@ -46,28 +50,41 @@ export const useProblems = () => {
         setProblemsLoadingRef.current?.(true);
         setProblemsErrorRef.current?.(null);
 
-        const allProblems = await getAllProblems();
+        const allProblemsResponse = await apiClient.getAllProblems();
+        if (allProblemsResponse.error) {
+          throw new Error(allProblemsResponse.error);
+        }
+        const allProblems = allProblemsResponse.data || [];
         const problemsArray = Array.isArray(allProblems) ? allProblems : [];
 
         const statusMap: Record<string, ProblemStatus> = {};
         problemsArray.forEach((p: Problem) => {
           const id = (p as any)?.id as string | undefined;
-          if (id) statusMap[id] = 'unsolved';
+          if (id) statusMap[id] = "unsolved";
         });
 
         if (user) {
           try {
-            const submissionDocs = await getSubmissionsForUser(user.uid);
-            const submissionsArray = Array.isArray(submissionDocs) ? submissionDocs : [];
+            const submissionResponse = await apiClient.getSubmissionsByUserId(user.uid);
+            if (submissionResponse.error) {
+              console.error("Error fetching submissions:", submissionResponse.error);
+            } else {
+              const submissionDocs = submissionResponse.data || [];
+              const submissionsArray = Array.isArray(submissionDocs)
+                ? submissionDocs
+                : [];
 
-            problemsArray.forEach((p: Problem) => {
-              const id = (p as any)?.id as string | undefined;
-              if (!id) return;
-              const submission = submissionsArray.find((s: any) => s.problemId === id);
-              if (submission) statusMap[id] = 'attempted';
-            });
+              problemsArray.forEach((p: Problem) => {
+                const id = (p as any)?.id as string | undefined;
+                if (!id) return;
+                const submission = submissionsArray.find(
+                  (s: any) => s.problemId === id
+                );
+                if (submission) statusMap[id] = "attempted";
+              });
+            }
           } catch (submissionError) {
-            console.error('Error fetching submissions:', submissionError);
+            console.error("Error fetching submissions:", submissionError);
           }
         }
 
@@ -77,11 +94,15 @@ export const useProblems = () => {
           setProblemsErrorRef.current?.(null);
         }
       } catch (error) {
-        console.error('Error loading problems:', error);
+        console.error("Error loading problems:", error);
         if (!isCancelled) {
-          let errorMessage = 'Failed to load problems';
-          if (error instanceof Error && error.message.includes('Firebase is not properly initialized')) {
-            errorMessage = 'Firebase configuration is missing. Please check your environment variables.';
+          let errorMessage = "Failed to load problems";
+          if (
+            error instanceof Error &&
+            error.message.includes("Firebase is not properly initialized")
+          ) {
+            errorMessage =
+              "Firebase configuration is missing. Please check your environment variables.";
           }
           setProblemsRef.current?.([], {});
           setProblemsLoadingRef.current?.(false);
@@ -105,4 +126,4 @@ export const useProblems = () => {
     addProblem,
     updateProblemStatus,
   };
-}; 
+};

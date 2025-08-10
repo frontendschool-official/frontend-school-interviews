@@ -19,11 +19,8 @@ import {
 } from "react-icons/fi";
 import { useAuth } from "../hooks/useAuth";
 import { useThemeContext } from "../hooks/useTheme";
+import { useMockInterviewSetup } from "../hooks/useMockInterviewSetup";
 import NavBar from "../components/NavBar";
-import { MockInterviewSession } from "../types/problem";
-import {
-  createMockInterviewSession,
-} from "../services/firebase";
 import MockInterviewComponent from "../components/MockInterview";
 import {
   Button,
@@ -137,273 +134,32 @@ const EnhancedInfoLabel = ({ children, className = "", ...props }: any) => (
   </div>
 );
 
-// Types
-interface Company {
-  name: string;
-  description: string;
-  logo?: string;
-  category?: string;
-}
 
-interface Role {
-  id: string;
-  name: string;
-  description: string;
-  level: "entry" | "mid" | "senior";
-}
-
-interface Round {
-  id: string;
-  name: string;
-  description: string;
-  duration: number; // in minutes
-  type:
-    | "Machine Coding"
-    | "System Design"
-    | "JavaScript Concepts"
-    | "DSA"
-    | "Theory";
-}
-
-// Sample data
-const COMPANIES: Company[] = [
-  {
-    name: "Amazon",
-    description: "E-commerce and cloud computing",
-    category: "Tech Giants",
-  },
-  {
-    name: "Google",
-    description: "Search and AI technology",
-    category: "Tech Giants",
-  },
-  {
-    name: "Microsoft",
-    description: "Software and cloud services",
-    category: "Tech Giants",
-  },
-  {
-    name: "Meta",
-    description: "Social media and technology",
-    category: "Tech Giants",
-  },
-  {
-    name: "Apple",
-    description: "Consumer electronics and software",
-    category: "Tech Giants",
-  },
-  {
-    name: "Netflix",
-    description: "Streaming entertainment",
-    category: "Tech Giants",
-  },
-  {
-    name: "Shopify",
-    description: "E-commerce platform",
-    category: "E-commerce",
-  },
-  { name: "Stripe", description: "Payment processing", category: "E-commerce" },
-  {
-    name: "Uber",
-    description: "Ride-sharing and delivery",
-    category: "Transportation",
-  },
-  {
-    name: "Airbnb",
-    description: "Online marketplace for lodging",
-    category: "Travel",
-  },
-  {
-    name: "PayPal",
-    description: "Digital payments platform",
-    category: "Finance",
-  },
-  {
-    name: "Twitter",
-    description: "Social media platform",
-    category: "Social Media",
-  },
-];
-
-const ROLES: Role[] = [
-  {
-    id: "sde1",
-    name: "SDE1",
-    description: "Software Development Engineer I - Entry level",
-    level: "entry",
-  },
-  {
-    id: "sde2",
-    name: "SDE2",
-    description: "Software Development Engineer II - Mid level",
-    level: "mid",
-  },
-  {
-    id: "sde3",
-    name: "SDE3",
-    description: "Software Development Engineer III - Senior level",
-    level: "senior",
-  },
-];
-
-const ROUNDS: Round[] = [
-  {
-    id: "round1",
-    name: "Round 1",
-    description: "Technical screening and coding assessment",
-    duration: 45,
-    type: "Machine Coding",
-  },
-  {
-    id: "round2",
-    name: "Round 2",
-    description: "System design and architecture discussion",
-    duration: 60,
-    type: "System Design",
-  },
-  {
-    id: "round3",
-    name: "Round 3",
-    description: "JavaScript concepts and frontend fundamentals",
-    duration: 30,
-    type: "JavaScript Concepts",
-  },
-  {
-    id: "round4",
-    name: "Round 4",
-    description: "Data structures and algorithms",
-    duration: 45,
-    type: "DSA",
-  },
-  {
-    id: "theory",
-    name: "Theory Round",
-    description: "JavaScript theory and concepts assessment",
-    duration: 30,
-    type: "Theory",
-  },
-];
 
 export default function MockInterview() {
-  const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
   const { themeObject } = useThemeContext();
-  const { type } = router.query;
-
-  const [step, setStep] = useState<"setup" | "interview" | "loading">("setup");
-  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
-  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
-  const [selectedRound, setSelectedRound] = useState<Round | null>(null);
-  const [selectedInterviewType, setSelectedInterviewType] =
-    useState<string>("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [session, setSession] = useState<MockInterviewSession | null>(null);
-
-  // Load setup data from localStorage or handle type parameter from URL
-  useEffect(() => {
-    // First try to load from localStorage (from setup page)
-    const setupData = localStorage.getItem('mockInterviewSetup');
-    if (setupData) {
-      try {
-        const parsed = JSON.parse(setupData);
-        if (parsed.company) setSelectedCompany(parsed.company);
-        if (parsed.role) setSelectedRole(parsed.role);
-        if (parsed.round) {
-          setSelectedRound(parsed.round);
-          setSelectedInterviewType(parsed.round.type);
-        }
-        // Clear the setup data after loading
-        localStorage.removeItem('mockInterviewSetup');
-        return;
-      } catch (error) {
-        console.error('Error parsing setup data:', error);
-        localStorage.removeItem('mockInterviewSetup');
-      }
-    }
-
-    // Fallback to type parameter from URL
-    if (type && typeof type === "string") {
-      const interviewType = type.toLowerCase();
-
-      // Find the appropriate round based on the type
-      const matchingRound = ROUNDS.find(
-        (round) =>
-          round.type.toLowerCase().replace(" ", "_") === interviewType ||
-          round.type.toLowerCase().replace(" ", "") === interviewType ||
-          round.type.toLowerCase() === interviewType
-      );
-
-      if (matchingRound) {
-        setSelectedRound(matchingRound);
-        setSelectedInterviewType(matchingRound.type);
-      }
-    }
-  }, [type]);
-
-  // Check authentication
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push("/login");
-    }
-  }, [user, authLoading, router]);
-
-  const handleCompanySelect = (company: Company) => {
-    setSelectedCompany(company);
-    setError(null);
-  };
-
-  const handleRoleSelect = (role: Role) => {
-    setSelectedRole(role);
-    setError(null);
-  };
-
-  const handleRoundSelect = (round: Round) => {
-    setSelectedRound(round);
-    setSelectedInterviewType(round.type);
-    setError(null);
-  };
-
-  const canProceed = selectedCompany && selectedRole && selectedRound;
-
-  const handleStartInterview = async () => {
-    if (!canProceed || !user) return;
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      // Create interview session
-      const sessionData = {
-        userId: user.uid,
-        companyName: selectedCompany.name,
-        roleLevel: selectedRole.name,
-        roundName: selectedRound.name,
-        roundType: selectedInterviewType.toLowerCase().replace(" ", "_") as
-          | "dsa"
-          | "machine_coding"
-          | "system_design"
-          | "theory",
-        problems: [],
-        currentProblemIndex: 0,
-        status: "active" as const,
-        startedAt: new Date(),
-      };
-
-      const newSession = await createMockInterviewSession(sessionData);
-      setSession(newSession);
-
-      // Start the interview
-      setStep("interview");
-    } catch (error) {
-      console.error("Error starting interview:", error);
-      setError("Failed to start interview. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-
+  const {
+    step,
+    selectedCompany,
+    selectedRole,
+    selectedRound,
+    selectedInterviewType,
+    loading,
+    error,
+    session,
+    canProceed,
+    authLoading,
+    user,
+    companies,
+    roles,
+    rounds,
+    handleCompanySelect,
+    handleRoleSelect,
+    handleRoundSelect,
+    handleStartInterview,
+    handleInterviewComplete,
+    handleInterviewExit,
+  } = useMockInterviewSetup();
 
   if (authLoading) {
     return (
@@ -426,10 +182,7 @@ export default function MockInterview() {
       <MockInterviewComponent
         interviewId={session?.id || "mock-interview"}
         problems={session?.problems || []}
-        onComplete={(result: any) => {
-          console.log("Interview completed:", result);
-          router.push("/mock-interviews");
-        }}
+        onComplete={handleInterviewComplete}
       />
     );
   }
@@ -464,7 +217,7 @@ export default function MockInterview() {
 
             <div className="flex gap-4 mb-4">
               <div className="text-center p-3 bg-secondary rounded-lg border border-border min-w-20">
-                <div className="text-xl font-bold text-primary mb-1">{COMPANIES.length}</div>
+                <div className="text-xl font-bold text-primary mb-1">{companies.length}</div>
                 <div className="text-xs text-neutral-600 uppercase tracking-wider">Companies</div>
               </div>
               <div className="text-center p-3 bg-secondary rounded-lg border border-border min-w-20">
@@ -474,7 +227,7 @@ export default function MockInterview() {
             </div>
 
             <EnhancedGrid>
-              {COMPANIES.map((company) => (
+              {companies.map((company) => (
                 <EnhancedSelectableCard
                   key={company.name}
                   selected={selectedCompany?.name === company.name}
@@ -506,7 +259,7 @@ export default function MockInterview() {
               Choose your target role level
             </EnhancedSectionSubtitle>
             <EnhancedGrid>
-              {ROLES.map((role) => (
+              {roles.map((role) => (
                 <EnhancedSelectableCard
                   key={role.id}
                   selected={selectedRole?.id === role.id}
@@ -536,7 +289,7 @@ export default function MockInterview() {
               Choose the specific round you want to practice
             </EnhancedSectionSubtitle>
             <EnhancedGrid>
-              {ROUNDS.map((round) => (
+              {rounds.map((round) => (
                 <EnhancedSelectableCard
                   key={round.id}
                   selected={selectedRound?.id === round.id}

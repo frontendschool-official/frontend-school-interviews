@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { getProblemById } from "../services/firebase";
 import { ParsedProblemData } from "../types/problem";
 import { ErrorState } from "../container/interviews/interviews.types";
 
@@ -24,14 +23,32 @@ export const useInterviewProblem = () => {
     setError(null);
 
     try {
-      const doc = await getProblemById(id);
-      if (doc) {
-        setProblem(doc);
+      const response = await fetch(`/api/problems/get-by-id?id=${id}`);
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          setError({
+            type: "not_found",
+            message: "Problem not found. It may have been deleted or the link is incorrect.",
+          });
+        } else if (response.status === 403) {
+          setError({
+            type: "unauthorized",
+            message: "You do not have permission to access this problem.",
+          });
+        } else {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        return;
+      }
+
+      const data = await response.json();
+      if (data.success && data.problem) {
+        setProblem(data.problem);
       } else {
         setError({
           type: "not_found",
-          message:
-            "Problem not found. It may have been deleted or the link is incorrect.",
+          message: "Problem not found. It may have been deleted or the link is incorrect.",
         });
       }
     } catch (err) {

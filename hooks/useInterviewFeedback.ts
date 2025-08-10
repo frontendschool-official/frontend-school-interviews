@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useAuth } from "./useAuth";
-import { saveDetailedFeedback } from "../services/firebase";
 import { ParsedProblemData } from "../types/problem";
 
 interface FeedbackData {
@@ -108,15 +107,29 @@ export const useInterviewFeedback = (problem: ParsedProblemData | null) => {
     setFeedbackData(parsedFeedback);
     setShowFeedbackModal(true);
 
-    // Save detailed feedback to database
+    // Save detailed feedback to database using API
     if (user && problem) {
       try {
-        await saveDetailedFeedback(user.uid, problem.id || "", {
-          ...parsedFeedback,
-          problemTitle: problem.designation,
-          problemType: problem.interviewType,
-          designation: problem.designation,
+        const response = await fetch("/api/problems/save-feedback", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId: user.uid,
+            problemId: problem.id || "",
+            feedbackData: {
+              ...parsedFeedback,
+              problemTitle: problem.designation,
+              problemType: problem.interviewType,
+              designation: problem.designation,
+            },
+          }),
         });
+
+        if (!response.ok) {
+          console.error("Error saving feedback:", response.statusText);
+        }
       } catch (error) {
         console.error("Error saving feedback:", error);
       }

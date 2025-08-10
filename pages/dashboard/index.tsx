@@ -1,16 +1,20 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "@/hooks/useAuth";
 import { useDashboardData } from "@/hooks/useDashboardData";
+import { apiClient } from "@/lib/api-client";
 import Layout from "@/components/Layout";
 import DashboardStats from "@/components/dashboard/DashboardStats";
 import RecentProblems from "@/components/dashboard/RecentProblems";
 import QuickActions from "@/components/dashboard/QuickActions";
 import ProgressOverview from "@/components/dashboard/ProgressOverview";
+import WeeklyStats from "@/components/dashboard/WeeklyStats";
 
 export default function Dashboard() {
   const { user, loading } = useAuth();
-  const { error } = useDashboardData();
+  const { error, loading: dashboardLoading } = useDashboardData();
+  const [userStats, setUserStats] = useState<any>(null);
+  const [userStatsLoading, setUserStatsLoading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -19,7 +23,29 @@ export default function Dashboard() {
     }
   }, [user, loading, router]);
 
-  if (loading) {
+  useEffect(() => {
+    const fetchUserStats = async () => {
+      if (!user?.uid) return;
+
+      try {
+        setUserStatsLoading(true);
+        const response = await apiClient.getUserStats(user.uid);
+        if (response.error) {
+          console.error('Error fetching user stats:', response.error);
+        } else {
+          setUserStats(response.data);
+        }
+      } catch (error) {
+        console.error('Error fetching user stats:', error);
+      } finally {
+        setUserStatsLoading(false);
+      }
+    };
+
+    fetchUserStats();
+  }, [user?.uid]);
+
+  if (loading || dashboardLoading || userStatsLoading) {
     return (
       <Layout isLoading={true} loadingText="Loading dashboard...">
         <div />
@@ -59,12 +85,32 @@ export default function Dashboard() {
             Track your progress and continue learning
           </p>
           <div className="bg-secondary border border-border rounded-xl p-6 mb-8">
-            Welcome back, {user.displayName || user.email}! Ready to ace your
-            next interview?
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-text mb-2">
+                  Welcome back, {user.displayName || user.email}!
+                </h2>
+                <p className="text-text/80">Ready to ace your next interview?</p>
+              </div>
+              {userStats && (
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-primary">
+                    {userStats.currentStreak} days
+                  </div>
+                  <div className="text-sm text-text/70">Current streak</div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
         <DashboardStats />
+
+        <WeeklyStats 
+          weeklyStats={userStats?.weeklyStats}
+          performanceByType={userStats?.performanceByType}
+          loading={userStatsLoading}
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
           <QuickActions />
@@ -72,7 +118,7 @@ export default function Dashboard() {
         </div>
 
         <div className="col-span-full">
-          <RecentProblems />
+          <RecentProblems recentActivity={userStats?.recentActivity} />
         </div>
     </Layout>
   );

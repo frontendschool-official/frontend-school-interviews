@@ -101,8 +101,8 @@ export default function InterviewSimulationProblem({
           <CodeEditor
             code={solution}
             onChange={setSolution}
-            language="javascript"
-            theme={theme === 'dark' ? 'vs-dark' : 'light'}
+
+            theme={theme === 'dark' ? 'dark' : 'light'}
           />
         );
       
@@ -113,7 +113,7 @@ export default function InterviewSimulationProblem({
           />
         );
       
-      case 'theory':
+      case 'theory_and_debugging':
         return (
           <div className="h-96">
             <textarea

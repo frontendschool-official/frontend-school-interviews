@@ -98,7 +98,7 @@ export default function ProblemSolver({ problemId }: ProblemSolverProps) {
       switch (problem.interviewType) {
         case 'dsa':
           return 'dsa';
-        case 'coding':
+        case 'machine_coding':
           return 'machine-coding';
         case 'design':
           return 'system-design';
@@ -136,8 +136,8 @@ export default function ProblemSolver({ problemId }: ProblemSolverProps) {
           <CodeEditor
             code={code}
             onChange={handleCodeUpdate}
-            language="javascript"
-            theme="vs-dark"
+
+            theme="dark"
           />
         );
       case 'dsa':
@@ -167,8 +167,8 @@ export default function ProblemSolver({ problemId }: ProblemSolverProps) {
           <CodeEditor
             code={code}
             onChange={handleCodeUpdate}
-            language="javascript"
-            theme="vs-dark"
+
+            theme="dark"
           />
         );
     }

@@ -45,7 +45,7 @@ const getCategoryBadgeColor = (type: ProblemType) => {
       return "border-purple-500 text-purple-500";
     case "system_design":
       return "border-cyan-500 text-cyan-500";
-    case "theory":
+    case "theory_and_debugging":
       return "border-pink-500 text-pink-500";
     case "interview":
       return "border-green-500 text-green-500";

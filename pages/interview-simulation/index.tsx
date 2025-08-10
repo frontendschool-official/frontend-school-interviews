@@ -1,25 +1,24 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "@/hooks/useAuth";
+import Head from "next/head";
 import {
-  FiArrowLeft,
-  FiArrowRight,
-  FiCheck,
+  FiPlus,
+  FiPlay,
   FiClock,
+  FiCheckCircle,
+  FiAlertCircle,
+  FiArrowRight,
   FiUsers,
   FiBriefcase,
+  FiCalendar,
+  FiTarget,
 } from "react-icons/fi";
-import { getInterviewInsights } from "@/services/interview-rounds";
-import { createInterviewSimulation } from "@/services/firebase";
 import Layout from "@/components/Layout";
-
-interface Company {
-  id: string;
-  name: string;
-  logo: string;
-  description: string;
-  difficulty: "easy" | "medium" | "hard";
-}
+import { InterviewSimulationData, Company } from "@/types/problem";
+import { getAllCompanies } from "@/lib/queryBuilder";
+import { authenticatedPost } from "@/lib/api";
+import CreateInterview from "@/container/interview-simulation/create-interview";
 
 interface Role {
   id: string;
@@ -29,498 +28,397 @@ interface Role {
   estimatedTime: string;
 }
 
-interface Round {
-  id: string;
-  name: string;
-  type: "dsa" | "machine_coding" | "system_design" | "theory";
-  description: string;
-  duration: string;
-}
-
-const companies: Company[] = [
-  {
-    id: "google",
-    name: "Google",
-    logo: "🔍",
-    description: "Search and AI technology",
-    difficulty: "hard",
-  },
-  {
-    id: "meta",
-    name: "Meta",
-    logo: "📘",
-    description: "Social media and VR",
-    difficulty: "hard",
-  },
-  {
-    id: "amazon",
-    name: "Amazon",
-    logo: "📦",
-    description: "E-commerce and cloud",
-    difficulty: "hard",
-  },
-  {
-    id: "microsoft",
-    name: "Microsoft",
-    logo: "🪟",
-    description: "Software and cloud",
-    difficulty: "medium",
-  },
-  {
-    id: "apple",
-    name: "Apple",
-    logo: "🍎",
-    description: "Hardware and software",
-    difficulty: "hard",
-  },
-  {
-    id: "netflix",
-    name: "Netflix",
-    logo: "📺",
-    description: "Streaming entertainment",
-    difficulty: "medium",
-  },
-];
-
 const roles: Role[] = [
+  {
+    id: "sde1",
+    title: "SDE-1 (Software Developer I)",
+    level: "junior",
+    description: "Entry-level software development position",
+    estimatedTime: "90 minutes",
+  },
+  {
+    id: "sde2",
+    title: "SDE-2 (Software Developer II)",
+    level: "mid",
+    description: "Mid-level software development with 2-4 years experience",
+    estimatedTime: "120 minutes",
+  },
+  {
+    id: "sde3",
+    title: "SDE-3 (Senior Software Developer)",
+    level: "senior",
+    description: "Senior software development with 5+ years experience",
+    estimatedTime: "150 minutes",
+  },
   {
     id: "frontend",
     title: "Frontend Developer",
     level: "mid",
-    description: "Build user interfaces and web applications",
-    estimatedTime: "45 minutes",
+    description: "Specialized in frontend technologies and user interfaces",
+    estimatedTime: "105 minutes",
   },
   {
     id: "fullstack",
     title: "Full Stack Developer",
     level: "senior",
     description: "End-to-end application development",
-    estimatedTime: "60 minutes",
+    estimatedTime: "135 minutes",
   },
   {
-    id: "ui-ux",
-    title: "UI/UX Developer",
-    level: "mid",
-    description: "Create beautiful and functional interfaces",
-    estimatedTime: "45 minutes",
+    id: "staff",
+    title: "Staff Engineer",
+    level: "senior",
+    description: "Technical leadership and complex system design",
+    estimatedTime: "180 minutes",
   },
-  {
-    id: "react",
-    title: "React Developer",
-    level: "mid",
-    description: "Specialized in React ecosystem",
-    estimatedTime: "45 minutes",
-  },
-];
-
-const rounds: Round[] = [
-  {
-    id: "dsa",
-    name: "Data Structures & Algorithms",
-    type: "dsa",
-    description: "Solve algorithmic problems",
-    duration: "30 minutes",
-  },
-  {
-    id: "machine_coding",
-    name: "Machine Coding",
-    type: "machine_coding",
-    description: "Build functional components",
-    duration: "45 minutes",
-  },
-  {
-    id: "system_design",
-    name: "System Design",
-    type: "system_design",
-    description: "Design scalable systems",
-    duration: "60 minutes",
-  },
-  {
-    id: "theory",
-    name: "Frontend Theory",
-    type: "theory",
-    description: "JavaScript and React concepts",
-    duration: "30 minutes",
-  },
-];
-
-const steps = [
-  { id: "company", title: "Company", description: "Choose target company" },
-  { id: "role", title: "Role", description: "Select position" },
-  { id: "round", title: "Round", description: "Pick interview type" },
-  { id: "start", title: "Start", description: "Begin interview" },
 ];
 
 export default function InterviewSimulation() {
   const router = useRouter();
   const { user } = useAuth();
-  const [currentStep, setCurrentStep] = useState(0);
+  const [activeSimulations, setActiveSimulations] = useState<
+    InterviewSimulationData[]
+  >([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
-  const [selectedRound, setSelectedRound] = useState<Round | null>(null);
-  const [loading, setLoading] = useState(false);
 
-  const handleCompanySelect = (company: Company) => {
-    setSelectedCompany(company);
+  // SEO Data
+  const seoData = {
+    title: "Interview Simulation - Practice Real Tech Interviews",
+    description:
+      "Master tech interviews with our realistic simulation platform. Practice with company-specific problems for Google, Meta, Amazon, Microsoft, Apple, and Netflix. Get AI-powered feedback and improve your skills.",
+    keywords:
+      "tech interview, coding interview, mock interview, software engineer interview, frontend interview, system design interview, DSA interview, Google interview, Meta interview, Amazon interview",
+    ogImage: "/og-interview-simulation.jpg",
+    canonical: "https://frontendschoolinterviews.com/interview-simulation",
   };
 
-  const handleRoleSelect = (role: Role) => {
-    setSelectedRole(role);
-  };
-
-  const handleRoundSelect = (round: Round) => {
-    setSelectedRound(round);
-  };
-
-  const handleBack = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-    } else {
-      router.push("/dashboard");
+  useEffect(() => {
+    if (user) {
+      fetchActiveSimulations();
+      fetchCompanies();
     }
-  };
+  }, [user]);
 
-  const handleNext = () => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
-    } else {
-      handleStartInterview();
-    }
-  };
+  const fetchActiveSimulations = async () => {
+    if (!user) return;
 
-  const handleStartInterview = async () => {
-    if (!user || !selectedCompany || !selectedRole) return;
-
-    setLoading(true);
     try {
-      // 1) Get rounds via Gemini insights (cached or fresh)
-      const insights = await getInterviewInsights({
-        companyName: selectedCompany.name,
-        roleLevel: selectedRole.title,
-      });
-
-      // 2) Create simulation document
-      const simulationId = await createInterviewSimulation({
-        userId: user.uid,
-        companyName: insights.companyName,
-        roleLevel: insights.roleLevel,
-        insights: insights.data,
-      });
-
-      // 3) Navigate to round 1 of the new simulation
-      router.push(`/interview-simulation/${simulationId}/1`);
+      const response = await fetch(
+        `/api/interview-simulation/active?userId=${user.uid}`
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setActiveSimulations(data);
+      } else {
+        console.error("Failed to fetch active simulations");
+      }
     } catch (error) {
-      console.error("Error starting interview:", error);
+      console.error("Error fetching active simulations:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const canProceed = () => {
-    switch (currentStep) {
-      case 0:
-        return selectedCompany !== null;
-      case 1:
-        return selectedRole !== null;
-      case 2:
-        return selectedRound !== null;
-      default:
-        return true;
+  const fetchCompanies = async () => {
+    try {
+      const companiesData = await getAllCompanies();
+      setCompanies(companiesData);
+    } catch (error) {
+      console.error("Error fetching companies:", error);
     }
   };
 
-  const renderStepContent = () => {
-    switch (currentStep) {
-      case 0:
-        return (
-          <div className="space-y-8">
-            <div className="text-center">
-              <h2 className="text-3xl font-bold text-text mb-4">
-                Choose Your Target Company
-              </h2>
-              <p className="text-text/80 text-lg">
-                Select the company you want to practice interviewing for
-              </p>
-            </div>
+  const handleCreateSimulation = async () => {
+    if (!user || !selectedCompany || !selectedRole) {
+      setError("Please select both company and role");
+      return;
+    }
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {companies.map((company) => (
-                <div
-                  key={company.id}
-                  onClick={() => handleCompanySelect(company)}
-                  className={`p-6 border-2 rounded-xl cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
-                    selectedCompany?.id === company.id
-                      ? "border-primary bg-primary/10"
-                      : "border-border hover:border-primary/50"
-                  }`}
-                >
-                  <div className="text-center">
-                    <div className="text-4xl mb-4">{company.logo}</div>
-                    <h3 className="text-xl font-semibold text-text mb-2">
-                      {company.name}
-                    </h3>
-                    <p className="text-text/70 text-sm mb-3">
-                      {company.description}
-                    </p>
-                    <div
-                      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                        company.difficulty === "hard"
-                          ? "bg-red-100 text-red-800"
-                          : company.difficulty === "medium"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : "bg-green-100 text-green-800"
-                      }`}
-                    >
-                      {company.difficulty} difficulty
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
+    setCreating(true);
+    setError(null);
 
-      case 1:
-        return (
-          <div className="space-y-8">
-            <div className="text-center">
-              <h2 className="text-3xl font-bold text-text mb-4">
-                Select Your Role
-              </h2>
-              <p className="text-text/80 text-lg">
-                Choose the position you're applying for
-              </p>
-            </div>
+    try {
+      // Get interview insights first
+      const insights = await authenticatedPost("/api/interview-insights", {
+        companyName: selectedCompany.name,
+        roleLevel: selectedRole.title,
+      });
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {roles.map((role) => (
-                <div
-                  key={role.id}
-                  onClick={() => handleRoleSelect(role)}
-                  className={`p-6 border-2 rounded-xl cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
-                    selectedRole?.id === role.id
-                      ? "border-primary bg-primary/10"
-                      : "border-border hover:border-primary/50"
-                  }`}
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center">
-                      <FiBriefcase className="w-6 h-6 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-xl font-semibold text-text mb-2">
-                        {role.title}
-                      </h3>
-                      <p className="text-text/70 text-sm mb-3">
-                        {role.description}
-                      </p>
-                      <div className="flex items-center gap-4 text-sm text-text/60">
-                        <span className="capitalize">{role.level} level</span>
-                        <span className="flex items-center gap-1">
-                          <FiClock className="w-4 h-4" />
-                          {role.estimatedTime}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
+      // Create simulation
+      const { simulationId } = await authenticatedPost("/api/interview-simulation/create", {
+        companyName: selectedCompany.name,
+        roleLevel: selectedRole.title,
+        insights: insights.data,
+      });
 
-      case 2:
-        return (
-          <div className="space-y-8">
-            <div className="text-center">
-              <h2 className="text-3xl font-bold text-text mb-4">
-                Choose Interview Round
-              </h2>
-              <p className="text-text/80 text-lg">
-                Select the type of interview you want to practice
-              </p>
-            </div>
+      // Navigate to the first round
+      router.push(`/interview-simulation/${simulationId}/1`);
+    } catch (error) {
+      console.error("Error creating simulation:", error);
+      setError("Failed to create interview simulation. Please try again.");
+    } finally {
+      setCreating(false);
+    }
+  };
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {rounds.map((round) => (
-                <div
-                  key={round.id}
-                  onClick={() => handleRoundSelect(round)}
-                  className={`p-6 border-2 rounded-xl cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
-                    selectedRound?.id === round.id
-                      ? "border-primary bg-primary/10"
-                      : "border-border hover:border-primary/50"
-                  }`}
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center">
-                      <FiUsers className="w-6 h-6 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-xl font-semibold text-text mb-2">
-                        {round.name}
-                      </h3>
-                      <p className="text-text/70 text-sm mb-3">
-                        {round.description}
-                      </p>
-                      <div className="flex items-center gap-1 text-sm text-text/60">
-                        <FiClock className="w-4 h-4" />
-                        {round.duration}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
+  const formatDate = (timestamp: any) => {
+    if (!timestamp) return "N/A";
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
-      case 3:
-        return (
-          <div className="space-y-8">
-            <div className="text-center">
-              <h2 className="text-3xl font-bold text-text mb-4">
-                Ready to Start?
-              </h2>
-              <p className="text-text/80 text-lg">
-                Review your selections and begin the interview
-              </p>
-            </div>
-
-            <div className="bg-secondary border border-border rounded-xl p-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="text-center">
-                  <div className="text-2xl mb-2">{selectedCompany?.logo}</div>
-                  <h3 className="font-semibold text-text">
-                    {selectedCompany?.name}
-                  </h3>
-                  <p className="text-sm text-text/70">
-                    {selectedCompany?.description}
-                  </p>
-                </div>
-                <div className="text-center">
-                  <div className="w-8 h-8 bg-primary/20 rounded-lg flex items-center justify-center mx-auto mb-2">
-                    <FiBriefcase className="w-4 h-4 text-primary" />
-                  </div>
-                  <h3 className="font-semibold text-text">
-                    {selectedRole?.title}
-                  </h3>
-                  <p className="text-sm text-text/70 capitalize">
-                    {selectedRole?.level} level
-                  </p>
-                </div>
-                <div className="text-center">
-                  <div className="w-8 h-8 bg-primary/20 rounded-lg flex items-center justify-center mx-auto mb-2">
-                    <FiUsers className="w-4 h-4 text-primary" />
-                  </div>
-                  <h3 className="font-semibold text-text">
-                    {selectedRound?.name}
-                  </h3>
-                  <p className="text-sm text-text/70">
-                    {selectedRound?.duration}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="text-center">
-              <p className="text-text/70 mb-4">
-                You'll be presented with problems tailored to your selections.
-                Good luck!
-              </p>
-            </div>
-          </div>
-        );
-
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "active":
+        return "text-green-600 bg-green-100";
+      case "completed":
+        return "text-blue-600 bg-blue-100";
       default:
-        return null;
+        return "text-gray-600 bg-gray-100";
+    }
+  };
+
+  const getRoundTypeIcon = (type: string) => {
+    switch (type) {
+      case "dsa":
+        return "🧮";
+      case "machine_coding":
+        return "💻";
+      case "system_design":
+        return "🏗️";
+      case "theory":
+        return "📚";
+      default:
+        return "❓";
     }
   };
 
   return (
-    <Layout>
+    <Layout isLoading={loading}>
+      <Head>
+        <title>{seoData.title}</title>
+        <meta name="description" content={seoData.description} />
+        <meta name="keywords" content={seoData.keywords} />
+        <meta property="og:title" content={seoData.title} />
+        <meta property="og:description" content={seoData.description} />
+        <meta property="og:image" content={seoData.ogImage} />
+        <meta property="og:url" content={seoData.canonical} />
+        <link rel="canonical" href={seoData.canonical} />
+      </Head>
+
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <button
-          onClick={handleBack}
-          className="flex items-center gap-2 px-4 py-2 border border-border rounded-lg text-text hover:bg-secondary transition-colors"
-        >
-          <FiArrowLeft />
-          Back
-        </button>
-        <h1 className="text-2xl font-bold text-text">Interview Simulation</h1>
-        <div className="w-20"></div>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-text mb-4">
+          Interview Simulation Hub
+        </h1>
+        <p className="text-text/70 text-lg">
+          Practice real tech interviews with company-specific problems and
+          AI-powered feedback
+        </p>
       </div>
 
-      {/* Progress Steps */}
-      <div className="flex justify-center mb-12">
-        <div className="flex items-center gap-8">
-          {steps.map((step, index) => (
-            <div
-              key={step.id}
-              className={`flex flex-col items-center gap-2 transition-all duration-300 ${
-                index <= currentStep ? "opacity-100" : "opacity-50"
-              }`}
-            >
-              <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all duration-300 ${
-                  index < currentStep
-                    ? "bg-green-500 text-white"
-                    : index === currentStep
-                    ? "bg-primary text-white"
-                    : "bg-border text-text/50"
-                }`}
-              >
-                {index < currentStep ? (
-                  <FiCheck className="w-5 h-5" />
-                ) : (
-                  index + 1
-                )}
-              </div>
-              <div className="text-center">
-                <div className="text-sm font-medium text-text">
-                  {step.title}
-                </div>
-                <div className="text-xs text-text/60">{step.description}</div>
-              </div>
+      {/* Stats Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-secondary border border-border rounded-xl p-6">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+              <FiTarget className="w-6 h-6 text-blue-600" />
             </div>
-          ))}
+            <div>
+              <p className="text-sm text-text/60">Active Simulations</p>
+              <p className="text-2xl font-bold text-text">
+                {activeSimulations?.filter((s) => s?.status === "active").length}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-secondary border border-border rounded-xl p-6">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+              <FiCheckCircle className="w-6 h-6 text-green-600" />
+            </div>
+            <div>
+              <p className="text-sm text-text/60">Completed</p>
+              <p className="text-2xl font-bold text-text">
+                {
+                  activeSimulations?.filter((s) => s?.status === "completed")
+                    .length
+                }
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-secondary border border-border rounded-xl p-6">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+              <FiUsers className="w-6 h-6 text-purple-600" />
+            </div>
+            <div>
+              <p className="text-sm text-text/60">Companies</p>
+              <p className="text-2xl font-bold text-text">{companies?.length}</p>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Step Content */}
-      <div className="mb-8">{renderStepContent()}</div>
-
-      {/* Navigation */}
-      <div className="flex justify-between">
+      {/* Action Buttons */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-8">
         <button
-          onClick={handleBack}
-          className="flex items-center gap-2 px-6 py-3 border border-border rounded-lg text-text hover:bg-secondary transition-colors"
+          onClick={() => setShowCreateModal(true)}
+          className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-accent transition-colors"
         >
-          <FiArrowLeft />
-          {currentStep === 0 ? "Back to Dashboard" : "Previous"}
+          <FiPlus className="w-5 h-5" />
+          Start New Interview
         </button>
-
         <button
-          onClick={handleNext}
-          disabled={!canProceed() || loading}
-          className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          onClick={() => router.push("/problems")}
+          className="flex items-center gap-2 px-6 py-3 border border-border text-text rounded-lg hover:bg-secondary transition-colors"
         >
-          {loading ? (
-            "Starting..."
-          ) : currentStep === steps.length - 1 ? (
-            <>
-              Start Interview
-              <FiArrowRight />
-            </>
-          ) : (
-            <>
-              Next
-              <FiArrowRight />
-            </>
-          )}
+          <FiPlay className="w-5 h-5" />
+          Practice Problems
         </button>
       </div>
+
+      {/* Active Simulations */}
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold text-text mb-6">
+          Your Interview Simulations
+        </h2>
+
+        {activeSimulations.length === 0 ? (
+          <div className="bg-secondary border border-border rounded-xl p-8 text-center">
+            <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <FiTarget className="w-8 h-8 text-primary" />
+            </div>
+            <h3 className="text-xl font-semibold text-text mb-2">
+              No Active Simulations
+            </h3>
+            <p className="text-text/70 mb-6">
+              Start your first interview simulation to practice with real
+              company-specific problems
+            </p>
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-accent transition-colors mx-auto"
+            >
+              <FiPlus className="w-5 h-5" />
+              Start Your First Interview
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {activeSimulations?.map((simulation) => (
+              <div
+                key={simulation.id}
+                className="bg-secondary border border-border rounded-xl p-6 hover:shadow-lg transition-shadow"
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-text mb-1">
+                      {simulation.companyName}
+                    </h3>
+                    <p className="text-text/70 text-sm">
+                      {simulation.roleLevel}
+                    </p>
+                  </div>
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                      simulation.status
+                    )}`}
+                  >
+                    {simulation.status}
+                  </span>
+                </div>
+
+                <div className="space-y-3 mb-4">
+                  <div className="flex items-center gap-2 text-sm text-text/60">
+                    <FiCalendar className="w-4 h-4" />
+                    <span>Created: {formatDate(simulation.createdAt)}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-text/60">
+                    <FiClock className="w-4 h-4" />
+                    <span>
+                      Round {simulation.currentRound + 1} of{" "}
+                      {simulation.rounds.length}
+                    </span>
+                  </div>
+                  {simulation.simulationConfig && (
+                    <div className="flex items-center gap-2 text-sm text-text/60">
+                      <FiBriefcase className="w-4 h-4" />
+                      <span>
+                        {simulation.simulationConfig.estimatedDuration}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mb-4">
+                  <p className="text-sm text-text/70 mb-2">Interview Rounds:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {simulation?.rounds?.slice(0, 3)?.map((round, index) => (
+                      <div
+                        key={round.id || index}
+                        className="flex items-center gap-1 px-2 py-1 bg-primary/10 border border-primary/20 rounded-full text-xs"
+                      >
+                        <span>{getRoundTypeIcon(round.type)}</span>
+                        <span className="text-text">{round.name}</span>
+                      </div>
+                    ))}
+                      {simulation?.rounds?.length > 3 && (
+                      <span className="text-xs text-text/50">
+                        +{simulation?.rounds?.length - 3} more
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  {simulation?.status === "active" && (
+                    <button
+                      onClick={() =>
+                        router.push(
+                          `/interview-simulation/${simulation?.id}/${
+                            simulation?.currentRound + 1
+                          }`
+                        )
+                      }
+                      className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-accent transition-colors text-sm"
+                    >
+                      <FiPlay className="w-4 h-4" />
+                      Continue
+                    </button>
+                  )}
+                  <button
+                    onClick={() =>
+                      router.push(`/interview-simulation/${simulation?.id}`)
+                    }
+                    className="flex items-center gap-2 px-4 py-2 border border-border text-text rounded-lg hover:bg-secondary transition-colors text-sm"
+                  >
+                    View Details
+                    <FiArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      <CreateInterview
+        showCreateModal={showCreateModal}
+        setShowCreateModal={setShowCreateModal}
+      />
     </Layout>
   );
 }

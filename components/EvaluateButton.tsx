@@ -1,8 +1,12 @@
 import { useState } from "react";
-import { evaluateSubmission } from "../services/geminiApi";
-import { saveSubmission, markProblemAsAttempted, saveInterviewProblemDocument } from "../services/firebase";
 import { useAuth } from "../hooks/useAuth";
 import { useAppStore } from "../store";
+import { 
+  useEvaluateSubmission, 
+  useMarkProblemAsAttempted, 
+  useSaveSubmission, 
+  useSaveInterviewProblem 
+} from "../hooks/useApi";
 
 // Import Excalidraw only on client side
 let exportToBlob: any = null;
@@ -38,6 +42,12 @@ export default function EvaluateButton({
   const isEvaluating = useAppStore((s) => s.isEvaluating);
   const setIsEvaluating = useAppStore((s) => s.setIsEvaluating);
 
+  // API hooks
+  const { execute: markAttempted, loading: markingAttempted } = useMarkProblemAsAttempted();
+  const { execute: evaluateCode, loading: evaluating } = useEvaluateSubmission();
+  const { execute: saveSubmissionData, loading: savingSubmission } = useSaveSubmission();
+  const { execute: saveInterviewProblem, loading: savingProblem } = useSaveInterviewProblem();
+
   const handleClick = async () => {
     if (!user) {
       setError("You must be logged in to evaluate your submission.");
@@ -49,7 +59,7 @@ export default function EvaluateButton({
 
     // Track problem attempt when user evaluates
     try {
-      await markProblemAsAttempted(user.uid, problemId, {
+      await markAttempted(user.uid, problemId, {
         title: designation,
         type: interviewType,
         designation: designation,
@@ -93,10 +103,11 @@ export default function EvaluateButton({
       };
 
       // Get AI feedback
-      const feedback = await evaluateSubmission(evaluationData);
+      const feedbackResponse = await evaluateCode(designation, code, drawingImage);
+      const feedback = (feedbackResponse.data as any)?.feedback || feedbackResponse.error || "Evaluation failed";
 
       // Save submission to Firebase
-      await saveSubmission(user.uid, problemId, {
+      await saveSubmissionData(user.uid, problemId, {
         designation: designation,
         code: code,
         feedback: feedback,
@@ -137,7 +148,7 @@ export default function EvaluateButton({
 
           // Save each follow-up as its own historical problem entry
           for (const question of followUps) {
-            await saveInterviewProblemDocument({
+            await saveInterviewProblem({
               title: problemTitle || question.substring(0, 80) || "Follow-up Question",
               type: unifiedType as any,
               difficulty: "medium",
@@ -148,8 +159,8 @@ export default function EvaluateButton({
                 input_format: "",
                 output_format: "",
                 constraints: "",
-                sample_input: "",
-                sample_output: "",
+                sample_input: "Not applicable for follow-up questions",
+                sample_output: "Not applicable for follow-up questions",
                 follow_up_questions: [],
               },
             });

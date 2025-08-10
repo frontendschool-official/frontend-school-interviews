@@ -2,6 +2,61 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { PaymentResponse } from '../../types/cart';
 import crypto from 'crypto';
 
+/**
+ * @swagger
+ * /api/verify-payment:
+ *   post:
+ *     summary: Verify payment signature
+ *     description: Verifies the payment signature from Razorpay to ensure payment authenticity
+ *     tags:
+ *       - Payment
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/PaymentVerification'
+ *           example:
+ *             orderId: "order_1234567890"
+ *             paymentId: "pay_1234567890"
+ *             signature: "a1b2c3d4e5f6..."
+ *     responses:
+ *       200:
+ *         description: Payment verified successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PaymentResponse'
+ *             example:
+ *               success: true
+ *               orderId: "order_1234567890"
+ *               paymentId: "pay_1234567890"
+ *               message: "Payment verified successfully"
+ *       400:
+ *         description: Bad request - Invalid signature or missing fields
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               error: "Invalid payment signature"
+ *       405:
+ *         description: Method not allowed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               error: "Method not allowed"
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               error: "Payment gateway not configured"
+ */
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse

@@ -2,12 +2,8 @@ import React, { useState } from "react";
 import { NextPage } from "next";
 import { useAuth } from "@/hooks/useAuth";
 import { FiCheck, FiStar, FiZap, FiShield, FiUsers, FiClock } from "react-icons/fi";
-import {
-  createOrder,
-  initializePayment,
-  verifyPayment,
-  savePaymentToFirebase,
-} from "@/services/razorpay";
+import { apiClient } from "@/lib/api-client";
+import { initializePayment } from "@/services/payment/razorpay";
 import { PaymentDetails, PaymentItem } from "@/types/cart";
 
 const plans = [
@@ -78,7 +74,7 @@ const PremiumPage: NextPage = () => {
     setLoading(plan.id);
     try {
       // Create order
-      const order = await createOrder({
+      const orderResponse = await apiClient.createOrder({
         amount: plan.price * 100, // Convert to paise
         currency: "INR",
         orderId: `premium_${plan.id}_${Date.now()}`,
@@ -95,6 +91,12 @@ const PremiumPage: NextPage = () => {
           quantity: 1
         }]
       });
+
+      if (orderResponse.error) {
+        throw new Error(orderResponse.error);
+      }
+
+      const order = orderResponse.data;
 
       // Initialize payment
       const paymentDetails = {

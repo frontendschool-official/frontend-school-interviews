@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { TheoryProblem } from "@/types/problem";
-import { evaluateSubmission } from "@/services/geminiApi";
+import { evaluateSubmission } from "@/services/ai/evaluation";
 import { useAuth } from "@/hooks/useAuth";
-import { saveSubmission } from "@/services/firebase";
+import { saveSubmission } from "@/services/firebase/problems";
 
 interface TheoryEditorProps {
   problem: TheoryProblem;

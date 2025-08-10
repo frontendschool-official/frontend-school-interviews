@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useAuth } from "../hooks/useAuth";
+import React from "react";
+import { useUserProfile } from "../hooks/useUserProfile";
 import {
   FaEdit,
   FaSave,
@@ -14,17 +14,20 @@ import {
 } from "react-icons/fa";
 
 const UserProfile: React.FC = () => {
-  const { userProfile, updateProfile, profileLoading } = useAuth();
-  const [isEditing, setIsEditing] = useState(false);
-  const [editData, setEditData] = useState({
-    displayName: userProfile?.displayName || "",
-    phoneNumber: userProfile?.phoneNumber || "",
-    preferences: {
-      theme: userProfile?.preferences.theme || "auto",
-      difficulty: userProfile?.preferences.difficulty || "intermediate",
-      dailyGoal: userProfile?.preferences.dailyGoal || 30,
-    },
-  });
+  const {
+    isEditing,
+    editData,
+    profileLoading,
+    userProfile,
+    handleSave,
+    handleCancel,
+    handleEdit,
+    updateEditData,
+    updatePreferences,
+    formatDate,
+    getDifficultyColor,
+    getThemeIcon,
+  } = useUserProfile();
 
   if (!userProfile) {
     return (
@@ -35,40 +38,6 @@ const UserProfile: React.FC = () => {
       </div>
     );
   }
-
-  const handleSave = async () => {
-    try {
-      await updateProfile({
-        displayName: editData.displayName,
-        phoneNumber: editData.phoneNumber,
-        preferences: editData.preferences,
-      });
-      setIsEditing(false);
-    } catch (error) {
-      console.error("Error updating profile:", error);
-    }
-  };
-
-  const handleCancel = () => {
-    setEditData({
-      displayName: userProfile.displayName,
-      phoneNumber: userProfile.phoneNumber || "",
-      preferences: {
-        theme: userProfile.preferences.theme,
-        difficulty: userProfile.preferences.difficulty,
-        dailyGoal: userProfile.preferences.dailyGoal,
-      },
-    });
-    setIsEditing(false);
-  };
-
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    }).format(date);
-  };
 
   return (
     <div className="max-w-6xl mx-auto p-8 animate-fade-in">
@@ -160,12 +129,7 @@ const UserProfile: React.FC = () => {
                 <input
                   type="text"
                   value={editData.displayName}
-                  onChange={(e) =>
-                    setEditData((prev) => ({
-                      ...prev,
-                      displayName: e.target.value,
-                    }))
-                  }
+                  onChange={(e) => updateEditData('displayName', e.target.value)}
                   required
                   className="w-full px-4 py-3 border-2 border-border rounded-lg bg-bodyBg text-text text-base transition-colors duration-300 focus:outline-none focus:border-primary"
                 />
@@ -176,12 +140,7 @@ const UserProfile: React.FC = () => {
                 <input
                   type="tel"
                   value={editData.phoneNumber}
-                  onChange={(e) =>
-                    setEditData((prev) => ({
-                      ...prev,
-                      phoneNumber: e.target.value,
-                    }))
-                  }
+                  onChange={(e) => updateEditData('phoneNumber', e.target.value)}
                   className="w-full px-4 py-3 border-2 border-border rounded-lg bg-bodyBg text-text text-base transition-colors duration-300 focus:outline-none focus:border-primary"
                 />
               </div>

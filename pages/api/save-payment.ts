@@ -1,7 +1,78 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { db } from '../../services/firebase';
+import { db } from '../../services/firebase/config';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 
+/**
+ * @swagger
+ * /api/save-payment:
+ *   post:
+ *     summary: Save payment to database
+ *     description: Saves successful payment details to Firebase database for record keeping
+ *     tags:
+ *       - Payment
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/SavePaymentRequest'
+ *           example:
+ *             userId: "user123"
+ *             orderId: "order_1234567890"
+ *             paymentId: "pay_1234567890"
+ *             amount: 999
+ *             currency: "INR"
+ *             status: "captured"
+ *             items:
+ *               - id: "premium_1"
+ *                 title: "Premium Plan - 3 Months"
+ *                 description: "Access to all premium features"
+ *                 price: 999
+ *                 type: "premium_plan"
+ *                 quantity: 1
+ *     responses:
+ *       200:
+ *         description: Payment saved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 paymentId:
+ *                   type: string
+ *                   example: "doc_1234567890"
+ *                   description: "Firebase document ID"
+ *                 message:
+ *                   type: string
+ *                   example: "Payment saved successfully"
+ *       400:
+ *         description: Bad request - Missing required fields
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               error: "Missing required fields"
+ *       405:
+ *         description: Method not allowed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               error: "Method not allowed"
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               error: "Failed to save payment"
+ */
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
