@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { FiTarget, FiClock, FiAward, FiPlay, FiBarChart2 } from 'react-icons/fi';
+import { FiTarget, FiClock, FiAward, FiPlay, FiBarChart2, FiRefreshCw } from 'react-icons/fi';
+import { useMockInterviewData } from '@/hooks/useMockInterviewData';
+import LoadingState from './LoadingState';
+import ErrorState from './ErrorState';
+import EmptyState from './EmptyState';
 
 export default function MockInterviewHub() {
   const [selectedCompany, setSelectedCompany] = useState('');
   const [selectedLevel, setSelectedLevel] = useState('');
+  const { stats, recentActivity, loading, error, refresh } = useMockInterviewData();
 
   const companies = [
     'Google', 'Microsoft', 'Amazon', 'Meta', 'Apple', 'Netflix', 'Twitter', 'Uber'
@@ -17,12 +22,54 @@ export default function MockInterviewHub() {
     'Lead (9+ years)'
   ];
 
-  const mockStats = {
-    totalInterviews: 24,
-    averageScore: 78,
-    completedRounds: 18,
-    totalTime: '12h 30m'
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) return 'Just now';
+    if (diffInHours < 24) return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+    
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
+    
+    const diffInWeeks = Math.floor(diffInDays / 7);
+    return `${diffInWeeks} week${diffInWeeks > 1 ? 's' : ''} ago`;
   };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return <FiAward className="text-green-500" />;
+      case 'in-progress':
+        return <FiBarChart2 className="text-blue-500" />;
+      case 'failed':
+        return <FiTarget className="text-red-500" />;
+      default:
+        return <FiClock className="text-yellow-500" />;
+    }
+  };
+
+  const getStatusBgColor = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return 'bg-green-500/20';
+      case 'in-progress':
+        return 'bg-blue-500/20';
+      case 'failed':
+        return 'bg-red-500/20';
+      default:
+        return 'bg-yellow-500/20';
+    }
+  };
+
+  if (loading) {
+    return <LoadingState />;
+  }
+
+  if (error) {
+    return <ErrorState error={error} onRetry={refresh} />;
+  }
 
   return (
     <>
@@ -36,24 +83,36 @@ export default function MockInterviewHub() {
       </div>
 
       {/* Stats Grid */}
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-semibold text-text">Your Statistics</h2>
+        <button
+          onClick={refresh}
+          disabled={loading}
+          className="flex items-center gap-2 px-3 py-2 text-sm text-primary hover:text-accent transition-colors disabled:opacity-50"
+        >
+          <FiRefreshCw className={`text-sm ${loading ? 'animate-spin' : ''}`} />
+          Refresh
+        </button>
+      </div>
+      
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
         <div className="bg-secondary border border-border rounded-xl p-6 text-center">
-          <div className="text-3xl font-bold text-primary mb-2">{mockStats.totalInterviews}</div>
+          <div className="text-3xl font-bold text-primary mb-2">{stats.totalInterviews}</div>
           <div className="text-sm text-text/80 font-medium">Total Interviews</div>
         </div>
         
         <div className="bg-secondary border border-border rounded-xl p-6 text-center">
-          <div className="text-3xl font-bold text-green-500 mb-2">{mockStats.averageScore}%</div>
+          <div className="text-3xl font-bold text-green-500 mb-2">{stats.averageScore}%</div>
           <div className="text-sm text-text/80 font-medium">Average Score</div>
         </div>
         
         <div className="bg-secondary border border-border rounded-xl p-6 text-center">
-          <div className="text-3xl font-bold text-blue-500 mb-2">{mockStats.completedRounds}</div>
+          <div className="text-3xl font-bold text-blue-500 mb-2">{stats.completedRounds}</div>
           <div className="text-sm text-text/80 font-medium">Completed Rounds</div>
         </div>
         
         <div className="bg-secondary border border-border rounded-xl p-6 text-center">
-          <div className="text-3xl font-bold text-yellow-500 mb-2">{mockStats.totalTime}</div>
+          <div className="text-3xl font-bold text-yellow-500 mb-2">{stats.totalTime}</div>
           <div className="text-sm text-text/80 font-medium">Total Time</div>
         </div>
       </div>
@@ -144,46 +203,37 @@ export default function MockInterviewHub() {
       <div className="bg-secondary border border-border rounded-xl p-8">
         <h2 className="text-2xl font-semibold text-text mb-6">Recent Activity</h2>
         
-        <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 bg-bodyBg rounded-lg">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
-                <FiAward className="text-primary" />
+        {recentActivity.length === 0 ? (
+          <EmptyState />
+        ) : (
+          <div className="space-y-4">
+            {recentActivity.map((activity) => (
+              <div key={activity.id} className="flex items-center justify-between p-4 bg-bodyBg rounded-lg">
+                <div className="flex items-center gap-4">
+                  <div className={`w-10 h-10 ${getStatusBgColor(activity.status)} rounded-full flex items-center justify-center`}>
+                    {getStatusIcon(activity.status)}
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-text">{activity.title}</h4>
+                    <p className="text-sm text-text/60">
+                      {activity.status === 'completed' && activity.score 
+                        ? `Completed • Score: ${activity.score}%`
+                        : activity.status === 'in-progress'
+                        ? `In Progress • ${activity.timeSpent || 'Time tracking...'}`
+                        : activity.status === 'failed'
+                        ? 'Failed • Try again'
+                        : 'Unknown status'
+                      }
+                    </p>
+                  </div>
+                </div>
+                <div className="text-sm text-text/60">
+                  {activity.completedAt ? formatTimeAgo(activity.completedAt) : 'Recently'}
+                </div>
               </div>
-              <div>
-                <h4 className="font-semibold text-text">Google Frontend Interview</h4>
-                <p className="text-sm text-text/60">Completed • Score: 85%</p>
-              </div>
-            </div>
-            <div className="text-sm text-text/60">2 hours ago</div>
+            ))}
           </div>
-          
-          <div className="flex items-center justify-between p-4 bg-bodyBg rounded-lg">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 bg-blue-500/20 rounded-full flex items-center justify-center">
-                <FiBarChart2 className="text-blue-500" />
-              </div>
-              <div>
-                <h4 className="font-semibold text-text">Amazon System Design</h4>
-                <p className="text-sm text-text/60">In Progress • 25 min remaining</p>
-              </div>
-            </div>
-            <div className="text-sm text-text/60">1 day ago</div>
-          </div>
-          
-          <div className="flex items-center justify-between p-4 bg-bodyBg rounded-lg">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 bg-green-500/20 rounded-full flex items-center justify-center">
-                <FiTarget className="text-green-500" />
-              </div>
-              <div>
-                <h4 className="font-semibold text-text">Microsoft DSA Practice</h4>
-                <p className="text-sm text-text/60">Completed • Score: 92%</p>
-              </div>
-            </div>
-            <div className="text-sm text-text/60">3 days ago</div>
-          </div>
-        </div>
+        )}
       </div>
     </>
   );

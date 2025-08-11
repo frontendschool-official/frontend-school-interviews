@@ -219,39 +219,39 @@ export default function InterviewSimulation() {
       </Head>
 
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-text mb-4">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-text mb-4">
           Interview Simulation Hub
         </h1>
-        <p className="text-text/70 text-lg">
+        <p className="text-text/70 text-base sm:text-lg">
           Practice real tech interviews with company-specific problems and
           AI-powered feedback
         </p>
       </div>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-secondary border border-border rounded-xl p-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+        <div className="bg-secondary border border-border rounded-xl p-4 sm:p-6">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <FiTarget className="w-6 h-6 text-blue-600" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+              <FiTarget className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
             </div>
             <div>
-              <p className="text-sm text-text/60">Active Simulations</p>
-              <p className="text-2xl font-bold text-text">
+              <p className="text-xs sm:text-sm text-text/60">Active Simulations</p>
+              <p className="text-xl sm:text-2xl font-bold text-text">
                 {activeSimulations?.filter((s) => s?.status === "active").length}
               </p>
             </div>
           </div>
         </div>
-        <div className="bg-secondary border border-border rounded-xl p-6">
+        <div className="bg-secondary border border-border rounded-xl p-4 sm:p-6">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <FiCheckCircle className="w-6 h-6 text-green-600" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-lg flex items-center justify-center">
+              <FiCheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
             </div>
             <div>
-              <p className="text-sm text-text/60">Completed</p>
-              <p className="text-2xl font-bold text-text">
+              <p className="text-xs sm:text-sm text-text/60">Completed</p>
+              <p className="text-xl sm:text-2xl font-bold text-text">
                 {
                   activeSimulations?.filter((s) => s?.status === "completed")
                     .length
@@ -260,81 +260,81 @@ export default function InterviewSimulation() {
             </div>
           </div>
         </div>
-        <div className="bg-secondary border border-border rounded-xl p-6">
+        <div className="bg-secondary border border-border rounded-xl p-4 sm:p-6">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-              <FiUsers className="w-6 h-6 text-purple-600" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+              <FiUsers className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
             </div>
             <div>
-              <p className="text-sm text-text/60">Companies</p>
-              <p className="text-2xl font-bold text-text">{companies?.length}</p>
+              <p className="text-xs sm:text-sm text-text/60">Companies</p>
+              <p className="text-xl sm:text-2xl font-bold text-text">{companies?.length}</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Action Buttons */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 sm:mb-8">
         <button
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-accent transition-colors"
+          className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-primary text-white rounded-lg hover:bg-accent transition-colors text-sm sm:text-base"
         >
-          <FiPlus className="w-5 h-5" />
+          <FiPlus className="w-4 h-4 sm:w-5 sm:h-5" />
           Start New Interview
         </button>
         <button
           onClick={() => router.push("/problems")}
-          className="flex items-center gap-2 px-6 py-3 border border-border text-text rounded-lg hover:bg-secondary transition-colors"
+          className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-3 border border-border text-text rounded-lg hover:bg-secondary transition-colors text-sm sm:text-base"
         >
-          <FiPlay className="w-5 h-5" />
+          <FiPlay className="w-4 h-4 sm:w-5 sm:h-5" />
           Practice Problems
         </button>
       </div>
 
       {/* Active Simulations */}
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-text mb-6">
+      <div className="mb-6 sm:mb-8">
+        <h2 className="text-xl sm:text-2xl font-bold text-text mb-4 sm:mb-6">
           Your Interview Simulations
         </h2>
 
         {activeSimulations.length === 0 ? (
-          <div className="bg-secondary border border-border rounded-xl p-8 text-center">
-            <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <FiTarget className="w-8 h-8 text-primary" />
+          <div className="bg-secondary border border-border rounded-xl p-6 sm:p-8 text-center">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <FiTarget className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold text-text mb-2">
+            <h3 className="text-lg sm:text-xl font-semibold text-text mb-2">
               No Active Simulations
             </h3>
-            <p className="text-text/70 mb-6">
+            <p className="text-sm sm:text-base text-text/70 mb-4 sm:mb-6">
               Start your first interview simulation to practice with real
               company-specific problems
             </p>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-accent transition-colors mx-auto"
+              className="flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-primary text-white rounded-lg hover:bg-accent transition-colors mx-auto text-sm sm:text-base"
             >
-              <FiPlus className="w-5 h-5" />
+              <FiPlus className="w-4 h-4 sm:w-5 sm:h-5" />
               Start Your First Interview
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             {activeSimulations?.map((simulation) => (
               <div
                 key={simulation.id}
-                className="bg-secondary border border-border rounded-xl p-6 hover:shadow-lg transition-shadow"
+                className="bg-secondary border border-border rounded-xl p-4 sm:p-6 hover:shadow-lg transition-shadow"
               >
-                <div className="flex items-start justify-between mb-4">
+                <div className="flex items-start justify-between mb-3 sm:mb-4">
                   <div>
-                    <h3 className="text-lg font-semibold text-text mb-1">
+                    <h3 className="text-base sm:text-lg font-semibold text-text mb-1">
                       {simulation.companyName}
                     </h3>
-                    <p className="text-text/70 text-sm">
+                    <p className="text-text/70 text-xs sm:text-sm">
                       {simulation.roleLevel}
                     </p>
                   </div>
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                    className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
                       simulation.status
                     )}`}
                   >
@@ -342,21 +342,21 @@ export default function InterviewSimulation() {
                   </span>
                 </div>
 
-                <div className="space-y-3 mb-4">
-                  <div className="flex items-center gap-2 text-sm text-text/60">
-                    <FiCalendar className="w-4 h-4" />
+                <div className="space-y-2 sm:space-y-3 mb-3 sm:mb-4">
+                  <div className="flex items-center gap-2 text-xs sm:text-sm text-text/60">
+                    <FiCalendar className="w-3 h-3 sm:w-4 sm:h-4" />
                     <span>Created: {formatDate(simulation.createdAt)}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-text/60">
-                    <FiClock className="w-4 h-4" />
+                  <div className="flex items-center gap-2 text-xs sm:text-sm text-text/60">
+                    <FiClock className="w-3 h-3 sm:w-4 sm:h-4" />
                     <span>
                       Round {simulation.currentRound + 1} of{" "}
                       {simulation.rounds.length}
                     </span>
                   </div>
                   {simulation.simulationConfig && (
-                    <div className="flex items-center gap-2 text-sm text-text/60">
-                      <FiBriefcase className="w-4 h-4" />
+                    <div className="flex items-center gap-2 text-xs sm:text-sm text-text/60">
+                      <FiBriefcase className="w-3 h-3 sm:w-4 sm:h-4" />
                       <span>
                         {simulation.simulationConfig.estimatedDuration}
                       </span>
@@ -364,13 +364,13 @@ export default function InterviewSimulation() {
                   )}
                 </div>
 
-                <div className="mb-4">
-                  <p className="text-sm text-text/70 mb-2">Interview Rounds:</p>
-                  <div className="flex flex-wrap gap-2">
+                <div className="mb-3 sm:mb-4">
+                  <p className="text-xs sm:text-sm text-text/70 mb-2">Interview Rounds:</p>
+                  <div className="flex flex-wrap gap-1 sm:gap-2">
                     {simulation?.rounds?.slice(0, 3)?.map((round, index) => (
                       <div
                         key={round.id || index}
-                        className="flex items-center gap-1 px-2 py-1 bg-primary/10 border border-primary/20 rounded-full text-xs"
+                        className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-primary/10 border border-primary/20 rounded-full text-xs"
                       >
                         <span>{getRoundTypeIcon(round.type)}</span>
                         <span className="text-text">{round.name}</span>
@@ -384,7 +384,7 @@ export default function InterviewSimulation() {
                   </div>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   {simulation?.status === "active" && (
                     <button
                       onClick={() =>
@@ -394,9 +394,9 @@ export default function InterviewSimulation() {
                           }`
                         )
                       }
-                      className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-accent transition-colors text-sm"
+                      className="flex items-center justify-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-primary text-white rounded-lg hover:bg-accent transition-colors text-xs sm:text-sm"
                     >
-                      <FiPlay className="w-4 h-4" />
+                      <FiPlay className="w-3 h-3 sm:w-4 sm:h-4" />
                       Continue
                     </button>
                   )}
@@ -404,10 +404,10 @@ export default function InterviewSimulation() {
                     onClick={() =>
                       router.push(`/interview-simulation/${simulation?.id}`)
                     }
-                    className="flex items-center gap-2 px-4 py-2 border border-border text-text rounded-lg hover:bg-secondary transition-colors text-sm"
+                    className="flex items-center justify-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 border border-border text-text rounded-lg hover:bg-secondary transition-colors text-xs sm:text-sm"
                   >
                     View Details
-                    <FiArrowRight className="w-4 h-4" />
+                    <FiArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
                   </button>
                 </div>
               </div>

@@ -226,13 +226,13 @@ const ProblemsPage: React.FC = () => {
     >
       <div className="max-w-7xl mx-auto p-4 min-h-screen bg-bodyBg">
         {/* Header Section */}
-        <div className="mb-8">
-          <div className="flex justify-between items-start mb-6 p-6 bg-secondary rounded-2xl border border-border shadow-lg md:flex-row flex-col gap-4 text-center md:text-left">
+        <div className="mb-6 sm:mb-8">
+          <div className="flex justify-between items-start mb-4 sm:mb-6 p-4 sm:p-6 bg-secondary rounded-2xl border border-border shadow-lg md:flex-row flex-col gap-4 text-center md:text-left">
             <div className="flex-1">
-              <h1 className="text-3xl font-bold text-neutralDark mb-2">
+              <h1 className="text-2xl sm:text-3xl font-bold text-neutralDark mb-2">
                 Interview Problems
               </h1>
-              <p className="text-text opacity-80 text-sm">
+              <p className="text-text opacity-80 text-xs sm:text-sm">
                 Practice coding problems across different categories to ace your
                 interviews
               </p>
@@ -242,7 +242,7 @@ const ProblemsPage: React.FC = () => {
                 <button
                   onClick={openModal}
                   disabled={generationLoading}
-                  className="px-6 py-3 border-none rounded-lg bg-primary text-bodyBg font-semibold text-sm cursor-pointer transition-all duration-300 shadow-md hover:enabled:-translate-y-1 hover:enabled:shadow-lg hover:enabled:bg-accent disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 border-none rounded-lg bg-primary text-bodyBg font-semibold text-xs sm:text-sm cursor-pointer transition-all duration-300 shadow-md hover:enabled:-translate-y-1 hover:enabled:shadow-lg hover:enabled:bg-accent disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {generationLoading ? "Creating..." : "Start New Interview"}
                 </button>
@@ -284,8 +284,8 @@ const ProblemsPage: React.FC = () => {
             {problems?.length > 0 ? (
               <>
                 {/* Search and Sort Controls */}
-                <div className="bg-secondary/50 rounded-xl p-4 mb-6 border border-border/30 border-border shadow-sm">
-                  <div className="flex flex-col lg:flex-row gap-4 lg:items-center">
+                <div className="bg-secondary/50 rounded-xl p-3 sm:p-4 mb-4 sm:mb-6 border border-border/30 border-border shadow-sm">
+                  <div className="flex flex-col lg:flex-row gap-3 sm:gap-4 lg:items-center">
                     {/* Search Input */}
                     <div className="flex-1">
                       <div className="relative">
@@ -303,7 +303,7 @@ const ProblemsPage: React.FC = () => {
                             const value = e?.target?.value;
                             setSearchQuery(value || "");
                           }}
-                          className="w-full pl-10 pr-20 py-3 border border-border border-border/50 rounded-lg bg-secondary text-text text-sm placeholder:text-text/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
+                          className="w-full pl-10 pr-20 py-2 sm:py-3 border border-border border-border/50 rounded-lg bg-secondary text-text text-sm placeholder:text-text/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
                         />
                         <div className="absolute inset-y-0 right-0 flex items-center">
                           {searchQuery ? (
@@ -330,10 +330,10 @@ const ProblemsPage: React.FC = () => {
                     </div>
 
                     {/* Sort Controls */}
-                    <div className="flex items-center gap-3 lg:min-w-0 lg:flex-shrink-0">
+                    <div className="flex items-center gap-2 sm:gap-3 lg:min-w-0 lg:flex-shrink-0">
                       <label
                         htmlFor="sort-select"
-                        className="text-sm text-text/70 font-medium whitespace-nowrap"
+                        className="text-xs sm:text-sm text-text/70 font-medium whitespace-nowrap"
                       >
                         Sort by:
                       </label>
@@ -353,7 +353,7 @@ const ProblemsPage: React.FC = () => {
                               setSortBy(value);
                             }
                           }}
-                          className="appearance-none border-border bg-secondary border border-border/50 rounded-lg px-4 py-2.5 pr-8 text-text text-sm cursor-pointer focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 min-w-[120px]"
+                          className="appearance-none border-border bg-secondary border border-border/50 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 pr-8 text-text text-xs sm:text-sm cursor-pointer focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 min-w-[100px] sm:min-w-[120px]"
                         >
                           <option value="title">Title</option>
                           <option value="difficulty">Difficulty</option>
@@ -427,7 +427,7 @@ const ProblemsPage: React.FC = () => {
 
                 {/* Problems Grid */}
                 {processedProblems.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                     {processedProblems
                       ?.map((problem) => {
                         // Validate problem object

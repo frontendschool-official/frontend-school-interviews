@@ -79,25 +79,25 @@ export default function Dashboard() {
 
   return (
     <Layout>
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-text mb-2">Dashboard</h1>
-          <p className="text-lg text-text/80 mb-4">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-text mb-2">Dashboard</h1>
+          <p className="text-base sm:text-lg text-text/80 mb-4">
             Track your progress and continue learning
           </p>
-          <div className="bg-secondary border border-border rounded-xl p-6 mb-8">
-            <div className="flex items-center justify-between">
+          <div className="bg-secondary border border-border rounded-xl p-4 sm:p-6 mb-6 sm:mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h2 className="text-xl font-semibold text-text mb-2">
+                <h2 className="text-lg sm:text-xl font-semibold text-text mb-2">
                   Welcome back, {user.displayName || user.email}!
                 </h2>
-                <p className="text-text/80">Ready to ace your next interview?</p>
+                <p className="text-sm sm:text-base text-text/80">Ready to ace your next interview?</p>
               </div>
               {userStats && (
-                <div className="text-right">
-                  <div className="text-2xl font-bold text-primary">
+                <div className="text-center sm:text-right">
+                  <div className="text-xl sm:text-2xl font-bold text-primary">
                     {userStats.currentStreak} days
                   </div>
-                  <div className="text-sm text-text/70">Current streak</div>
+                  <div className="text-xs sm:text-sm text-text/70">Current streak</div>
                 </div>
               )}
             </div>
@@ -112,7 +112,7 @@ export default function Dashboard() {
           loading={userStatsLoading}
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 mb-6 sm:mb-8">
           <QuickActions />
           <ProgressOverview />
         </div>

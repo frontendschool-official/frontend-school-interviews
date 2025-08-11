@@ -140,24 +140,24 @@ const PremiumPage: NextPage = () => {
 
   return (
     <div className="min-h-screen bg-bodyBg">
-      <div className="max-w-6xl mx-auto py-8 px-4">
+      <div className="max-w-6xl mx-auto py-6 sm:py-8 px-4">
         {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-text mb-4">
+        <div className="text-center mb-8 sm:mb-12">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-text mb-4">
             Upgrade to Premium
           </h1>
-          <p className="text-lg text-text/80 leading-relaxed max-w-3xl mx-auto">
+          <p className="text-base sm:text-lg text-text/80 leading-relaxed max-w-3xl mx-auto px-4">
             Unlock unlimited access to all problems, AI-powered feedback, mock interviews, 
             and advanced analytics to accelerate your interview preparation.
           </p>
         </div>
 
         {/* Plans Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 mb-8 sm:mb-12">
           {plans.map((plan) => (
             <div
               key={plan.id}
-              className={`relative p-8 border-2 rounded-2xl transition-all duration-300 ${
+              className={`relative p-6 sm:p-8 border-2 rounded-2xl transition-all duration-300 ${
                 plan.popular
                   ? "border-primary bg-primary/5 scale-105"
                   : "border-border bg-secondary hover:border-primary/50"
@@ -165,39 +165,39 @@ const PremiumPage: NextPage = () => {
             >
               {/* Popular Badge */}
               {plan.popular && (
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary text-white px-4 py-1 rounded-full text-xs font-semibold uppercase">
+                <div className="absolute -top-2 sm:-top-3 left-1/2 transform -translate-x-1/2 bg-primary text-white px-3 sm:px-4 py-1 rounded-full text-xs font-semibold uppercase">
                   Most Popular
                 </div>
               )}
 
               {/* Plan Header */}
-              <div className="text-center mb-6">
-                <h3 className="text-2xl font-semibold text-text mb-2">
+              <div className="text-center mb-4 sm:mb-6">
+                <h3 className="text-lg sm:text-xl md:text-2xl font-semibold text-text mb-2">
                   {plan.name}
                 </h3>
                 <div className="flex items-center justify-center gap-2 mb-2">
-                  <span className="text-3xl font-bold text-primary">
+                  <span className="text-2xl sm:text-3xl font-bold text-primary">
                     ₹{plan.price.toLocaleString()}
                   </span>
-                  <span className="text-text/60 line-through">
+                  <span className="text-text/60 line-through text-sm sm:text-base">
                     ₹{plan.originalPrice.toLocaleString()}
                   </span>
                 </div>
-                <div className="text-sm text-text/70 mb-4">
+                <div className="text-xs sm:text-sm text-text/70 mb-3 sm:mb-4">
                   per {plan.period}
                 </div>
-                <div className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-                  <FiStar className="w-4 h-4" />
+                <div className="inline-flex items-center gap-1 px-2 sm:px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs sm:text-sm font-medium">
+                  <FiStar className="w-3 h-3 sm:w-4 sm:h-4" />
                   {plan.savings}
                 </div>
               </div>
 
               {/* Features */}
-              <ul className="space-y-3 mb-8">
+              <ul className="space-y-2 sm:space-y-3 mb-6 sm:mb-8">
                 {plan.features.map((feature, index) => (
-                  <li key={index} className="flex items-center gap-3">
-                    <FiCheck className="w-5 h-5 text-green-500 flex-shrink-0" />
-                    <span className="text-text">{feature}</span>
+                  <li key={index} className="flex items-center gap-2 sm:gap-3">
+                    <FiCheck className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0" />
+                    <span className="text-sm sm:text-base text-text">{feature}</span>
                   </li>
                 ))}
               </ul>
@@ -206,7 +206,7 @@ const PremiumPage: NextPage = () => {
               <button
                 onClick={() => handlePurchase(plan)}
                 disabled={loading === plan.id}
-                className={`w-full py-4 px-6 rounded-xl font-semibold transition-all duration-300 ${
+                className={`w-full py-3 sm:py-4 px-4 sm:px-6 rounded-xl font-semibold text-sm sm:text-base transition-all duration-300 ${
                   plan.popular
                     ? "bg-primary text-white hover:bg-accent"
                     : "bg-secondary text-text border border-border hover:border-primary hover:bg-primary/10"
@@ -226,80 +226,80 @@ const PremiumPage: NextPage = () => {
         </div>
 
         {/* Features Comparison */}
-        <div className="bg-secondary border border-border rounded-2xl p-8 mb-12">
-          <h2 className="text-2xl font-bold text-text text-center mb-8">
+        <div className="bg-secondary border border-border rounded-2xl p-6 sm:p-8 mb-8 sm:mb-12">
+          <h2 className="text-xl sm:text-2xl font-bold text-text text-center mb-6 sm:mb-8">
             What's Included in Premium
           </h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             <div className="text-center">
-              <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FiZap className="w-8 h-8 text-primary" />
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                <FiZap className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
               </div>
-              <h3 className="text-lg font-semibold text-text mb-2">
+              <h3 className="text-base sm:text-lg font-semibold text-text mb-2">
                 Unlimited Problems
               </h3>
-              <p className="text-text/70">
+              <p className="text-sm sm:text-base text-text/70">
                 Access to all DSA, machine coding, system design, and theory problems
               </p>
             </div>
 
             <div className="text-center">
-              <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FiShield className="w-8 h-8 text-primary" />
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                <FiShield className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
               </div>
-              <h3 className="text-lg font-semibold text-text mb-2">
+              <h3 className="text-base sm:text-lg font-semibold text-text mb-2">
                 AI Feedback
               </h3>
-              <p className="text-text/70">
+              <p className="text-sm sm:text-base text-text/70">
                 Get detailed, personalized feedback on your solutions
               </p>
             </div>
 
             <div className="text-center">
-              <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FiUsers className="w-8 h-8 text-primary" />
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                <FiUsers className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
               </div>
-              <h3 className="text-lg font-semibold text-text mb-2">
+              <h3 className="text-base sm:text-lg font-semibold text-text mb-2">
                 Mock Interviews
               </h3>
-              <p className="text-text/70">
+              <p className="text-sm sm:text-base text-text/70">
                 Practice with realistic interview simulations
               </p>
             </div>
 
             <div className="text-center">
-              <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FiClock className="w-8 h-8 text-primary" />
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                <FiClock className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
               </div>
-              <h3 className="text-lg font-semibold text-text mb-2">
+              <h3 className="text-base sm:text-lg font-semibold text-text mb-2">
                 Progress Tracking
               </h3>
-              <p className="text-text/70">
+              <p className="text-sm sm:text-base text-text/70">
                 Monitor your improvement with detailed analytics
               </p>
             </div>
 
             <div className="text-center">
-              <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FiStar className="w-8 h-8 text-primary" />
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                <FiStar className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
               </div>
-              <h3 className="text-lg font-semibold text-text mb-2">
+              <h3 className="text-base sm:text-lg font-semibold text-text mb-2">
                 Priority Support
               </h3>
-              <p className="text-text/70">
+              <p className="text-sm sm:text-base text-text/70">
                 Get help when you need it with priority support
               </p>
             </div>
 
             <div className="text-center">
-              <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FiCheck className="w-8 h-8 text-primary" />
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                <FiCheck className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
               </div>
-              <h3 className="text-lg font-semibold text-text mb-2">
+              <h3 className="text-base sm:text-lg font-semibold text-text mb-2">
                 Advanced Features
               </h3>
-              <p className="text-text/70">
+              <p className="text-sm sm:text-base text-text/70">
                 Access to exclusive content and advanced tools
               </p>
             </div>
@@ -308,13 +308,13 @@ const PremiumPage: NextPage = () => {
 
         {/* FAQ Section */}
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-text mb-4">
+          <h2 className="text-xl sm:text-2xl font-bold text-text mb-4">
             Frequently Asked Questions
           </h2>
-          <p className="text-text/70 mb-8">
+          <p className="text-sm sm:text-base text-text/70 mb-6 sm:mb-8">
             Have questions? We're here to help.
           </p>
-          <button className="px-6 py-3 border border-border rounded-lg text-text hover:bg-secondary transition-colors">
+          <button className="px-4 sm:px-6 py-2 sm:py-3 border border-border rounded-lg text-text hover:bg-secondary transition-colors text-sm sm:text-base">
             Contact Support
           </button>
         </div>
