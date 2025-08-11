@@ -189,6 +189,37 @@ export interface PredefinedProblem {
   createdAt?: any;
 }
 
+// Unified problem schema for new format
+export interface UnifiedProblemContent {
+  description: string;
+  input_format: string;
+  output_format: string;
+  constraints: string;
+  sample_input: string;
+  sample_output: string;
+  follow_up_questions?: string[];
+}
+
+export interface UnifiedProblem {
+  id?: string;
+  title: string;
+  type: "machine_coding" | "dsa" | "system_design" | "theory_and_debugging";
+  difficulty: Difficulty;
+  company: string;
+  role: string;
+  problem: UnifiedProblemContent;
+  interviewType?: string;
+  designation?: string;
+  companies?: string;
+  round?: string;
+  source?: string;
+  userId?: string;
+  interviewId?: string;
+  roundNumber?: number;
+  createdAt?: any;
+  updatedAt?: any;
+}
+
 // Extended problem data that includes both predefined and user-generated problems
 export interface ExtendedProblemData extends ProblemData {
   type?: ProblemType;
@@ -504,7 +535,7 @@ export const stringifyProblemData = (problemData: {
 };
 
 export const getProblemCardInfo = (
-  problem: ProblemData | ParsedProblemData | PredefinedProblem
+  problem: ProblemData | ParsedProblemData | PredefinedProblem | UnifiedProblem
 ): ProblemCardInfo => {
   let title = "";
   let difficulty: Difficulty = "medium";
@@ -512,6 +543,42 @@ export const getProblemCardInfo = (
   let estimatedTime = "";
   let category = "";
   let type: ProblemType = "user_generated";
+
+  // Handle unified schema (new format)
+  if (problem && 'type' in problem && 'problem' in problem && 
+      (problem.type === "machine_coding" || problem.type === "dsa" || 
+       problem.type === "system_design" || problem.type === "theory_and_debugging")) {
+    const unifiedProblem = problem as UnifiedProblem;
+    title = unifiedProblem.title || "Untitled Problem";
+    difficulty = unifiedProblem.difficulty || "medium";
+    type = unifiedProblem.type as ProblemType;
+    
+    // Extract info from the problem content
+    const problemContent = unifiedProblem.problem || {};
+    if (problemContent.description) {
+      category = "Interview Problem";
+    }
+    
+    // Set default estimated time based on type
+    switch (type) {
+      case "dsa":
+        estimatedTime = "15-30 minutes";
+        break;
+      case "machine_coding":
+        estimatedTime = "30-45 minutes";
+        break;
+      case "system_design":
+        estimatedTime = "30-45 minutes";
+        break;
+      case "theory_and_debugging":
+        estimatedTime = "15-30 minutes";
+        break;
+      default:
+        estimatedTime = "30-45 minutes";
+    }
+    
+    return { title, difficulty, technologies, estimatedTime, category, type };
+  }
 
   // Handle predefined problems
   if ("type" in problem && problem.type !== "user_generated") {

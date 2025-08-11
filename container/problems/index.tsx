@@ -7,6 +7,13 @@ import { useInterviewGeneration } from "@/container/problems/hooks/useInterviewG
 import { useProblemFilters } from "@/container/problems/hooks/useProblemFilters";
 import Tabs, { TabItem } from "@/components/ui/Tabs";
 import Layout from "@/components/Layout";
+import { 
+  FiSearch, 
+  FiX, 
+  FiChevronDown, 
+  FiGrid, 
+  FiList 
+} from "react-icons/fi";
 
 const ProblemsPage: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
@@ -283,19 +290,7 @@ const ProblemsPage: React.FC = () => {
                     <div className="flex-1">
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none border-border">
-                          <svg
-                            className="h-5 w-5 text-text/40"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="m21 21-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                            />
-                          </svg>
+                          <FiSearch className="h-5 w-5 text-text/40" />
                         </div>
                         <input
                           ref={searchInputRef}
@@ -318,19 +313,7 @@ const ProblemsPage: React.FC = () => {
                               type="button"
                               title="Clear search"
                             >
-                              <svg
-                                className="h-4 w-4"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth="2"
-                                  d="M6 18L18 6M6 6l12 12"
-                                />
-                              </svg>
+                              <FiX className="h-4 w-4" />
                             </button>
                           ) : (
                             <div className="mr-3 hidden lg:flex items-center gap-1 text-text/30 text-xs">
@@ -377,19 +360,7 @@ const ProblemsPage: React.FC = () => {
                           <option value="type">Type</option>
                         </select>
                         <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                          <svg
-                            className="h-4 w-4 text-text/40"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="m19 9-7 7-7-7"
-                            />
-                          </svg>
+                          <FiChevronDown className="h-4 w-4 text-text/40" />
                         </div>
                       </div>
                     </div>
@@ -408,19 +379,7 @@ const ProblemsPage: React.FC = () => {
                             onClick={() => setSearchQuery("")}
                             className="hover:bg-primary/20 rounded-sm p-0.5 transition-colors"
                           >
-                            <svg
-                              className="h-3 w-3"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M6 18L18 6M6 6l12 12"
-                              />
-                            </svg>
+                            <FiX className="h-3 w-3" />
                           </button>
                         </span>
                       </div>
@@ -454,37 +413,13 @@ const ProblemsPage: React.FC = () => {
                         className="p-1.5 rounded-md bg-primary text-white transition-colors"
                         title="Grid view"
                       >
-                        <svg
-                          className="h-4 w-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
-                          />
-                        </svg>
+                        <FiGrid className="h-4 w-4" />
                       </button>
                       <button
                         className="p-1.5 rounded-md text-text/40 hover:text-text hover:bg-secondary/50 transition-colors"
                         title="List view"
                       >
-                        <svg
-                          className="h-4 w-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M4 6h16M4 10h16M4 14h16M4 18h16"
-                          />
-                        </svg>
+                        <FiList className="h-4 w-4" />
                       </button>
                     </div>
                   </div>

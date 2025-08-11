@@ -17,7 +17,9 @@ import {
   QuerySnapshot,
   DocumentSnapshot,
 } from "firebase/firestore";
+import { User } from "firebase/auth";
 import { db } from "./config";
+import { UserProfile, UserStats } from "../../types/user";
 
 // ============================
 // UTILITY CLASSES
@@ -187,5 +189,84 @@ export class SortUtils {
       const comparison = dateB.getTime() - dateA.getTime();
       return direction === 'desc' ? comparison : -comparison;
     });
+  }
+}
+
+/**
+ * User profile utilities
+ */
+export class UserProfileUtils {
+  static createDefaultPreferences() {
+    return {
+      theme: 'auto',
+      notifications: {
+        email: true,
+        push: true,
+        reminders: true,
+      },
+      difficulty: 'intermediate',
+      focusAreas: ['react', 'javascript', 'typescript'],
+      dailyGoal: 30,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    };
+  }
+
+  static createDefaultStats(): UserStats {
+    return {
+      totalProblemsAttempted: 0,
+      totalProblemsCompleted: 0,
+      totalTimeSpent: 0,
+      currentStreak: 0,
+      longestStreak: 0,
+      averageScore: 0,
+      problemsByType: {
+        machineCoding: 0,
+        systemDesign: 0,
+        dsa: 0,
+      },
+      problemsByDifficulty: {
+        easy: 0,
+        medium: 0,
+        hard: 0,
+      },
+      lastActiveDate: new Date(),
+    };
+  }
+
+  static buildUserProfileData(firebaseUser: User): any {
+    return {
+      uid: firebaseUser.uid,
+      email: firebaseUser.email,
+      displayName: firebaseUser.displayName || '',
+      photoURL: firebaseUser.photoURL || '',
+      phoneNumber: firebaseUser.phoneNumber || '',
+      onboardingCompleted: false,
+      isPremium: false,
+      subscriptionStatus: 'free',
+      preferences: this.createDefaultPreferences(),
+      stats: this.createDefaultStats(),
+      createdAt: DocumentUtils.createTimestamp(),
+      updatedAt: DocumentUtils.createTimestamp(),
+      lastLoginAt: DocumentUtils.createTimestamp(),
+    };
+  }
+
+  static normalizeUserProfile(data: any, uid: string): UserProfile {
+    return {
+      uid,
+      email: data.email || '',
+      displayName: data.displayName || '',
+      photoURL: data.photoURL || '',
+      phoneNumber: data.phoneNumber || '',
+      onboardingCompleted: data.onboardingCompleted || false,
+      isPremium: data.isPremium || false,
+      subscriptionStatus: data.subscriptionStatus || 'free',
+      subscriptionExpiresAt: data.subscriptionExpiresAt?.toDate ? data.subscriptionExpiresAt.toDate() : data.subscriptionExpiresAt,
+      preferences: data.preferences || this.createDefaultPreferences(),
+      stats: data.stats || this.createDefaultStats(),
+      createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt || Date.now()),
+      updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date(data.updatedAt || Date.now()),
+      lastLoginAt: data.lastLoginAt?.toDate ? data.lastLoginAt.toDate() : new Date(data.lastLoginAt || Date.now()),
+    };
   }
 } 

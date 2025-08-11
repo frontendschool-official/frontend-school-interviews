@@ -5,10 +5,12 @@ import {
   ParsedProblemData,
   PredefinedProblem,
   ProblemType,
+  Difficulty,
+  UnifiedProblem,
 } from "../types/problem";
 
 interface ProblemCardProps {
-  problem: ProblemData | ParsedProblemData | PredefinedProblem;
+  problem: ProblemData | ParsedProblemData | PredefinedProblem | UnifiedProblem;
   status?: "attempted" | "solved" | "unsolved";
 }
 
@@ -24,7 +26,7 @@ const getStatusBadgeColor = (status?: string) => {
   }
 };
 
-const getDifficultyBadgeColor = (difficulty: string) => {
+const getDifficultyBadgeColor = (difficulty: Difficulty) => {
   switch (difficulty) {
     case "easy":
       return "border-green-500 text-green-500";
@@ -56,78 +58,97 @@ const getCategoryBadgeColor = (type: ProblemType) => {
   }
 };
 
-export default function ProblemCard({ problem, status }: ProblemCardProps) {
-  // Handle different problem types
-  const isPredefined = "type" in problem && problem.type !== "user_generated";
-
-  let title = "";
-  let difficulty: any = "medium";
-  let technologies: string[] = [];
-  let estimatedTime = "";
-  let category = "";
-  let type: ProblemType = "user_generated";
-
-  if (isPredefined) {
-    // Handle predefined problems
-    const predefinedProblem = problem as PredefinedProblem;
-    title = predefinedProblem.title;
-    difficulty = predefinedProblem.difficulty;
-    technologies = predefinedProblem.technologies || [];
-    estimatedTime = predefinedProblem.estimatedTime || "";
-    category = predefinedProblem.category;
-    type = predefinedProblem.type;
-  } else {
-    // Handle user-generated problems (existing logic)
-    const {
-      title: cardTitle,
-      difficulty: cardDifficulty,
-      technologies: cardTechnologies,
-      estimatedTime: cardEstimatedTime,
-      category: cardCategory,
-      type: cardType,
-    } = getProblemCardInfo(problem);
-    title = cardTitle;
-    difficulty = cardDifficulty;
-    technologies = cardTechnologies;
-    estimatedTime = cardEstimatedTime;
-    category = cardCategory || "Custom Problems";
-    type = cardType || "user_generated";
+const getTypeDisplayName = (type: ProblemType): string => {
+  switch (type) {
+    case "dsa":
+      return "DSA";
+    case "machine_coding":
+      return "Machine Coding";
+    case "system_design":
+      return "System Design";
+    case "theory_and_debugging":
+      return "Theory";
+    case "interview":
+      return "Interview";
+    case "user_generated":
+      return "Custom";
+    default:
+      return "Problem";
   }
+};
 
-  // Get title for user-generated problems
-  const getProblemTitle = () => {
-    if (isPredefined) {
-      return title;
+export default function ProblemCard({ problem, status }: ProblemCardProps) {
+  // Get problem card info using the centralized function
+  const {
+    title,
+    difficulty,
+    technologies,
+    estimatedTime,
+    category,
+    type,
+  } = getProblemCardInfo(problem);
+
+  // Handle unified schema (new format)
+  const isUnifiedSchema = problem && 'type' in problem && 'problem' in problem;
+  console.log(problem, 'problem')
+  // Get additional info for unified schema
+  const getAdditionalInfo = () => {
+    if (isUnifiedSchema) {
+      const unifiedProblem = problem as UnifiedProblem;
+      return {
+        company: unifiedProblem.company || "",
+        role: unifiedProblem.role || "",
+        description: unifiedProblem.problem?.description || "",
+      };
+    }
+    return {
+      company: (problem as any).companies || "",
+      role: (problem as any).designation || "",
+      description: (problem as any).description || "",
+    };
+  };
+
+  const { company, role, description } = getAdditionalInfo();
+
+  // Get title for display
+  const getDisplayTitle = () => {
+    if (isUnifiedSchema) {
+      return title || "Untitled Problem";
     }
 
+    // Handle legacy format
     const userProblem = problem as any;
     try {
-      if (
-        userProblem.interviewType === "coding" &&
-        userProblem.machineCodingProblem
-      ) {
-        return (
-          userProblem.machineCodingProblem?.title || "Machine Coding Problem"
-        );
-      } else if (
-        userProblem.interviewType === "dsa" &&
-        userProblem.dsaProblem
-      ) {
-        return userProblem.dsaProblem?.title || "DSA Problem";
-      } else if (
-        userProblem.interviewType === "theory" &&
-        userProblem.theoryProblem
-      ) {
-        return userProblem.theoryProblem?.title || "Theory Problem";
+      if (userProblem.interviewType === "coding" && userProblem.machineCodingProblem) {
+        const mcProblem = typeof userProblem.machineCodingProblem === "string" 
+          ? JSON.parse(userProblem.machineCodingProblem) 
+          : userProblem.machineCodingProblem;
+        return mcProblem?.title || "Machine Coding Problem";
+      } else if (userProblem.interviewType === "dsa" && userProblem.dsaProblem) {
+        const dsaProblem = typeof userProblem.dsaProblem === "string" 
+          ? JSON.parse(userProblem.dsaProblem) 
+          : userProblem.dsaProblem;
+        return dsaProblem?.title || "DSA Problem";
+      } else if (userProblem.interviewType === "theory" && userProblem.theoryProblem) {
+        const theoryProblem = typeof userProblem.theoryProblem === "string" 
+          ? JSON.parse(userProblem.theoryProblem) 
+          : userProblem.theoryProblem;
+        return theoryProblem?.title || "Theory Problem";
       } else if (userProblem.machineCodingProblem) {
-        return userProblem.machineCodingProblem?.title || "Coding Problem";
+        const mcProblem = typeof userProblem.machineCodingProblem === "string" 
+          ? JSON.parse(userProblem.machineCodingProblem) 
+          : userProblem.machineCodingProblem;
+        return mcProblem?.title || "Coding Problem";
       } else {
-        return "Custom Problem";
+        return title || "Custom Problem";
       }
     } catch (error) {
-      return "Custom Problem";
+      console.error("Error parsing problem title:", error);
+      return title || "Custom Problem";
     }
   };
+
+  const displayTitle = getDisplayTitle();
 
   return (
     <div className="border border-border rounded-2xl p-6 bg-secondary flex flex-col gap-3 transition-all duration-300 relative overflow-hidden hover:-translate-y-1 hover:shadow-lg hover:shadow-border/30 hover:border-neutral/30 group">
@@ -139,7 +160,7 @@ export default function ProblemCard({ problem, status }: ProblemCardProps) {
         </span>
         <div className="flex gap-1.5 flex-wrap">
           <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold uppercase tracking-wider border ${getCategoryBadgeColor(type)} shadow-sm`}>
-            {type.replace("_", " ")}
+            {getTypeDisplayName(type)}
           </span>
           <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold uppercase tracking-wider border ${getDifficultyBadgeColor(difficulty)} shadow-sm`}>
             {difficulty}
@@ -149,24 +170,41 @@ export default function ProblemCard({ problem, status }: ProblemCardProps) {
 
       <div className="flex-1 flex flex-col gap-2">
         <h4 className="m-0 text-text text-lg leading-tight font-semibold mb-1">
-          {getProblemTitle()}
+        {problem?.title || "Untitled Problem"}
         </h4>
 
-        {!isPredefined && (
-          <>
-            <p className="m-0 text-sm text-text opacity-70 leading-relaxed">
-              Companies: {(problem as any).companies || "N/A"}
-            </p>
-          </>
+        {/* Show description if available */}
+        {description && (
+          <p className="m-0 text-sm text-text opacity-70 leading-relaxed line-clamp-2">
+            {description}
+          </p>
         )}
 
+        {/* Show company and role info */}
+        {(company || role) && (
+          <div className="flex flex-col gap-1">
+            {company && (
+              <p className="m-0 text-sm text-text opacity-70 leading-relaxed">
+                Company: {company}
+              </p>
+            )}
+            {role && (
+              <p className="m-0 text-sm text-text opacity-70 leading-relaxed">
+                Role: {role}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Show estimated time */}
         {estimatedTime && (
           <p className="m-0 text-sm text-text opacity-70 leading-relaxed">
             Estimated Time: {estimatedTime}
           </p>
         )}
 
-        {technologies.length > 0 && (
+        {/* Show technologies/tags */}
+        {technologies && technologies.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mt-1.5">
             {technologies.slice(0, 3).map((tech: string, index: number) => (
               <span key={index} className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs font-medium border border-gray-300 transition-all duration-200 hover:bg-gray-200 hover:border-gray-400">

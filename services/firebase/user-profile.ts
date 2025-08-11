@@ -16,13 +16,7 @@ export const createUserProfile = async (firebaseUser: User): Promise<UserProfile
     const userProfileData = UserProfileUtils.buildUserProfileData(firebaseUser);
     await DocumentUtils.setDocument('users', firebaseUser.uid, userProfileData);
     
-    return {
-      ...userProfileData,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      lastLoginAt: new Date(),
-      phoneNumber: firebaseUser.phoneNumber || undefined,
-    } as UserProfile;
+    return UserProfileUtils.normalizeUserProfile(userProfileData, firebaseUser.uid);
   } catch (error) {
     FirebaseErrorHandler.handle(error, 'create user profile');
   }
