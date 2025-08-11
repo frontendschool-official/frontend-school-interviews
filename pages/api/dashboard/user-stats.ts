@@ -1,10 +1,11 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextApiResponse } from "next";
 import { getUserProgress } from "@/services/firebase/user-progress";
 import { getUserProfile } from "@/services/firebase/user-profile";
 import { getProblemById } from "@/services/firebase/problems";
+import { withRequiredAuth, AuthenticatedRequest } from "@/lib/auth";
 
-export default async function handler(
-  req: NextApiRequest,
+async function handler(
+  req: AuthenticatedRequest,
   res: NextApiResponse
 ) {
   if (req.method !== "GET") {
@@ -12,13 +13,8 @@ export default async function handler(
   }
 
   try {
-    const { userId } = req.query;
-
-    if (!userId || typeof userId !== "string") {
-      return res.status(400).json({ 
-        error: "Missing required parameter: userId is required" 
-      });
-    }
+    // Get user ID from authenticated session (verified server-side)
+    const userId = req.userId!;
 
     // Fetch user progress and profile data
     const [userProgress, userProfile] = await Promise.all([
@@ -132,4 +128,6 @@ export default async function handler(
       message: error instanceof Error ? error.message : "Unknown error"
     });
   }
-} 
+}
+
+export default withRequiredAuth(handler); 

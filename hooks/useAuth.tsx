@@ -74,6 +74,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(firebaseUser);
       
       if (firebaseUser) {
+        // Create session cookie for server-side authentication
+        try {
+          const idToken = await firebaseUser.getIdToken();
+          const { createSessionCookie } = await import('../services/firebase/auth');
+          await createSessionCookie(idToken);
+          console.log('🔥 Session cookie created successfully');
+        } catch (error) {
+          console.error('🔥 Error creating session cookie:', error);
+        }
+        
         await loadUserProfile(firebaseUser);
       } else {
         setUserProfile(null);

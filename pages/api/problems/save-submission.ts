@@ -1,9 +1,10 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextApiResponse } from "next";
 import { saveSubmission } from "@/services/firebase/problems";
 import { SubmissionData } from "@/types/problem";
+import { withRequiredAuth, AuthenticatedRequest } from "@/lib/auth";
 
-export default async function handler(
-  req: NextApiRequest,
+async function handler(
+  req: AuthenticatedRequest,
   res: NextApiResponse
 ) {
   if (req.method !== "POST") {
@@ -11,13 +12,16 @@ export default async function handler(
   }
 
   try {
-    const { userId, problemId, submissionData } = req.body;
+    const { problemId, submissionData } = req.body;
 
-    if (!userId || !problemId || !submissionData) {
+    if (!problemId || !submissionData) {
       return res.status(400).json({ 
-        error: "Missing required fields: userId, problemId, and submissionData are required" 
+        error: "Missing required fields: problemId and submissionData are required" 
       });
     }
+
+    // Get user ID from authenticated session (verified server-side)
+    const userId = req.userId!;
 
     await saveSubmission(userId, problemId, submissionData as SubmissionData);
 
@@ -29,4 +33,6 @@ export default async function handler(
       message: error instanceof Error ? error.message : "Unknown error"
     });
   }
-} 
+}
+
+export default withRequiredAuth(handler); 

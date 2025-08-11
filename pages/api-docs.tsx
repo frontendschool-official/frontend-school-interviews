@@ -2,6 +2,7 @@ import { GetServerSideProps } from 'next';
 import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
+import Loader from '@/components/ui/Loader';
 
 // Dynamically import SwaggerUI to avoid SSR issues
 const SwaggerUI = dynamic(
@@ -40,14 +41,7 @@ const ApiDocsPage: React.FC<ApiDocsPageProps> = ({ host }) => {
   if (loading) {
     return (
       <Layout>
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-          <div className="container mx-auto px-4 py-8">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600 dark:text-gray-400">Loading API documentation...</p>
-            </div>
-          </div>
-        </div>
+        <Loader text="Loading API documentation..." size="xl" fullScreen />
       </Layout>
     );
   }

@@ -1,21 +1,23 @@
 import { getActiveInterviewSimulationByUserId } from "@/lib/queryBuilder";
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextApiResponse } from "next";
+import { withRequiredAuth, AuthenticatedRequest } from "@/lib/auth";
 
-export default async function handler(
-  req: NextApiRequest,
+async function handler(
+  req: AuthenticatedRequest,
   res: NextApiResponse
 ) {
   try {
-    const { userId, status } = req.query;
+    const { status } = req.query;
 
-    if (!userId) {
-      return res.status(400).json({ error: "userId and status are required" });
-    }
     if (!status) {
       return res.status(400).json({ error: "status is required" });
     }
+    
+    // Get user ID from authenticated session (verified server-side)
+    const userId = req.userId!;
+    
     const activeSimulation = await getActiveInterviewSimulationByUserId(
-      userId as string,
+      userId,
       status as string
     );
     res.status(200).json(activeSimulation);
@@ -26,3 +28,5 @@ export default async function handler(
       .json({ error: "Error fetching active interview simulation" });
   }
 }
+
+export default withRequiredAuth(handler);

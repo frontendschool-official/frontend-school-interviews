@@ -24,7 +24,44 @@ const provider = new GoogleAuthProvider();
 // ============================
 
 export const signInWithGoogle = async () => {
-  await signInWithPopup(auth, provider);
+  const result = await signInWithPopup(auth, provider);
+  
+  // Create session cookie after successful sign-in
+  if (result.user) {
+    try {
+      const idToken = await result.user.getIdToken();
+      await createSessionCookie(idToken);
+    } catch (error) {
+      console.error('Error creating session cookie:', error);
+      // Don't throw error here as the sign-in was successful
+    }
+  }
+  
+  return result;
+};
+
+// Function to create session cookie
+export const createSessionCookie = async (idToken: string) => {
+  try {
+    const response = await fetch('/api/auth/session', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ idToken }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create session cookie');
+    }
+
+    const data = await response.json();
+    console.log('Session cookie created successfully:', data);
+    return data;
+  } catch (error) {
+    console.error('Error creating session cookie:', error);
+    throw error;
+  }
 };
 
 export const signOutUser = async () => {
@@ -38,11 +75,32 @@ export const signOutUser = async () => {
   }
   
   try {
+    // Clear session cookie
+    await clearSessionCookie();
+    
+    // Sign out from Firebase
     await signOut(auth);
     console.log('🔥 Firebase signOut completed successfully');
   } catch (error) {
     console.error('🔥 Error during Firebase signOut:', error);
     throw error;
+  }
+};
+
+// Function to clear session cookie
+export const clearSessionCookie = async () => {
+  try {
+    const response = await fetch('/api/auth/session', {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      console.warn('Failed to clear session cookie');
+    } else {
+      console.log('Session cookie cleared successfully');
+    }
+  } catch (error) {
+    console.error('Error clearing session cookie:', error);
   }
 };
 

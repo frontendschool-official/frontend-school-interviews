@@ -103,7 +103,7 @@ export const updateLastLogin = async (uid: string): Promise<void> => {
 
 export const updateUserStreak = async (uid: string): Promise<void> => {
   try {
-    const userDoc = await DocumentUtils.getDocument('users', uid);
+    const userDoc = await DocumentUtils.getDocument('users', uid) as any;
     
     if (userDoc) {
       const currentStats = userDoc.stats || {};

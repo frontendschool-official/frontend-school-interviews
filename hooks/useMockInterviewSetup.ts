@@ -240,7 +240,7 @@ export const useMockInterviewSetup = () => {
           | "dsa"
           | "machine_coding"
           | "system_design"
-          | "theory",
+          | "theory_and_debugging",
         problems: [],
         currentProblemIndex: 0,
         status: "active" as const,

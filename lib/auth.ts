@@ -37,8 +37,6 @@ export function withAuth(handler: ApiHandler) {
             const decodedClaims = await auth().verifySessionCookie(sessionCookie, true);
             console.log(decodedClaims, "decodedClaims");
             req.userId = decodedClaims.uid;
-            // Add user ID to headers for consistency
-            req.headers['x-user-id'] = decodedClaims.uid;
           } catch (error) {
             console.error('Error verifying session cookie:', error);
           }
@@ -53,8 +51,6 @@ export function withAuth(handler: ApiHandler) {
             const decodedToken = await auth().verifyIdToken(token);
             console.log(decodedToken, "decodedToken");
             req.userId = decodedToken.uid;
-            // Add user ID to headers for consistency
-            req.headers['x-user-id'] = decodedToken.uid;
           } catch (error) {
             console.error('Error verifying ID token:', error);
           }
@@ -79,7 +75,8 @@ export function withRequiredAuth(handler: ApiHandler) {
     try {
       // Get the authorization header
       const authHeader = req.headers.authorization;
-      
+      console.log("Auth headers:", req.headers.authorization ? "Bearer token present" : "No Bearer token");
+      console.log("Session cookie:", req.cookies?.session ? "Present" : "Not present");
       if (!authHeader || !authHeader.startsWith('Bearer ')) {
         // If no auth header, try to get user ID from cookies (for SSR)
         const sessionCookie = req.cookies?.session;
@@ -88,8 +85,6 @@ export function withRequiredAuth(handler: ApiHandler) {
           try {
             const decodedClaims = await auth().verifySessionCookie(sessionCookie, true);
             req.userId = decodedClaims.uid;
-            // Add user ID to headers for consistency
-            req.headers['x-user-id'] = decodedClaims.uid;
           } catch (error) {
             console.error('Error verifying session cookie:', error);
           }
@@ -103,14 +98,12 @@ export function withRequiredAuth(handler: ApiHandler) {
             // Verify the Firebase ID token
             const decodedToken = await auth().verifyIdToken(token);
             req.userId = decodedToken.uid;
-            // Add user ID to headers for consistency
-            req.headers['x-user-id'] = decodedToken.uid;
           } catch (error) {
             console.error('Error verifying ID token:', error);
           }
         }
       }
-
+      console.log("req.userId", req.userId);
       // Check if user is authenticated
       if (!req.userId) {
         return res.status(401).json({ error: 'Authentication required' });
@@ -125,19 +118,19 @@ export function withRequiredAuth(handler: ApiHandler) {
   };
 }
 
-// Helper functions to extract user ID from headers
-export function getUserIdFromHeader(req: NextApiRequest): string | null {
-  return (req.headers['x-user-id'] as string) || null;
+// Helper functions to extract user ID from request
+export function getUserIdFromRequest(req: AuthenticatedRequest): string | null {
+  return req.userId || null;
 }
 
-export function requireUserIdFromHeader(req: NextApiRequest): string {
-  const userId = getUserIdFromHeader(req);
+export function requireUserIdFromRequest(req: AuthenticatedRequest): string {
+  const userId = getUserIdFromRequest(req);
   if (!userId) {
-    throw new Error('User ID not found in request headers');
+    throw new Error('User ID not found in request');
   }
   return userId;
 }
 
-export function hasUserIdInHeader(req: NextApiRequest): boolean {
-  return !!req.headers['x-user-id'];
+export function hasUserIdInRequest(req: AuthenticatedRequest): boolean {
+  return !!req.userId;
 } 

@@ -1,9 +1,10 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextApiResponse } from "next";
 import { getActiveInterviewSimulationByUserId } from "@/lib/queryBuilder";
 import { getUserProgress } from "@/services/firebase/user-progress";
+import { withRequiredAuth, AuthenticatedRequest } from "@/lib/auth";
 
-export default async function handler(
-  req: NextApiRequest,
+async function handler(
+  req: AuthenticatedRequest,
   res: NextApiResponse
 ) {
   if (req.method !== "GET") {
@@ -11,13 +12,8 @@ export default async function handler(
   }
 
   try {
-    const { userId } = req.query;
-
-    if (!userId || typeof userId !== "string") {
-      return res.status(400).json({ 
-        error: "Missing required parameter: userId is required" 
-      });
-    }
+    // Get user ID from authenticated session (verified server-side)
+    const userId = req.userId!;
 
     // Fetch interview simulations and user progress in parallel
     const [simulations, userProgress] = await Promise.all([
@@ -97,4 +93,6 @@ export default async function handler(
       message: error instanceof Error ? error.message : "Unknown error"
     });
   }
-} 
+}
+
+export default withRequiredAuth(handler); 

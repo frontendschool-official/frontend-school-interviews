@@ -48,6 +48,17 @@ export {
   saveProblemsToStructuredCollection,
 } from './problems';
 
+// Roadmap Management
+export {
+  saveRoadmap,
+  getRoadmapsForUser,
+  getRoadmapById,
+  updateRoadmapProgress,
+  updateRoadmapStatus,
+  deleteRoadmap,
+  getRoadmapStats,
+} from './roadmaps';
+
 // User Progress Management
 export {
   markProblemAsAttempted,

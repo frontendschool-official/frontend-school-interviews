@@ -13,7 +13,6 @@ export {
   saveGeneratedProblemsToCollection,
   determineRoundType,
   calculateTimeDistribution,
-  getProblemUIType,
   createInterviewSimulation,
   getExistingInterviewSession,
   getExistingSimulationSessionByInterviewId,

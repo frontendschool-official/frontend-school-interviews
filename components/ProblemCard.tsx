@@ -159,9 +159,11 @@ export default function ProblemCard({ problem, status }: ProblemCardProps) {
           {status || "New"}
         </span>
         <div className="flex gap-1.5 flex-wrap">
-          <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold uppercase tracking-wider border ${getCategoryBadgeColor(type)} shadow-sm`}>
-            {getTypeDisplayName(type)}
-          </span>
+          {type && (
+            <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold uppercase tracking-wider border ${getCategoryBadgeColor(type)} shadow-sm`}>
+              {getTypeDisplayName(type)}
+            </span>
+          )}
           <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold uppercase tracking-wider border ${getDifficultyBadgeColor(difficulty)} shadow-sm`}>
             {difficulty}
           </span>

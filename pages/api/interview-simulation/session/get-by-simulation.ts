@@ -1,10 +1,11 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextApiResponse } from "next";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "@/services/firebase/config";
 import { COLLECTIONS } from "@/enums/collections";
+import { withRequiredAuth, AuthenticatedRequest } from "@/lib/auth";
 
-export default async function handler(
-  req: NextApiRequest,
+async function handler(
+  req: AuthenticatedRequest,
   res: NextApiResponse
 ) {
   if (req.method !== "GET") {
@@ -12,13 +13,16 @@ export default async function handler(
   }
 
   try {
-    const { simulationId, userId, roundName } = req.query;
+    const { simulationId, roundName } = req.query;
 
-    if (!simulationId || !userId || !roundName) {
+    if (!simulationId || !roundName) {
       return res.status(400).json({ 
-        error: "Missing required parameters: simulationId, userId, and roundName are required" 
+        error: "Missing required parameters: simulationId and roundName are required" 
       });
     }
+
+    // Get user ID from authenticated session (verified server-side)
+    const userId = req.userId!;
 
     const sessionsQuery = query(
       collection(db, COLLECTIONS.INTERVIEW_SIMULATION_SESSIONS),
@@ -52,4 +56,6 @@ export default async function handler(
       message: error instanceof Error ? error.message : "Unknown error"
     });
   }
-} 
+}
+
+export default withRequiredAuth(handler); 

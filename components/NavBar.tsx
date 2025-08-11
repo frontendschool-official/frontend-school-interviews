@@ -5,7 +5,14 @@ import { useThemeContext } from "../hooks/useTheme";
 import { useAuth } from "../hooks/useAuth";
 import ThemeToggle from "./ThemeToggle";
 import Logo from "./Logo";
-import { FaUser, FaBars, FaTimes, FaSignOutAlt, FaCog, FaCrown } from "react-icons/fa";
+import {
+  FaUser,
+  FaBars,
+  FaTimes,
+  FaSignOutAlt,
+  FaCog,
+  FaCrown,
+} from "react-icons/fa";
 
 export default function NavBar() {
   const { theme, toggleTheme } = useThemeContext();
@@ -24,13 +31,14 @@ export default function NavBar() {
     { href: "/dashboard", label: "Dashboard", auth: true },
     { href: "/problems", label: "Problems", auth: true },
     { href: "/practice", label: "Practice", auth: true },
-    { href: "/mock-interviews", label: "Mock Interviews", auth: true },
+    { href: "/roadmap", label: "Roadmap", auth: true },
+    // { href: "/mock-interviews", label: "Mock Interviews", auth: true },
     {
       href: "/interview-simulation",
       label: "Interview Simulation",
       auth: true,
     },
-    { href: "/api-docs", label: "API Docs", auth: false },
+    // { href: "/api-docs", label: "API Docs", auth: false },
     // { href: "/premium", label: "Premium", auth: false },
   ];
 
@@ -53,49 +61,64 @@ export default function NavBar() {
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target as Node)) {
+      if (
+        profileDropdownRef.current &&
+        !profileDropdownRef.current.contains(event.target as Node)
+      ) {
         setIsProfileDropdownOpen(false);
       }
-      if (mobileDrawerRef.current && !mobileDrawerRef.current.contains(event.target as Node) && isMobileMenuOpen) {
-        const hamburgerButton = document.querySelector('[aria-label="Toggle navigation menu"]');
+      if (
+        mobileDrawerRef.current &&
+        !mobileDrawerRef.current.contains(event.target as Node) &&
+        isMobileMenuOpen
+      ) {
+        const hamburgerButton = document.querySelector(
+          '[aria-label="Toggle navigation menu"]'
+        );
         if (!hamburgerButton?.contains(event.target as Node)) {
           setIsMobileMenuOpen(false);
         }
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isMobileMenuOpen]);
 
   const handleNavClick = (href: string, auth: boolean, e: React.MouseEvent) => {
     if (auth && !user) {
       e.preventDefault();
-      router.push('/login');
+      router.push("/login");
     }
   };
 
   const handleSignOut = async (closeCallback?: () => void) => {
-    console.log('🚀 SignOut initiated');
+    console.log("🚀 SignOut initiated");
     try {
       const result = await signOut();
-      console.log('🚀 SignOut result:', result);
+      console.log("🚀 SignOut result:", result);
       closeCallback?.();
       // Navigate to home page after sign out
-      router.push('/');
+      router.push("/");
     } catch (error) {
-      console.error('🚀 SignOut error:', error);
+      console.error("🚀 SignOut error:", error);
       closeCallback?.();
       // Still navigate even on error
-      router.push('/');
+      router.push("/");
     }
   };
 
-  const NavLink = ({ href, label, active, auth, onClick }: { 
-    href: string; 
-    label: string; 
+  const NavLink = ({
+    href,
+    label,
+    active,
+    auth,
+    onClick,
+  }: {
+    href: string;
+    label: string;
     active: boolean;
     auth: boolean;
     onClick?: () => void;
@@ -127,7 +150,7 @@ export default function NavBar() {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link href="/" passHref legacyBehavior>
-              <a 
+              <a
                 className="no-underline transition-all duration-200 hover:scale-105"
                 aria-label="Frontend School Homepage"
               >
@@ -141,7 +164,11 @@ export default function NavBar() {
             </Link>
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center space-x-2" role="navigation" aria-label="Main navigation">
+            <nav
+              className="hidden md:flex items-center space-x-2"
+              role="navigation"
+              aria-label="Main navigation"
+            >
               {menuLinks.map(({ href, label, auth }) => {
                 const active = router.pathname === href;
                 return (
@@ -167,7 +194,7 @@ export default function NavBar() {
                 </Link>
               )}
               <ThemeToggle onToggle={toggleTheme} />
-              
+
               {user ? (
                 <div className="relative" ref={profileDropdownRef}>
                   <button
@@ -192,7 +219,7 @@ export default function NavBar() {
                     <div className="absolute right-0 mt-3 w-48 bg-secondary border border-border rounded-lg shadow-lg z-50 overflow-hidden">
                       <div className="py-1">
                         <Link href="/profile" passHref legacyBehavior>
-                          <a 
+                          <a
                             className="flex items-center px-4 py-3 text-sm text-text hover:bg-neutral/10 transition-colors duration-200 no-underline"
                             onClick={closeProfileDropdown}
                           >
@@ -248,7 +275,7 @@ export default function NavBar() {
                     <div className="absolute right-0 mt-3 w-48 bg-secondary border border-border rounded-lg shadow-lg z-50 overflow-hidden">
                       <div className="py-1">
                         <Link href="/profile" passHref legacyBehavior>
-                          <a 
+                          <a
                             className="flex items-center px-4 py-3 text-sm text-text hover:bg-neutral/10 transition-colors duration-200 no-underline"
                             onClick={closeProfileDropdown}
                           >
@@ -285,7 +312,7 @@ export default function NavBar() {
 
       {/* Mobile Drawer Overlay */}
       {isMobileMenuOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
           onClick={closeMobileMenu}
         />
@@ -313,7 +340,11 @@ export default function NavBar() {
           </div>
 
           {/* Navigation Links */}
-          <nav className="flex-1 px-4 py-6 space-y-1" role="navigation" aria-label="Mobile navigation">
+          <nav
+            className="flex-1 px-4 py-6 space-y-1"
+            role="navigation"
+            aria-label="Mobile navigation"
+          >
             {menuLinks.map(({ href, label, auth }) => {
               const active = router.pathname === href;
               return (
@@ -354,10 +385,10 @@ export default function NavBar() {
                     </p>
                   </div>
                 </div>
-                
+
                 {!isPremiumUser && (
                   <Link href="/premium" passHref legacyBehavior>
-                    <a 
+                    <a
                       className="flex items-center justify-center space-x-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-3 rounded-lg no-underline font-semibold transition-all duration-200 hover:from-amber-600 hover:to-orange-600 text-sm"
                       onClick={closeMobileMenu}
                     >
@@ -366,10 +397,10 @@ export default function NavBar() {
                     </a>
                   </Link>
                 )}
-                
+
                 <div className="space-y-1">
                   <Link href="/profile" passHref legacyBehavior>
-                    <a 
+                    <a
                       className="flex items-center space-x-3 px-3 py-3 rounded-lg text-text hover:bg-neutral/10 transition-colors duration-200 no-underline"
                       onClick={closeMobileMenu}
                     >
@@ -389,7 +420,7 @@ export default function NavBar() {
             ) : (
               <div className="space-y-3">
                 <Link href="/login" passHref legacyBehavior>
-                  <a 
+                  <a
                     className="block bg-primary text-white px-4 py-3 rounded-lg no-underline font-medium text-center transition-all duration-200 hover:bg-accent"
                     onClick={closeMobileMenu}
                   >

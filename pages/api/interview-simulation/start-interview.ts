@@ -9,23 +9,27 @@ import {
 import { generateInterviewSimulationProblems } from "@/services/problems";
 import { SimulationProblem } from "@/types/problem";
 import { validateSimulationProblem, logValidationResults } from "@/services/interview/validation";
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextApiResponse } from "next";
+import { withRequiredAuth, AuthenticatedRequest } from "@/lib/auth";
 
-export default async function handler(
-  req: NextApiRequest,
+async function handler(
+  req: AuthenticatedRequest,
   res: NextApiResponse
 ) {
   try {
-    const { userId, simulationId } = req.query;
+    const { simulationId } = req.query;
+
+    // Get user ID from authenticated session (verified server-side)
+    const userId = req.userId!;
 
     console.log(userId, simulationId, "userId, simulationId");
-    if (!userId || !simulationId) {
-      return res.status(400).json({ error: "Missing userId or simulationId" });
+    if (!simulationId) {
+      return res.status(400).json({ error: "Missing simulationId" });
     }
 
     // Check for existing simulation session
     const simulationSession = await getExistingSimulationSessionByInterviewId(
-      userId as string,
+      userId,
       simulationId as string
     );
     console.log(simulationSession, "simulationSession");
@@ -36,7 +40,7 @@ export default async function handler(
 
     // Get existing interview session
     const existingInterviewSession = await getExistingInterviewSession(
-      userId as string
+      userId
     );
 
     if (!existingInterviewSession) {
@@ -182,7 +186,7 @@ export default async function handler(
 
     // Save problems to interview_problems collection with proper schema
     const saveResult = await saveGeneratedProblemsToCollection(
-      userId as string,
+      userId,
       validatedProblems,
       existingInterviewSession.companyName,
       roleLevel,
@@ -217,3 +221,5 @@ export default async function handler(
     });
   }
 }
+
+export default withRequiredAuth(handler);

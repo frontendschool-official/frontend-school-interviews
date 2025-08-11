@@ -3,7 +3,6 @@ import { createInterviewSimulation } from "@/services/interview/simulation";
 import {
   withRequiredAuth,
   AuthenticatedRequest,
-  requireUserIdFromHeader,
 } from "@/lib/auth";
 import {
   generateInterviewInsights,
@@ -16,9 +15,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   }
 
   try {
-    // Get user ID from headers (new way)
-
-    const { companyName, roleLevel, userId, companyId } = req.body;
+    const { companyName, roleLevel, companyId } = req.body;
 
     // Validate required fields
     if (!companyName) {
@@ -27,9 +24,9 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
     if (!roleLevel) {
       return res.status(400).json({ error: "roleLevel is required" });
     }
-    if (!userId) {
-      return res.status(400).json({ error: "userId is required" });
-    }
+
+    // Get user ID from authenticated session (verified server-side)
+    const userId = req.userId!;
 
     const insights = await getInterviewInsights(
       companyName,
@@ -42,7 +39,7 @@ console.log(insights, "insights")
       userId,
       companyName,
       roleLevel,
-      insights: insights?.data,
+      insights: insights,
     });
 
     res.status(201).json({
@@ -59,4 +56,4 @@ console.log(insights, "insights")
   }
 }
 
-export default handler;
+export default withRequiredAuth(handler);

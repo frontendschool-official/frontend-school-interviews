@@ -21,7 +21,7 @@ export default async function handler(
     const problems = allProblemsSnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
-    }));
+    })) as any[];
 
     // Calculate counts by type
     const stats = {

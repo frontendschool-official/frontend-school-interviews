@@ -1,9 +1,10 @@
 import { generateInterviewQuestions } from "@/services/ai/problem-generation";
 import { saveProblemSet } from "@/services/firebase/problems";
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextApiResponse } from "next";
+import { withRequiredAuth, AuthenticatedRequest } from "@/lib/auth";
 
-export default async function handler(
-  req: NextApiRequest,
+async function handler(
+  req: AuthenticatedRequest,
   res: NextApiResponse
 ) {
   if (req.method !== "POST") {
@@ -11,13 +12,16 @@ export default async function handler(
   }
 
   try {
-    const { designation, companies, round, interviewType, userId } = req.body;
+    const { designation, companies, round, interviewType } = req.body;
 
-    if (!designation || !companies || !round || !interviewType || !userId) {
+    if (!designation || !companies || !round || !interviewType) {
       return res.status(400).json({ 
-        error: "Missing required fields: designation, companies, round, interviewType, and userId are required" 
+        error: "Missing required fields: designation, companies, round, and interviewType are required" 
       });
     }
+
+    // Get user ID from authenticated session (verified server-side)
+    const userId = req.userId!;
 
     console.log("🚀 Starting interview generation with values:", { designation, companies, round, interviewType, userId });
 
@@ -96,4 +100,6 @@ export default async function handler(
     });
   }
 }
+
+export default withRequiredAuth(handler);
 

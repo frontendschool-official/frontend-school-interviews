@@ -47,6 +47,10 @@
 /practice/timed             # Timed practice
 /practice/adaptive          # Adaptive practice
 
+# Roadmap
+/roadmap                    # Create personalized roadmap
+/roadmap/view               # View generated roadmap
+
 # Learning
 /learn                      # Learning hub
 /learn/concepts             # Frontend concepts

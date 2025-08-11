@@ -1,10 +1,11 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextApiResponse } from "next";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "@/services/firebase/config";
 import { COLLECTIONS } from "@/enums/collections";
+import { withRequiredAuth, AuthenticatedRequest } from "@/lib/auth";
 
-export default async function handler(
-  req: NextApiRequest,
+async function handler(
+  req: AuthenticatedRequest,
   res: NextApiResponse
 ) {
   if (req.method !== "GET") {
@@ -12,13 +13,16 @@ export default async function handler(
   }
 
   try {
-    const { interviewId, roundNumber, userId } = req.query;
+    const { interviewId, roundNumber } = req.query;
 
-    if (!interviewId || !roundNumber || !userId) {
+    if (!interviewId || !roundNumber) {
       return res.status(400).json({ 
-        error: "Missing required fields: interviewId, roundNumber, and userId are required" 
+        error: "Missing required fields: interviewId and roundNumber are required" 
       });
     }
+
+    // Get user ID from authenticated session (verified server-side)
+    const userId = req.userId!;
 
     // Query problems from interview_problems collection
     const problemsRef = collection(db, COLLECTIONS.INTERVIEW_PROBLEMS);
@@ -30,7 +34,7 @@ export default async function handler(
     );
 
     const querySnapshot = await getDocs(q);
-    const problems = [];
+    const problems: any[] = [];
 
     querySnapshot.forEach((doc) => {
       const data = doc.data();
@@ -61,4 +65,6 @@ export default async function handler(
       message: error instanceof Error ? error.message : "Unknown error"
     });
   }
-} 
+}
+
+export default withRequiredAuth(handler); 

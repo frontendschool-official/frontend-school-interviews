@@ -1,8 +1,9 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextApiResponse } from "next";
 import { saveDetailedFeedback } from "@/services/firebase/user-progress";
+import { withRequiredAuth, AuthenticatedRequest } from "@/lib/auth";
 
-export default async function handler(
-  req: NextApiRequest,
+async function handler(
+  req: AuthenticatedRequest,
   res: NextApiResponse
 ) {
   if (req.method !== "POST") {
@@ -10,13 +11,16 @@ export default async function handler(
   }
 
   try {
-    const { userId, problemId, feedbackData } = req.body;
+    const { problemId, feedbackData } = req.body;
 
-    if (!userId || !problemId || !feedbackData) {
+    if (!problemId || !feedbackData) {
       return res.status(400).json({ 
-        error: "Missing required fields: userId, problemId, and feedbackData are required" 
+        error: "Missing required fields: problemId and feedbackData are required" 
       });
     }
+
+    // Get user ID from authenticated session (verified server-side)
+    const userId = req.userId!;
 
     await saveDetailedFeedback(userId, problemId, feedbackData);
 
@@ -31,4 +35,6 @@ export default async function handler(
       message: error instanceof Error ? error.message : "Unknown error"
     });
   }
-} 
+}
+
+export default withRequiredAuth(handler); 

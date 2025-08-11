@@ -1,24 +1,13 @@
 import React from 'react';
 import { FiTrendingUp, FiClock, FiCheckCircle, FiTarget } from 'react-icons/fi';
 import { useDashboardData } from '@/hooks/useDashboardData';
+import { StatsGridSkeleton } from '@/components/ui/Skeleton';
 
 export default function DashboardStats() {
   const { stats, loading } = useDashboardData();
 
   if (loading) {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {[1, 2, 3, 4].map((index) => (
-          <div key={index} className="bg-secondary border border-border rounded-xl p-6 flex items-center gap-4 opacity-70">
-            <div className="w-12 h-12 rounded-xl bg-border animate-pulse"></div>
-            <div className="flex-1">
-              <div className="w-16 h-8 bg-border rounded mb-2 animate-pulse"></div>
-              <div className="w-24 h-4 bg-border rounded animate-pulse"></div>
-            </div>
-          </div>
-        ))}
-      </div>
-    );
+    return <StatsGridSkeleton />;
   }
 
   const statItems = [

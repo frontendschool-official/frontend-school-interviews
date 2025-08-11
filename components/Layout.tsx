@@ -1,7 +1,7 @@
 import React from "react";
 import NavBar from "./NavBar";
 import Footer from "./Footer";
-import { Loader } from "./Loader";
+import Loader from "@/components/ui/Loader";
 import { ErrorState } from "@/container/interviews/interviews.types";
 
 const Layout = ({
@@ -57,9 +57,11 @@ const Layout = ({
     <div className="min-h-screen bg-bodyBg flex flex-col">
       {showNavBar && <NavBar />}
       {isLoading ? (
-        <div className="flex items-center justify-center h-screen">
-          <Loader text={loadingText} />
-        </div>
+        <Loader 
+          text={loadingText} 
+          size="lg" 
+          fullScreen 
+        />
       ) : (
         <main className="flex-1">
           <div className={`${fullWidth ? "w-full" : "max-w-7xl py-4 sm:py-8"} mx-auto px-4 sm:px-6 lg:px-8`}>

@@ -369,10 +369,10 @@ export default function InterviewSimulation() {
                   <div className="flex flex-wrap gap-1 sm:gap-2">
                     {simulation?.rounds?.slice(0, 3)?.map((round, index) => (
                       <div
-                        key={round.id || index}
+                        key={index}
                         className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-primary/10 border border-primary/20 rounded-full text-xs"
                       >
-                        <span>{getRoundTypeIcon(round.type)}</span>
+                        <span>{getRoundTypeIcon('unknown')}</span>
                         <span className="text-text">{round.name}</span>
                       </div>
                     ))}

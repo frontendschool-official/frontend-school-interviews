@@ -1,8 +1,9 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextApiResponse } from "next";
 import { getAllProblemsByUserId } from "@/services/problems";
+import { withRequiredAuth, AuthenticatedRequest } from "@/lib/auth";
 
-export default async function handler(
-  req: NextApiRequest,
+async function handler(
+  req: AuthenticatedRequest,
   res: NextApiResponse
 ) {
   if (req.method !== "GET") {
@@ -10,13 +11,8 @@ export default async function handler(
   }
 
   try {
-    const { userId } = req.query;
-
-    if (!userId || typeof userId !== "string") {
-      return res.status(400).json({ 
-        error: "Missing required parameter: userId is required" 
-      });
-    }
+    // Get user ID from authenticated session (verified server-side)
+    const userId = req.userId!;
 
     const problems = await getAllProblemsByUserId(userId);
 
@@ -29,3 +25,5 @@ export default async function handler(
     });
   }
 }
+
+export default withRequiredAuth(handler);

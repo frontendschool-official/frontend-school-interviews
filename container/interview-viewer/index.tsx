@@ -14,7 +14,7 @@ import {
 import SystemDesignCanvas from "@/components/SystemDesignCanvas";
 import EvaluateButton from "@/components/EvaluateButton";
 import DSAProblemRenderer from "@/container/interviews/dsa";
-import { Loader } from "@/components/Loader";
+import { Loader } from "@/components/ui/Loader";
 import { Button } from "@/components/ui/Button";
 import { FiChevronLeft } from "react-icons/fi";
 import {

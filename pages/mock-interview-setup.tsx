@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
+import Loader from '@/components/ui/Loader';
 
 const MockInterviewSetup: React.FC = () => {
   const router = useRouter();
@@ -12,17 +13,15 @@ const MockInterviewSetup: React.FC = () => {
 
   return (
     <Layout
-      isLoading={true}
-      loadingText="Redirecting to Mock Interview Setup..."
+      isLoading={false}
       handleRetry={() => {}}
       handleBack={() => router.back()}
     >
-      <div className="min-h-screen bg-bodyBg flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-text">Redirecting to Mock Interview Setup...</p>
-        </div>
-      </div>
+      <Loader 
+        text="Redirecting to Mock Interview Setup..." 
+        size="lg" 
+        fullScreen 
+      />
     </Layout>
   );
 };

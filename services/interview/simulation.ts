@@ -322,8 +322,9 @@ export async function generateSimulationProblems(
 
     for (let j = 0; j < problemsCount; j++) {
       try {
+        const roundType = determineRoundType(round);
         const problem = await generateMockInterviewProblem(
-          round.type || "machine_coding",
+          roundType,
           companyName,
           roleLevel,
           round.difficulty || "medium"
@@ -332,14 +333,14 @@ export async function generateSimulationProblems(
         if (problem) {
           problems.push({
             id: `round_${i + 1}_problem_${j + 1}`,
-            type: round.type || "machine_coding",
+            type: roundType,
             title: problem.title,
             description: problem.description,
             difficulty: round.difficulty || "medium",
             estimatedTime: `${Math.floor(roundDuration / problemsCount)} minutes`,
-            content: problem.content || {},
+            content: {},
             roundName: round.name,
-            roundType: round.type || "machine_coding",
+            roundType: roundType,
           });
         }
       } catch (error) {
@@ -348,20 +349,18 @@ export async function generateSimulationProblems(
     }
 
     simulationRounds.push({
-      id: `round_${i + 1}`,
-      name: round.name,
-      type: round.type || "machine_coding",
-      description: round.description,
-      duration: `${roundDuration} minutes`,
-      difficulty: round.difficulty || "medium",
+      round: round,
       problems,
+      totalTime: roundDuration,
     });
   }
 
   return {
+    companyName,
+    roleLevel,
+    startingRound,
     rounds: simulationRounds,
-    totalDuration: `${totalDuration} minutes`,
-    totalRounds: rounds.length,
+    totalDuration: totalDuration,
   };
 }
 
@@ -573,7 +572,7 @@ export const createInterviewSimulation = async (
     const ref = collection(db, COLLECTIONS.INTERVIEW_SIMULATIONS);
 
     // Use custom rounds if provided, otherwise use insights rounds
-    const roundsToUse = customRounds || insights.rounds;
+    const roundsToUse = customRounds || insights.data.rounds;
     console.log(roundsToUse, "roundsToUse");
     // Enrich rounds for UI: add stable id, initial status, and empty problems array
     const enrichedRounds = roundsToUse?.map((r: any, index: number) => ({
@@ -601,8 +600,8 @@ export const createInterviewSimulation = async (
       status: "active",
       createdAt: Timestamp.now(),
       simulationConfig: {
-        estimatedDuration: insights?.estimatedDuration,
-        totalRounds: customRounds?.length || insights?.totalRounds,
+        estimatedDuration: insights?.data?.estimatedDuration,
+        totalRounds: customRounds?.length || insights?.data?.totalRounds,
       },
     };
     console.log(payload, "payload");

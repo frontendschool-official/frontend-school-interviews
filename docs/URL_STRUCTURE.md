@@ -71,6 +71,12 @@ This document outlines the complete URL structure and reusable components for th
 /learn/best-practices       # Best practices
 ```
 
+### Roadmap
+```
+/roadmap                    # Create personalized roadmap
+/roadmap/view               # View generated roadmap
+```
+
 ## 🧩 Reusable Components
 
 ### Dashboard Components

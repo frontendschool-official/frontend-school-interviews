@@ -98,11 +98,11 @@ export default function ProblemSolver({ problemId }: ProblemSolverProps) {
       switch (problem.interviewType) {
         case 'dsa':
           return 'dsa';
-        case 'machine_coding':
+        case 'coding':
           return 'machine-coding';
         case 'design':
           return 'system-design';
-        case 'theory':
+        case 'theory_and_debugging':
           return 'theory';
         default:
           return 'machine-coding';
@@ -111,8 +111,8 @@ export default function ProblemSolver({ problemId }: ProblemSolverProps) {
 
     const editorType = getEditorType();
     console.log('Selected Editor Type:', editorType);
-    if (problem.theoryProblem && problem.interviewType !== 'theory') {
-      console.log('⚠️ FALLBACK: Problem has theoryProblem but interviewType is not "theory"');
+    if (problem.theoryProblem && problem.interviewType !== 'theory_and_debugging') {
+      console.log('⚠️ FALLBACK: Problem has theoryProblem but interviewType is not "theory_and_debugging"');
       console.log('Using theory editor as fallback');
     }
     console.log('=== End Debug ===');
@@ -249,7 +249,7 @@ export default function ProblemSolver({ problemId }: ProblemSolverProps) {
                 </ul>
               </div>
             )}
-            {problem.interviewType === 'theory' && problem.theoryProblem?.keyPoints && (
+            {problem.interviewType === 'theory_and_debugging' && problem.theoryProblem?.keyPoints && (
               <div>
                 <h3>Key Points:</h3>
                 <ul>
@@ -270,7 +270,7 @@ export default function ProblemSolver({ problemId }: ProblemSolverProps) {
               <Tab active>Solution</Tab>
             </EditorTabs>
             <ActionButtons>
-              {problem.interviewType !== 'theory' && (
+              {problem.interviewType !== 'theory_and_debugging' && (
                 <EvaluateButton
                   designation={problem.designation}
                   code={code}

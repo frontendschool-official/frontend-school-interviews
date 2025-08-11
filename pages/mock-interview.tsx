@@ -22,6 +22,7 @@ import { useThemeContext } from "../hooks/useTheme";
 import { useMockInterviewSetup } from "../hooks/useMockInterviewSetup";
 import NavBar from "../components/NavBar";
 import MockInterviewComponent from "../components/MockInterview";
+import Loader from "@/components/ui/Loader";
 import {
   Button,
 } from "../styles/SharedUI";
@@ -165,10 +166,7 @@ export default function MockInterview() {
     return (
       <div className="min-h-screen bg-bodyBg">
         <NavBar />
-        <div className="flex flex-col items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          <p className="mt-4 text-neutral-600">Loading...</p>
-        </div>
+        <Loader text="Loading..." size="md" fullScreen />
       </div>
     );
   }

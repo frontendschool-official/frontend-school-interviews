@@ -1,8 +1,9 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextApiResponse } from "next";
 import { getUserProfile } from "@/services/firebase/user-profile";
+import { withRequiredAuth, AuthenticatedRequest } from "@/lib/auth";
 
-export default async function handler(
-  req: NextApiRequest,
+async function handler(
+  req: AuthenticatedRequest,
   res: NextApiResponse
 ) {
   if (req.method !== "GET") {
@@ -10,15 +11,10 @@ export default async function handler(
   }
 
   try {
-    const { uid } = req.query;
+    // Get user ID from authenticated session (verified server-side)
+    const userId = req.userId!;
 
-    if (!uid || typeof uid !== "string") {
-      return res.status(400).json({ 
-        error: "Missing required parameter: uid is required" 
-      });
-    }
-
-    const profile = await getUserProfile(uid);
+    const profile = await getUserProfile(userId);
 
     if (!profile) {
       return res.status(404).json({ error: "User profile not found" });
@@ -32,4 +28,6 @@ export default async function handler(
       message: error instanceof Error ? error.message : "Unknown error"
     });
   }
-} 
+}
+
+export default withRequiredAuth(handler); 

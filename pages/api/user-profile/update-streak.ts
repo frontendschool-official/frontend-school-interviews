@@ -1,8 +1,9 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextApiResponse } from "next";
 import { updateUserStreak } from "@/services/firebase/user-profile";
+import { withRequiredAuth, AuthenticatedRequest } from "@/lib/auth";
 
-export default async function handler(
-  req: NextApiRequest,
+async function handler(
+  req: AuthenticatedRequest,
   res: NextApiResponse
 ) {
   if (req.method !== "POST") {
@@ -10,13 +11,8 @@ export default async function handler(
   }
 
   try {
-    const { userId } = req.body;
-
-    if (!userId) {
-      return res.status(400).json({ 
-        error: "Missing required field: userId is required" 
-      });
-    }
+    // Get user ID from authenticated session (verified server-side)
+    const userId = req.userId!;
 
     await updateUserStreak(userId);
 
@@ -31,4 +27,6 @@ export default async function handler(
       message: error instanceof Error ? error.message : "Unknown error"
     });
   }
-} 
+}
+
+export default withRequiredAuth(handler); 

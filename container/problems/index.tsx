@@ -7,6 +7,7 @@ import { useInterviewGeneration } from "@/container/problems/hooks/useInterviewG
 import { useProblemFilters } from "@/container/problems/hooks/useProblemFilters";
 import Tabs, { TabItem } from "@/components/ui/Tabs";
 import Layout from "@/components/Layout";
+import { ProblemCardLoadingState } from "@/components/ui/LoadingState";
 import { 
   FiSearch, 
   FiX, 
@@ -219,13 +220,16 @@ const ProblemsPage: React.FC = () => {
 
   return (
     <Layout
-      isLoading={isLoading}
-      loadingText="Loading problems..."
+      isLoading={false}
       handleRetry={() => {}}
       handleBack={() => window.history.back()}
     >
       <div className="max-w-7xl mx-auto p-4 min-h-screen bg-bodyBg">
-        {/* Header Section */}
+        {isLoading ? (
+          <ProblemCardLoadingState count={9} />
+        ) : (
+          <>
+            {/* Header Section */}
         <div className="mb-6 sm:mb-8">
           <div className="flex justify-between items-start mb-4 sm:mb-6 p-4 sm:p-6 bg-secondary rounded-2xl border border-border shadow-lg md:flex-row flex-col gap-4 text-center md:text-left">
             <div className="flex-1">
@@ -519,6 +523,8 @@ const ProblemsPage: React.FC = () => {
           onClose={closeModal}
           onSubmit={handleStartInterview}
         />
+          </>
+        )}
       </div>
     </Layout>
   );

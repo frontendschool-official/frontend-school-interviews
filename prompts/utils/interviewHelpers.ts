@@ -243,7 +243,7 @@ export function createInterviewPromptProcessor(promptManager: PromptManager) {
         })
         .build();
 
-      return promptManager.processPrompt('combinedProblem', variables, {
+      return promptManager.processPrompt('dsaProblem', variables, {
         version: params.version,
       });
     },

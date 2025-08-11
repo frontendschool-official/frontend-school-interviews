@@ -35,7 +35,7 @@ export const useProblemFilters = ({ problems = [], statuses = {}, user }: UsePro
         case 'dsa': return 'dsa';
         case 'coding': return 'machine_coding';
         case 'design': return 'system_design';
-        case 'theory': return 'theory';
+        case 'theory_and_debugging': return 'theory_and_debugging';
         default: return 'user_generated';
       }
     }
@@ -47,7 +47,7 @@ export const useProblemFilters = ({ problems = [], statuses = {}, user }: UsePro
     dsa: problems?.filter((p) => getProblemType(p) === 'dsa').length || 0,
     machineCoding: problems?.filter((p) => getProblemType(p) === 'machine_coding').length || 0,
     systemDesign: problems?.filter((p) => getProblemType(p) === 'system_design').length || 0,
-    theory: problems?.filter((p) => getProblemType(p) === 'theory').length || 0,
+    theory: problems?.filter((p) => getProblemType(p) === 'theory_and_debugging').length || 0,
     attempted: user && statuses
       ? Object.values(statuses).filter((s) => s === 'attempted').length
       : 0,
@@ -64,7 +64,7 @@ export const useProblemFilters = ({ problems = [], statuses = {}, user }: UsePro
       if (activeProblemFilter === 'dsa') return problemType === 'dsa';
       if (activeProblemFilter === 'machine_coding') return problemType === 'machine_coding';
       if (activeProblemFilter === 'system_design') return problemType === 'system_design';
-      if (activeProblemFilter === 'theory') return problemType === 'theory';
+      if (activeProblemFilter === 'theory') return problemType === 'theory_and_debugging';
       if (activeProblemFilter === 'attempted') return statuses[problem.id || ''] === 'attempted';
       return true;
     });

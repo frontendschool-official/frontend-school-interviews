@@ -1,9 +1,10 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextApiResponse } from "next";
 import { updateUserProfile } from "@/services/firebase/user-profile";
 import { ProfileUpdateData } from "@/types/user";
+import { withRequiredAuth, AuthenticatedRequest } from "@/lib/auth";
 
-export default async function handler(
-  req: NextApiRequest,
+async function handler(
+  req: AuthenticatedRequest,
   res: NextApiResponse
 ) {
   if (req.method !== "PUT") {
@@ -11,15 +12,18 @@ export default async function handler(
   }
 
   try {
-    const { uid, updates } = req.body;
+    const { updates } = req.body;
 
-    if (!uid || !updates) {
+    if (!updates) {
       return res.status(400).json({ 
-        error: "Missing required fields: uid and updates are required" 
+        error: "Missing required field: updates is required" 
       });
     }
 
-    await updateUserProfile(uid, updates as ProfileUpdateData);
+    // Get user ID from authenticated session (verified server-side)
+    const userId = req.userId!;
+
+    await updateUserProfile(userId, updates as ProfileUpdateData);
 
     res.status(200).json({ success: true });
   } catch (error) {
@@ -29,4 +33,6 @@ export default async function handler(
       message: error instanceof Error ? error.message : "Unknown error"
     });
   }
-} 
+}
+
+export default withRequiredAuth(handler); 

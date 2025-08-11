@@ -33,13 +33,13 @@ export function useApi<T = any>(
           setState(prev => ({
             ...prev,
             loading: false,
-            error: response.error,
+            error: response.error || 'Unknown error',
           }));
         } else {
           setState(prev => ({
             ...prev,
             loading: false,
-            data: response.data,
+            data: response.data || null,
           }));
         }
         

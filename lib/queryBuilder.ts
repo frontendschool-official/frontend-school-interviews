@@ -24,7 +24,7 @@ export const getAllCompanies = async () => {
   return snapshot.docs.map((doc) => ({
     id: doc.id,
     ...doc.data(),
-  }));
+  })) as any[];
 };
 
 export const getCompanyById = async (companyId: string) => {

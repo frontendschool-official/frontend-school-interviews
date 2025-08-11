@@ -1,5 +1,5 @@
 import { NextApiResponse } from 'next';
-import { withAuth, AuthenticatedRequest, getUserIdFromHeader } from '@/lib/auth';
+import { withAuth, AuthenticatedRequest, getUserIdFromRequest } from '@/lib/auth';
 
 async function handler(
   req: AuthenticatedRequest,
@@ -13,8 +13,8 @@ async function handler(
     // Get user ID from the authenticated request (original way)
     const userId = req.userId;
     
-    // Get user ID from headers (new way)
-    const userIdFromHeader = getUserIdFromHeader(req);
+    // Get user ID from request (new way)
+    const userIdFromRequest = getUserIdFromRequest(req);
     
     if (!userId) {
       return res.status(401).json({ 
@@ -27,11 +27,11 @@ async function handler(
       success: true,
       message: 'Authentication is working correctly',
       userId: userId,
-      userIdFromHeader: userIdFromHeader,
+      userIdFromRequest: userIdFromRequest,
       headers: {
         'authorization': req.headers.authorization ? 'Bearer [token]' : 'Not provided',
         'session-cookie': req.cookies?.session ? 'Present' : 'Not provided',
-        'x-user-id': req.headers['x-user-id'] || 'Not set'
+        'x-user-id': 'Removed - using req.userId instead'
       }
     });
   } catch (error) {

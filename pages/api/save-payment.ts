@@ -1,6 +1,7 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+import { NextApiResponse } from 'next';
 import { db } from '../../services/firebase/config';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
+import { withRequiredAuth, AuthenticatedRequest } from '@/lib/auth';
 
 /**
  * @swagger
@@ -17,7 +18,6 @@ import { collection, addDoc, Timestamp } from 'firebase/firestore';
  *           schema:
  *             $ref: '#/components/schemas/SavePaymentRequest'
  *           example:
- *             userId: "user123"
  *             orderId: "order_1234567890"
  *             paymentId: "pay_1234567890"
  *             amount: 999
@@ -73,8 +73,8 @@ import { collection, addDoc, Timestamp } from 'firebase/firestore';
  *             example:
  *               error: "Failed to save payment"
  */
-export default async function handler(
-  req: NextApiRequest,
+async function handler(
+  req: AuthenticatedRequest,
   res: NextApiResponse
 ) {
   console.log('Save payment API called with method:', req.method);
@@ -84,11 +84,15 @@ export default async function handler(
   }
 
   try {
-    const { userId, orderId, paymentId, amount, currency, status, items } = req.body;
+    const { orderId, paymentId, amount, currency, status, items } = req.body;
+    
+    // Get user ID from authenticated session (verified server-side)
+    const userId = req.userId!;
+    
     console.log('Payment data received:', { userId, orderId, paymentId, amount, currency, status });
 
     // Validate required fields
-    if (!userId || !orderId || !paymentId || !amount) {
+    if (!orderId || !paymentId || !amount) {
       console.error('Missing required fields for saving payment');
       return res.status(400).json({ error: 'Missing required fields' });
     }
@@ -125,4 +129,6 @@ export default async function handler(
       error: 'Failed to save payment',
     });
   }
-} 
+}
+
+export default withRequiredAuth(handler); 

@@ -96,7 +96,7 @@ const PremiumPage: NextPage = () => {
         throw new Error(orderResponse.error);
       }
 
-      const order = orderResponse.data;
+      const order = orderResponse.data as any;
 
       // Initialize payment
       const paymentDetails = {

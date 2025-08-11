@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { collection, getDocs, orderBy, query } from "firebase/firestore";
 import { db } from "../../../services/firebase";
 import { Company } from "../../../types/problem";
-import { withAuth, withRequiredAuth, getUserIdFromHeader } from "@/lib/auth";
+import { withAuth, withRequiredAuth } from "@/lib/auth";
 
 /**
  * @swagger
@@ -130,10 +130,6 @@ interface ApiResponse {
 }
 
 async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse>) {
-  // Get user ID from headers (new way)
-  console.log(req.headers["x-user-id"], "req.headers['x-user-id']");
-  // const userIdFromHeader = getUserIdFromHeader(req);
-  // console.log("User ID from header:", userIdFromHeader);
 
   // Only allow GET requests
   if (req.method !== "GET") {

@@ -68,7 +68,7 @@ const UserProfile: React.FC = () => {
         </div>
 
         <button
-          onClick={() => setIsEditing(true)}
+          onClick={handleEdit}
           className="bg-gradient-to-r from-primary to-accent text-white border-none px-4 sm:px-6 py-2 sm:py-3 rounded-full font-semibold cursor-pointer transition-all duration-300 flex items-center gap-2 hover:-translate-y-0.5 hover:shadow-lg text-sm sm:text-base"
         >
           <FaEdit />

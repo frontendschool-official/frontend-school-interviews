@@ -1,8 +1,9 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextApiResponse } from "next";
 import { markProblemAsCompleted } from "@/services/firebase/user-progress";
+import { withRequiredAuth, AuthenticatedRequest } from "@/lib/auth";
 
-export default async function handler(
-  req: NextApiRequest,
+async function handler(
+  req: AuthenticatedRequest,
   res: NextApiResponse
 ) {
   if (req.method !== "POST") {
@@ -10,13 +11,16 @@ export default async function handler(
   }
 
   try {
-    const { userId, problemId, score, timeSpent } = req.body;
+    const { problemId, score, timeSpent } = req.body;
 
-    if (!userId || !problemId || score === undefined || timeSpent === undefined) {
+    if (!problemId || score === undefined || timeSpent === undefined) {
       return res.status(400).json({ 
-        error: "Missing required fields: userId, problemId, score, and timeSpent are required" 
+        error: "Missing required fields: problemId, score, and timeSpent are required" 
       });
     }
+
+    // Get user ID from authenticated session (verified server-side)
+    const userId = req.userId!;
 
     await markProblemAsCompleted(userId, problemId, score, timeSpent);
 
@@ -28,4 +32,6 @@ export default async function handler(
       message: error instanceof Error ? error.message : "Unknown error"
     });
   }
-} 
+}
+
+export default withRequiredAuth(handler); 
