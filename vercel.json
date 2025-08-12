@@ -3,18 +3,13 @@
   "builds": [
     {
       "src": "package.json",
-      "use": "@vercel/next"
+      "use": "@vercel/next",
+      "config": {
+        "nodeVersion": "20.x"
+      }
     }
   ],
-  "build": {
-    "env": {
-      "NODE_OPTIONS": "--max-old-space-size=4096"
-    }
-  },
-  "functions": {
-    "pages/api/**/*.ts": {
-      "maxDuration": 30
-    }
-  },
-  "installCommand": "npm install --legacy-peer-deps"
+  "env": {
+    "NODE_VERSION": "20.x"
+  }
 }
