@@ -19,7 +19,7 @@ export default function Navbar() {
       setIsMenuOpen(false); // Close the menu first
       const result = await signOut();
       console.log('🚀 SignOut result:', result);
-      
+
       // Navigate to home page after successful logout
       router.push('/');
     } catch (error) {
@@ -32,7 +32,10 @@ export default function Navbar() {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsMenuOpen(false);
       }
     };
@@ -53,12 +56,12 @@ export default function Navbar() {
   ];
 
   return (
-    <header className="w-full px-6 py-3 flex items-center justify-between bg-secondary/80 backdrop-blur border-b border-border sticky top-0 z-50">
-      <div className="flex items-center gap-6">
-        <Link href="/" className="text-xl font-extrabold text-primary">
+    <header className='w-full px-6 py-3 flex items-center justify-between bg-secondary/80 backdrop-blur border-b border-border sticky top-0 z-50'>
+      <div className='flex items-center gap-6'>
+        <Link href='/' className='text-xl font-extrabold text-primary'>
           Frontend School
         </Link>
-        <nav className="hidden md:flex items-center gap-1">
+        <nav className='hidden md:flex items-center gap-1'>
           {links.map(({ href, label, auth }) => {
             if (auth && !user) return null;
             const active = router.pathname === href;
@@ -74,38 +77,54 @@ export default function Navbar() {
           })}
         </nav>
       </div>
-      <div className="flex items-center gap-2">
+      <div className='flex items-center gap-2'>
         <ThemeToggle onToggle={toggleTheme} />
         {user ? (
-          <div className="relative" ref={dropdownRef}>
+          <div className='relative' ref={dropdownRef}>
             <button
-              onClick={() => setIsMenuOpen((v) => !v)}
-              className="h-9 px-3 inline-flex items-center gap-2 rounded-xl border border-border bg-secondary hover:bg-secondary/80"
-              aria-haspopup="menu"
+              onClick={() => setIsMenuOpen(v => !v)}
+              className='h-9 px-3 inline-flex items-center gap-2 rounded-xl border border-border bg-secondary hover:bg-secondary/80'
+              aria-haspopup='menu'
               aria-expanded={isMenuOpen}
             >
               <img
                 src={user.photoURL || ''}
-                alt="avatar"
-                className="h-6 w-6 rounded-full object-cover"
+                alt='avatar'
+                className='h-6 w-6 rounded-full object-cover'
               />
               <FiChevronDown />
             </button>
             {isMenuOpen && (
               <div
-                role="menu"
-                className="absolute right-0 mt-2 min-w-[180px] rounded-xl border border-border bg-bodyBg shadow-card p-1"
+                role='menu'
+                className='absolute right-0 mt-2 min-w-[180px] rounded-xl border border-border bg-bodyBg shadow-card p-1'
               >
-                <Link href="/profile" className="block px-3 py-2 rounded-lg text-sm text-text hover:bg-secondary" role="menuitem">Profile</Link>
-                <button className="w-full text-left px-3 py-2 rounded-lg text-sm text-text hover:bg-secondary" role="menuitem" onClick={handleSignOut}>Sign out</button>
+                <Link
+                  href='/profile'
+                  className='block px-3 py-2 rounded-lg text-sm text-text hover:bg-secondary'
+                  role='menuitem'
+                >
+                  Profile
+                </Link>
+                <button
+                  className='w-full text-left px-3 py-2 rounded-lg text-sm text-text hover:bg-secondary'
+                  role='menuitem'
+                  onClick={handleSignOut}
+                >
+                  Sign out
+                </button>
               </div>
             )}
           </div>
         ) : (
-          <Link href="/login" className="bg-primary text-white px-4 py-2 rounded-xl font-semibold shadow-card hover:shadow-lg">Login</Link>
+          <Link
+            href='/login'
+            className='bg-primary text-white px-4 py-2 rounded-xl font-semibold shadow-card hover:shadow-lg'
+          >
+            Login
+          </Link>
         )}
       </div>
     </header>
   );
 }
-

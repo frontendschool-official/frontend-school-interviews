@@ -1,9 +1,10 @@
 import React, { forwardRef } from 'react';
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'icon';
+type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'icon' | 'danger';
 type ButtonSize = 'sm' | 'md' | 'lg';
 
-export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   isLoading?: boolean;
@@ -18,8 +19,9 @@ const variantClasses: Record<ButtonVariant, string> = {
     'bg-secondary text-text border border-border hover:bg-secondary/80 focus:shadow-focus disabled:opacity-60',
   ghost:
     'bg-transparent text-text hover:bg-secondary border border-transparent hover:border-border focus:shadow-focus disabled:opacity-60',
-  icon:
-    'bg-secondary text-text border border-border hover:bg-secondary/80 focus:shadow-focus disabled:opacity-60 p-0',
+  icon: 'bg-secondary text-text border border-border hover:bg-secondary/80 focus:shadow-focus disabled:opacity-60 p-0',
+  danger:
+    'bg-red-500 text-white hover:bg-red-600 focus:shadow-focus disabled:bg-red-500/60',
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
@@ -29,9 +31,23 @@ const sizeClasses: Record<ButtonSize, string> = {
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ variant = 'primary', size = 'md', isLoading = false, leftIcon, rightIcon, className = '', children, disabled, ...props }, ref) => {
+  (
+    {
+      variant = 'primary',
+      size = 'md',
+      isLoading = false,
+      leftIcon,
+      rightIcon,
+      className = '',
+      children,
+      disabled,
+      ...props
+    },
+    ref
+  ) => {
     const isIconOnly = variant === 'icon';
-    const base = 'inline-flex items-center justify-center rounded-xl font-semibold transition-all select-none outline-none focus:outline-none';
+    const base =
+      'inline-flex items-center justify-center rounded-xl font-semibold transition-all select-none outline-none focus:outline-none';
     const iconSizing = isIconOnly ? 'h-10 w-10' : '';
     const gap = isIconOnly ? '' : 'gap-2';
     return (
@@ -43,7 +59,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {isLoading && (
-          <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/60 border-t-transparent" aria-hidden />
+          <span
+            className='inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/60 border-t-transparent'
+            aria-hidden
+          />
         )}
         {!isLoading && leftIcon}
         {!isIconOnly && <span>{children}</span>}
@@ -56,4 +75,3 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = 'Button';
 
 export default Button;
-

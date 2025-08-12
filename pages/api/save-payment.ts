@@ -73,23 +73,27 @@ import { withRequiredAuth, AuthenticatedRequest } from '@/lib/auth';
  *             example:
  *               error: "Failed to save payment"
  */
-async function handler(
-  req: AuthenticatedRequest,
-  res: NextApiResponse
-) {
+async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   console.log('Save payment API called with method:', req.method);
-  
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
     const { orderId, paymentId, amount, currency, status, items } = req.body;
-    
+
     // Get user ID from authenticated session (verified server-side)
     const userId = req.userId!;
-    
-    console.log('Payment data received:', { userId, orderId, paymentId, amount, currency, status });
+
+    console.log('Payment data received:', {
+      userId,
+      orderId,
+      paymentId,
+      amount,
+      currency,
+      status,
+    });
 
     // Validate required fields
     if (!orderId || !paymentId || !amount) {
@@ -131,4 +135,4 @@ async function handler(
   }
 }
 
-export default withRequiredAuth(handler); 
+export default withRequiredAuth(handler);

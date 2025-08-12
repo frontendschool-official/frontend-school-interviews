@@ -21,4 +21,4 @@ describe('Hooks', () => {
   test('useModal should be defined', () => {
     expect(useModal).toBeDefined();
   });
-}); 
+});

@@ -1,4 +1,8 @@
-import { PaymentDetails, RazorpayOrder, PaymentResponse } from '../../types/cart';
+import {
+  PaymentDetails,
+  RazorpayOrder,
+  PaymentResponse,
+} from '../../types/cart';
 
 declare global {
   interface Window {
@@ -23,7 +27,9 @@ export const loadRazorpayScript = (): Promise<void> => {
 };
 
 // Create order on backend
-export const createOrder = async (paymentDetails: PaymentDetails): Promise<RazorpayOrder> => {
+export const createOrder = async (
+  paymentDetails: PaymentDetails
+): Promise<RazorpayOrder> => {
   try {
     console.log('Creating order with details:', paymentDetails);
 
@@ -40,7 +46,7 @@ export const createOrder = async (paymentDetails: PaymentDetails): Promise<Razor
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Create order error response:', errorText);
-      
+
       let errorMessage = 'Failed to create order';
       try {
         const errorData = JSON.parse(errorText);
@@ -48,10 +54,10 @@ export const createOrder = async (paymentDetails: PaymentDetails): Promise<Razor
         if (errorData.details) {
           console.error('Error details:', errorData.details);
         }
-      } catch (e) {
+      } catch {
         console.error('Raw error response:', errorText);
       }
-      
+
       throw new Error(errorMessage);
     }
 
@@ -90,25 +96,27 @@ export const initializePayment = async (
     // Format phone number for Razorpay (remove +91, spaces, dashes)
     const formatPhoneNumber = (phone: string): string => {
       if (!phone) return '';
-      
+
       // Remove all non-digit characters
       let cleaned = phone.replace(/\D/g, '');
-      
+
       // If it starts with 91 and is 12 digits, remove 91
       if (cleaned.startsWith('91') && cleaned.length === 12) {
         cleaned = cleaned.substring(2);
       }
-      
+
       // If it's 10 digits, it's valid
       if (cleaned.length === 10) {
         return cleaned;
       }
-      
+
       // If it's less than 10 digits, return empty (invalid)
       return '';
     };
 
-    const formattedPhone = formatPhoneNumber(paymentDetails.customerPhone || '');
+    const formattedPhone = formatPhoneNumber(
+      paymentDetails.customerPhone || ''
+    );
 
     console.log('Initializing Razorpay with options:', {
       key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
@@ -157,25 +165,25 @@ export const initializePayment = async (
               name: 'Pay using UPI',
               instruments: [
                 {
-                  method: 'card'
+                  method: 'card',
                 },
                 {
-                  method: 'netbanking'
+                  method: 'netbanking',
                 },
                 {
-                  method: 'wallet'
+                  method: 'wallet',
                 },
                 {
-                  method: 'upi'
-                }
-              ]
-            }
+                  method: 'upi',
+                },
+              ],
+            },
           },
           sequence: ['block.banks'],
           preferences: {
-            show_default_blocks: false
-          }
-        }
+            show_default_blocks: false,
+          },
+        },
       },
       // Auto-fill customer details
       remember_customer: true,
@@ -188,7 +196,7 @@ export const initializePayment = async (
     console.log('Phone number formatting:', {
       original: paymentDetails.customerPhone,
       formatted: formattedPhone,
-      isValid: formattedPhone.length === 10
+      isValid: formattedPhone.length === 10,
     });
 
     if (!window.Razorpay) {
@@ -233,7 +241,8 @@ export const verifyPayment = async (
     console.error('Error verifying payment:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Payment verification failed',
+      error:
+        error instanceof Error ? error.message : 'Payment verification failed',
     };
   }
 };
@@ -271,4 +280,4 @@ export const savePaymentToFirebase = async (
     console.error('Error saving payment:', error);
     throw error;
   }
-}; 
+};

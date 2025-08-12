@@ -14,7 +14,7 @@ interface Role {
   id: string;
   name: string;
   description: string;
-  level: "entry" | "mid" | "senior";
+  level: 'entry' | 'mid' | 'senior';
 }
 
 interface Round {
@@ -23,123 +23,123 @@ interface Round {
   description: string;
   duration: number; // in minutes
   type:
-    | "Machine Coding"
-    | "System Design"
-    | "JavaScript Concepts"
-    | "DSA"
-    | "Theory";
+    | 'Machine Coding'
+    | 'System Design'
+    | 'JavaScript Concepts'
+    | 'DSA'
+    | 'Theory';
 }
 
 const COMPANIES: Company[] = [
   {
-    name: "Google",
-    description: "Tech giant focusing on search and AI",
-    category: "FAANG",
+    name: 'Google',
+    description: 'Tech giant focusing on search and AI',
+    category: 'FAANG',
   },
   {
-    name: "Microsoft",
-    description: "Software and cloud computing leader",
-    category: "FAANG",
+    name: 'Microsoft',
+    description: 'Software and cloud computing leader',
+    category: 'FAANG',
   },
   {
-    name: "Amazon",
-    description: "E-commerce and cloud services",
-    category: "FAANG",
+    name: 'Amazon',
+    description: 'E-commerce and cloud services',
+    category: 'FAANG',
   },
   {
-    name: "Meta",
-    description: "Social media and virtual reality",
-    category: "FAANG",
+    name: 'Meta',
+    description: 'Social media and virtual reality',
+    category: 'FAANG',
   },
   {
-    name: "Apple",
-    description: "Consumer electronics and software",
-    category: "FAANG",
+    name: 'Apple',
+    description: 'Consumer electronics and software',
+    category: 'FAANG',
   },
   {
-    name: "Netflix",
-    description: "Streaming entertainment platform",
-    category: "Tech",
+    name: 'Netflix',
+    description: 'Streaming entertainment platform',
+    category: 'Tech',
   },
   {
-    name: "Uber",
-    description: "Ride-sharing and delivery services",
-    category: "Tech",
+    name: 'Uber',
+    description: 'Ride-sharing and delivery services',
+    category: 'Tech',
   },
   {
-    name: "Airbnb",
-    description: "Online marketplace for lodging",
-    category: "Tech",
+    name: 'Airbnb',
+    description: 'Online marketplace for lodging',
+    category: 'Tech',
   },
 ];
 
 const ROLES: Role[] = [
   {
-    id: "swe-1",
-    name: "Software Engineer I",
-    description: "Entry-level software engineering role",
-    level: "entry",
+    id: 'swe-1',
+    name: 'Software Engineer I',
+    description: 'Entry-level software engineering role',
+    level: 'entry',
   },
   {
-    id: "swe-2",
-    name: "Software Engineer II",
-    description: "Mid-level software engineering role",
-    level: "mid",
+    id: 'swe-2',
+    name: 'Software Engineer II',
+    description: 'Mid-level software engineering role',
+    level: 'mid',
   },
   {
-    id: "swe-3",
-    name: "Senior Software Engineer",
-    description: "Senior-level software engineering role",
-    level: "senior",
+    id: 'swe-3',
+    name: 'Senior Software Engineer',
+    description: 'Senior-level software engineering role',
+    level: 'senior',
   },
   {
-    id: "sde-1",
-    name: "Software Development Engineer I",
-    description: "Entry-level development role",
-    level: "entry",
+    id: 'sde-1',
+    name: 'Software Development Engineer I',
+    description: 'Entry-level development role',
+    level: 'entry',
   },
   {
-    id: "sde-2",
-    name: "Software Development Engineer II",
-    description: "Mid-level development role",
-    level: "mid",
+    id: 'sde-2',
+    name: 'Software Development Engineer II',
+    description: 'Mid-level development role',
+    level: 'mid',
   },
   {
-    id: "sde-3",
-    name: "Senior Software Development Engineer",
-    description: "Senior-level development role",
-    level: "senior",
+    id: 'sde-3',
+    name: 'Senior Software Development Engineer',
+    description: 'Senior-level development role',
+    level: 'senior',
   },
 ];
 
 const ROUNDS: Round[] = [
   {
-    id: "machine-coding",
-    name: "Machine Coding Round",
-    description: "Live coding session with real-time problem solving",
+    id: 'machine-coding',
+    name: 'Machine Coding Round',
+    description: 'Live coding session with real-time problem solving',
     duration: 45,
-    type: "Machine Coding",
+    type: 'Machine Coding',
   },
   {
-    id: "system-design",
-    name: "System Design Round",
-    description: "Architecture and system design discussion",
+    id: 'system-design',
+    name: 'System Design Round',
+    description: 'Architecture and system design discussion',
     duration: 60,
-    type: "System Design",
+    type: 'System Design',
   },
   {
-    id: "dsa",
-    name: "Data Structures & Algorithms",
-    description: "Algorithm problem solving and optimization",
+    id: 'dsa',
+    name: 'Data Structures & Algorithms',
+    description: 'Algorithm problem solving and optimization',
     duration: 45,
-    type: "DSA",
+    type: 'DSA',
   },
   {
-    id: "theory",
-    name: "Technical Theory",
-    description: "Core concepts and theoretical knowledge",
+    id: 'theory',
+    name: 'Technical Theory',
+    description: 'Core concepts and theoretical knowledge',
     duration: 30,
-    type: "Theory",
+    type: 'Theory',
   },
 ];
 
@@ -148,11 +148,12 @@ export const useMockInterviewSetup = () => {
   const { user, loading: authLoading } = useAuth();
   const { type } = router.query;
 
-  const [step, setStep] = useState<"setup" | "interview" | "loading">("setup");
+  const [step, setStep] = useState<'setup' | 'interview' | 'loading'>('setup');
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [selectedRound, setSelectedRound] = useState<Round | null>(null);
-  const [selectedInterviewType, setSelectedInterviewType] = useState<string>("");
+  const [selectedInterviewType, setSelectedInterviewType] =
+    useState<string>('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [session, setSession] = useState<MockInterviewSession | null>(null);
@@ -180,14 +181,14 @@ export const useMockInterviewSetup = () => {
     }
 
     // Fallback to type parameter from URL
-    if (type && typeof type === "string") {
+    if (type && typeof type === 'string') {
       const interviewType = type.toLowerCase();
 
       // Find the appropriate round based on the type
       const matchingRound = ROUNDS.find(
-        (round) =>
-          round.type.toLowerCase().replace(" ", "_") === interviewType ||
-          round.type.toLowerCase().replace(" ", "") === interviewType ||
+        round =>
+          round.type.toLowerCase().replace(' ', '_') === interviewType ||
+          round.type.toLowerCase().replace(' ', '') === interviewType ||
           round.type.toLowerCase() === interviewType
       );
 
@@ -201,7 +202,7 @@ export const useMockInterviewSetup = () => {
   // Check authentication
   useEffect(() => {
     if (!authLoading && !user) {
-      router.push("/login");
+      router.push('/login');
     }
   }, [user, authLoading, router]);
 
@@ -236,27 +237,27 @@ export const useMockInterviewSetup = () => {
         companyName: selectedCompany.name,
         roleLevel: selectedRole.name,
         roundName: selectedRound.name,
-        roundType: selectedInterviewType.toLowerCase().replace(" ", "_") as
-          | "dsa"
-          | "machine_coding"
-          | "system_design"
-          | "theory_and_debugging",
+        roundType: selectedInterviewType.toLowerCase().replace(' ', '_') as
+          | 'dsa'
+          | 'machine_coding'
+          | 'system_design'
+          | 'theory_and_debugging',
         problems: [],
         currentProblemIndex: 0,
-        status: "active" as const,
+        status: 'active' as const,
         startedAt: new Date(),
       };
 
-      const response = await fetch("/api/interview-simulation/session/create", {
-        method: "POST",
+      const response = await fetch('/api/interview-simulation/session/create', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(sessionData),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to create interview session");
+        throw new Error('Failed to create interview session');
       }
 
       const result = await response.json();
@@ -264,14 +265,14 @@ export const useMockInterviewSetup = () => {
         ...sessionData,
         id: result.sessionId,
       };
-      
+
       setSession(newSession);
 
       // Start the interview
-      setStep("interview");
+      setStep('interview');
     } catch (error) {
-      console.error("Error starting interview:", error);
-      setError("Failed to start interview. Please try again.");
+      console.error('Error starting interview:', error);
+      setError('Failed to start interview. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -279,12 +280,12 @@ export const useMockInterviewSetup = () => {
 
   const handleInterviewComplete = (result: any) => {
     // Handle interview completion
-    console.log("Interview completed:", result);
-    router.push("/dashboard");
+    console.log('Interview completed:', result);
+    router.push('/dashboard');
   };
 
   const handleInterviewExit = () => {
-    setStep("setup");
+    setStep('setup');
     setSession(null);
   };
 
@@ -315,4 +316,4 @@ export const useMockInterviewSetup = () => {
     handleInterviewComplete,
     handleInterviewExit,
   };
-}; 
+};

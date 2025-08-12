@@ -27,15 +27,18 @@ export function withAuth(handler: ApiHandler) {
     try {
       // Get the authorization header
       const authHeader = req.headers.authorization;
-      console.log(authHeader, "authHeader");
+      console.log(authHeader, 'authHeader');
       if (!authHeader || !authHeader.startsWith('Bearer ')) {
         // If no auth header, try to get user ID from cookies (for SSR)
         const sessionCookie = req.cookies?.session;
-        
+
         if (sessionCookie) {
           try {
-            const decodedClaims = await auth().verifySessionCookie(sessionCookie, true);
-            console.log(decodedClaims, "decodedClaims");
+            const decodedClaims = await auth().verifySessionCookie(
+              sessionCookie,
+              true
+            );
+            console.log(decodedClaims, 'decodedClaims');
             req.userId = decodedClaims.uid;
           } catch (error) {
             console.error('Error verifying session cookie:', error);
@@ -44,12 +47,12 @@ export function withAuth(handler: ApiHandler) {
       } else {
         // Extract the token from the Authorization header
         const token = authHeader.split('Bearer ')[1];
-        console.log(token, "token");
+        console.log(token, 'token');
         if (token) {
           try {
             // Verify the Firebase ID token
             const decodedToken = await auth().verifyIdToken(token);
-            console.log(decodedToken, "decodedToken");
+            console.log(decodedToken, 'decodedToken');
             req.userId = decodedToken.uid;
           } catch (error) {
             console.error('Error verifying ID token:', error);
@@ -61,7 +64,7 @@ export function withAuth(handler: ApiHandler) {
       return handler(req, res);
     } catch (error) {
       console.error('withAuth error:', error);
-      
+
       // If there's an error with authentication, continue without user ID
       // This allows the API route to handle authentication errors appropriately
       return handler(req, res);
@@ -75,15 +78,24 @@ export function withRequiredAuth(handler: ApiHandler) {
     try {
       // Get the authorization header
       const authHeader = req.headers.authorization;
-      console.log("Auth headers:", req.headers.authorization ? "Bearer token present" : "No Bearer token");
-      console.log("Session cookie:", req.cookies?.session ? "Present" : "Not present");
+      console.log(
+        'Auth headers:',
+        req.headers.authorization ? 'Bearer token present' : 'No Bearer token'
+      );
+      console.log(
+        'Session cookie:',
+        req.cookies?.session ? 'Present' : 'Not present'
+      );
       if (!authHeader || !authHeader.startsWith('Bearer ')) {
         // If no auth header, try to get user ID from cookies (for SSR)
         const sessionCookie = req.cookies?.session;
-        
+
         if (sessionCookie) {
           try {
-            const decodedClaims = await auth().verifySessionCookie(sessionCookie, true);
+            const decodedClaims = await auth().verifySessionCookie(
+              sessionCookie,
+              true
+            );
             req.userId = decodedClaims.uid;
           } catch (error) {
             console.error('Error verifying session cookie:', error);
@@ -92,7 +104,7 @@ export function withRequiredAuth(handler: ApiHandler) {
       } else {
         // Extract the token from the Authorization header
         const token = authHeader.split('Bearer ')[1];
-        
+
         if (token) {
           try {
             // Verify the Firebase ID token
@@ -103,7 +115,7 @@ export function withRequiredAuth(handler: ApiHandler) {
           }
         }
       }
-      console.log("req.userId", req.userId);
+      console.log('req.userId', req.userId);
       // Check if user is authenticated
       if (!req.userId) {
         return res.status(401).json({ error: 'Authentication required' });
@@ -133,4 +145,4 @@ export function requireUserIdFromRequest(req: AuthenticatedRequest): string {
 
 export function hasUserIdInRequest(req: AuthenticatedRequest): boolean {
   return !!req.userId;
-} 
+}

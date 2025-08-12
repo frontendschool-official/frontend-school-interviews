@@ -2,13 +2,13 @@ import {
   generateInterviewInsights,
   getInterviewInsights,
   saveInsightsToCache,
-} from "@/services/interview/insights";
+} from '@/services/interview/insights';
 import {
   InterviewInsightsData,
   InterviewInsightsResponse,
-} from "@/types/problem";
-import { Timestamp } from "firebase/firestore";
-import { NextApiRequest, NextApiResponse } from "next";
+} from '@/types/problem';
+import { Timestamp } from 'firebase/firestore';
+import { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(
   req: NextApiRequest,
@@ -19,7 +19,7 @@ export default async function handler(
     if (!companyId || !designation || !companyName) {
       return res
         .status(400)
-        .json({ error: "companyId and designation are required" });
+        .json({ error: 'companyId and designation are required' });
     }
     let interviewInsights = null;
 
@@ -47,7 +47,7 @@ export default async function handler(
       return res.status(200).json(interviewInsights);
     }
   } catch (error) {
-    console.error("Error generating interview insights:", error);
-    res.status(500).json({ error: "Error generating interview insights" });
+    console.error('Error generating interview insights:', error);
+    res.status(500).json({ error: 'Error generating interview insights' });
   }
 }

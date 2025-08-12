@@ -1,17 +1,16 @@
-import { create } from "zustand";
-import { devtools, persist } from "zustand/middleware";
+import { create } from 'zustand';
+import { devtools, persist } from 'zustand/middleware';
 import {
   ProblemData,
   ParsedProblemData,
   PredefinedProblem,
   MockInterviewSession,
-  MockInterviewProblem,
   InterviewSimulationData,
   InterviewRound,
-} from "@/types/problem";
+} from '@/types/problem';
 
 // Types
-export type ProblemStatus = "attempted" | "solved" | "unsolved";
+export type ProblemStatus = 'attempted' | 'solved' | 'unsolved';
 
 // Unified problem type for store usage
 export type AppProblem = ProblemData | ParsedProblemData | PredefinedProblem;
@@ -34,12 +33,12 @@ interface ProblemsSlice {
 
 // UI slice (modals, filters, etc.)
 export type FilterType =
-  | "all"
-  | "dsa"
-  | "machine_coding"
-  | "system_design"
-  | "theory"
-  | "attempted";
+  | 'all'
+  | 'dsa'
+  | 'machine_coding'
+  | 'system_design'
+  | 'theory'
+  | 'attempted';
 
 interface UiSlice {
   promptModalOpen: boolean;
@@ -87,38 +86,37 @@ export type AppState = ProblemsSlice &
 export const useAppStore = create<AppState>()(
   devtools(
     persist(
-      (set, get) => ({
+      (set, _get) => ({
         // Problems slice
         problems: [],
         statuses: {},
         loadingProblems: false,
         problemsError: null,
         setProblems: (problems, statuses) => set({ problems, statuses }),
-        setProblemsLoading: (loading) => set({ loadingProblems: loading }),
-        setProblemsError: (error) => set({ problemsError: error }),
-        addProblem: (problem) =>
-          set((state) => ({
+        setProblemsLoading: loading => set({ loadingProblems: loading }),
+        setProblemsError: error => set({ problemsError: error }),
+        addProblem: problem =>
+          set(state => ({
             problems: [problem, ...state.problems],
             statuses: {
               ...state.statuses,
-              [(problem.id as string) || ""]: "unsolved",
+              [(problem.id as string) || '']: 'unsolved',
             },
           })),
         updateProblemStatus: (problemId, status) =>
-          set((state) => ({
+          set(state => ({
             statuses: { ...state.statuses, [problemId]: status },
           })),
 
         // UI slice
         promptModalOpen: false,
-        setPromptModalOpen: (open) => set({ promptModalOpen: open }),
-        activeProblemFilter: "all",
-        setActiveProblemFilter: (filter) =>
-          set({ activeProblemFilter: filter }),
+        setPromptModalOpen: open => set({ promptModalOpen: open }),
+        activeProblemFilter: 'all',
+        setActiveProblemFilter: filter => set({ activeProblemFilter: filter }),
 
         // Interview slice
         isEvaluating: false,
-        setIsEvaluating: (val) => set({ isEvaluating: val }),
+        setIsEvaluating: val => set({ isEvaluating: val }),
 
         // Interview Simulation slice
         simulationSelectedCompany: null,
@@ -128,21 +126,19 @@ export const useAppStore = create<AppState>()(
         simulation: null,
         currentRound: null,
         sessions: [],
-        setSimulationSelectedCompany: (company) =>
+        setSimulationSelectedCompany: company =>
           set({ simulationSelectedCompany: company }),
-        setSimulationSelectedRole: (role) =>
+        setSimulationSelectedRole: role =>
           set({ simulationSelectedRole: role }),
-        setInsights: (insights) => set({ insights }),
-        setCurrentStep: (step) => set({ currentStep: step }),
-        setSimulation: (simulation) => set({ simulation }),
-        setCurrentRound: (round) => set({ currentRound: round }),
-        setSessions: (sessions) => set({ sessions }),
-
-
+        setInsights: insights => set({ insights }),
+        setCurrentStep: step => set({ currentStep: step }),
+        setSimulation: simulation => set({ simulation }),
+        setCurrentRound: round => set({ currentRound: round }),
+        setSessions: sessions => set({ sessions }),
       }),
       {
-        name: "frontend-school-store",
-        partialize: (state) => ({
+        name: 'frontend-school-store',
+        partialize: state => ({
           // Only persist UI state, not sensitive data
           activeProblemFilter: state.activeProblemFilter,
           promptModalOpen: state.promptModalOpen,
@@ -150,7 +146,7 @@ export const useAppStore = create<AppState>()(
       }
     ),
     {
-      name: "frontend-school-store",
+      name: 'frontend-school-store',
     }
   )
 );

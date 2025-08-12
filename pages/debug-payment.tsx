@@ -6,4 +6,4 @@ const DebugPaymentPage: NextPage = () => {
   return <DebugPaymentContainer />;
 };
 
-export default DebugPaymentPage; 
+export default DebugPaymentPage;

@@ -25,21 +25,31 @@ export const ThemeContextProvider: React.FC<Props> = ({ children }) => {
 
   useEffect(() => {
     // Initialize theme from localStorage or prefers-color-scheme
-    const savedTheme = typeof window !== 'undefined'
-      ? window.localStorage.getItem('theme')
-      : null;
+    const savedTheme =
+      typeof window !== 'undefined'
+        ? window.localStorage.getItem('theme')
+        : null;
 
     let initialTheme: 'light' | 'dark' | 'black' = 'light';
-    if (savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'black') {
+    if (
+      savedTheme === 'light' ||
+      savedTheme === 'dark' ||
+      savedTheme === 'black'
+    ) {
       initialTheme = savedTheme;
     } else if (typeof window !== 'undefined' && window.matchMedia) {
-      initialTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      initialTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'light';
     }
 
     setTheme(initialTheme);
     if (typeof document !== 'undefined') {
       const root = document.documentElement;
-      root.classList.toggle('dark', initialTheme === 'dark' || initialTheme === 'black');
+      root.classList.toggle(
+        'dark',
+        initialTheme === 'dark' || initialTheme === 'black'
+      );
       root.classList.remove('theme-dark', 'theme-black');
       if (initialTheme === 'dark') root.classList.add('theme-dark');
       if (initialTheme === 'black') root.classList.add('theme-black');
@@ -61,13 +71,17 @@ export const ThemeContextProvider: React.FC<Props> = ({ children }) => {
   }, [theme, isInitialized]);
 
   const toggleTheme = () => {
-    setTheme((prev) => (prev === 'light' ? 'dark' : prev === 'dark' ? 'black' : 'light'));
+    setTheme(prev =>
+      prev === 'light' ? 'dark' : prev === 'dark' ? 'black' : 'light'
+    );
   };
 
   const themeObject = theme === 'light' ? lightTheme : darkTheme;
 
   return (
-    <ThemeContext.Provider value={{ theme, themeObject, toggleTheme, isInitialized }}>
+    <ThemeContext.Provider
+      value={{ theme, themeObject, toggleTheme, isInitialized }}
+    >
       {children}
     </ThemeContext.Provider>
   );

@@ -1,13 +1,10 @@
-import { getActiveInterviewSimulationByUserId } from "@/lib/queryBuilder";
-import { NextApiResponse } from "next";
-import { withRequiredAuth, AuthenticatedRequest } from "@/lib/auth";
+import { getActiveInterviewSimulationByUserId } from '@/lib/queryBuilder';
+import { NextApiResponse } from 'next';
+import { withRequiredAuth, AuthenticatedRequest } from '@/lib/auth';
 
-async function handler(
-  req: AuthenticatedRequest,
-  res: NextApiResponse
-) {
-  if (req.method !== "GET") {
-    return res.status(405).json({ error: "Method not allowed" });
+async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
@@ -17,13 +14,13 @@ async function handler(
     // Fetch active simulations
     const activeSimulations = await getActiveInterviewSimulationByUserId(
       userId,
-      "active"
+      'active'
     );
 
     // Fetch completed simulations
     const completedSimulations = await getActiveInterviewSimulationByUserId(
       userId,
-      "completed"
+      'completed'
     );
 
     // Combine and add document IDs
@@ -31,12 +28,12 @@ async function handler(
 
     res.status(200).json(allSimulations);
   } catch (error) {
-    console.error("Error fetching interview simulations:", error);
-    res.status(500).json({ 
-      error: "Error fetching interview simulations",
-      details: error instanceof Error ? error.message : "Unknown error"
+    console.error('Error fetching interview simulations:', error);
+    res.status(500).json({
+      error: 'Error fetching interview simulations',
+      details: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 }
 
-export default withRequiredAuth(handler); 
+export default withRequiredAuth(handler);

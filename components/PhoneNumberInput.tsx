@@ -13,10 +13,10 @@ interface PhoneNumberInputProps {
 const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
   value,
   onChange,
-  placeholder = "Enter 10-digit phone number",
+  placeholder = 'Enter 10-digit phone number',
   required = false,
   disabled = false,
-  className = "",
+  className = '',
   showValidation = true,
 }) => {
   const [isValid, setIsValid] = useState(true);
@@ -24,10 +24,10 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
 
   const validatePhoneNumber = (phone: string): boolean => {
     if (!phone) return !required; // Empty is valid if not required
-    
+
     // Remove all non-digit characters
     const cleaned = phone.replace(/\D/g, '');
-    
+
     // Must be exactly 10 digits
     return cleaned.length === 10;
   };
@@ -35,17 +35,17 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
   const formatPhoneNumber = (phone: string): string => {
     // Remove all non-digit characters
     const cleaned = phone.replace(/\D/g, '');
-    
+
     // Limit to 10 digits
     const limited = cleaned.slice(0, 10);
-    
+
     // Format as XXX-XXX-XXXX
     if (limited.length >= 6) {
       return `${limited.slice(0, 3)}-${limited.slice(3, 6)}-${limited.slice(6)}`;
     } else if (limited.length >= 3) {
       return `${limited.slice(0, 3)}-${limited.slice(3)}`;
     }
-    
+
     return limited;
   };
 
@@ -53,7 +53,7 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
     const input = e.target.value;
     const formatted = formatPhoneNumber(input);
     onChange(formatted);
-    
+
     if (touched) {
       setIsValid(validatePhoneNumber(formatted));
     }
@@ -73,7 +73,7 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
   return (
     <div className={className}>
       <input
-        type="tel"
+        type='tel'
         value={value}
         onChange={handleChange}
         onBlur={handleBlur}
@@ -103,4 +103,4 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
   );
 };
 
-export default PhoneNumberInput; 
+export default PhoneNumberInput;

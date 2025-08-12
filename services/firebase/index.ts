@@ -2,19 +2,19 @@
 export { auth, db } from './config';
 
 // Firebase Utilities
-export { 
-  FirebaseErrorHandler, 
-  ValidationUtils, 
-  DocumentUtils, 
-  SortUtils 
+export {
+  FirebaseErrorHandler,
+  ValidationUtils,
+  DocumentUtils,
+  SortUtils,
 } from './utils';
 
 // Authentication
-export { 
-  signInWithGoogle, 
-  signOutUser, 
+export {
+  signInWithGoogle,
+  signOutUser,
   onUserStateChange,
-  UserProfileUtils 
+  UserProfileUtils,
 } from './auth';
 
 // User Profile Management
@@ -79,4 +79,4 @@ export {
 export type {
   MachineCodingProblem,
   SystemDesignProblem,
-} from "../../types/problem"; 
+} from '../../types/problem';

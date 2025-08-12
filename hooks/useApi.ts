@@ -25,10 +25,10 @@ export function useApi<T = any>(
   const execute = useCallback(
     async (...args: any[]) => {
       setState(prev => ({ ...prev, loading: true, error: null }));
-      
+
       try {
         const response = await apiFunction(...args);
-        
+
         if (response.error) {
           setState(prev => ({
             ...prev,
@@ -42,16 +42,17 @@ export function useApi<T = any>(
             data: response.data || null,
           }));
         }
-        
+
         return response;
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error';
         setState(prev => ({
           ...prev,
           loading: false,
           error: errorMessage,
         }));
-        
+
         return { error: errorMessage };
       }
     },
@@ -101,18 +102,19 @@ export function useApiOperation<T = any>(
     async (...args: any[]) => {
       setLoading(true);
       setError(null);
-      
+
       try {
         const response = await apiFunction(...args);
-        
+
         if (response.error) {
           setError(response.error);
         }
-        
+
         setLoading(false);
         return response;
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error';
         setError(errorMessage);
         setLoading(false);
         return { error: errorMessage };
@@ -173,4 +175,4 @@ export function useGenerateMockInterviewProblem() {
 
 export function useEvaluateMockInterviewSubmission() {
   return useApiOperation(apiClient.evaluateMockInterviewSubmission);
-} 
+}

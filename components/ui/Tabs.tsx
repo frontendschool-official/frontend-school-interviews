@@ -18,11 +18,11 @@ export const Tabs: React.FC<TabsProps> = ({
   items,
   activeTab,
   onTabChange,
-  className = ''
+  className = '',
 }) => {
   return (
     <div className={`flex flex-wrap gap-2 ${className}`}>
-      {items?.map((item) => {
+      {items?.map(item => {
         const isActive = item.id === activeTab;
         return (
           <button
@@ -41,11 +41,13 @@ export const Tabs: React.FC<TabsProps> = ({
             `}
           >
             {item.icon && (
-              <span className={`text-base ${isActive ? 'text-white' : 'text-text/70'} flex-shrink-0`}>
+              <span
+                className={`text-base ${isActive ? 'text-white' : 'text-text/70'} flex-shrink-0`}
+              >
                 {item.icon}
               </span>
             )}
-            <span className="truncate">{item.label}</span>
+            <span className='truncate'>{item.label}</span>
             {typeof item.count === 'number' && (
               <span
                 className={`

@@ -1,6 +1,6 @@
-import { doc, setDoc } from "firebase/firestore";
-import { db } from "./config";
-import { DocumentUtils, FirebaseErrorHandler } from "./utils";
+import { doc, setDoc } from 'firebase/firestore';
+import { db } from './config';
+import { DocumentUtils, FirebaseErrorHandler } from './utils';
 
 // ============================
 // INTERVIEW SESSIONS
@@ -11,7 +11,7 @@ export interface InterviewSessionDoc {
   userId: string;
   company: string;
   role: string;
-  status: "in_progress" | "completed";
+  status: 'in_progress' | 'completed';
   currentRound: number;
   score: number;
   feedback: string;
@@ -25,10 +25,16 @@ export const upsertInterviewSession = async (
   data: Partial<InterviewSessionDoc>
 ) => {
   try {
-    const userDocRef = doc(db, "interview_sessions", userId);
+    const userDocRef = doc(db, 'interview_sessions', userId);
     await setDoc(userDocRef, { userId }, { merge: true });
 
-    const sessionDocRef = doc(db, "interview_sessions", userId, "sessions", sessionId);
+    const sessionDocRef = doc(
+      db,
+      'interview_sessions',
+      userId,
+      'sessions',
+      sessionId
+    );
     const payload: any = {
       ...data,
     };
@@ -46,15 +52,21 @@ export const upsertInterviewSession = async (
 export const completeInterviewSession = async (
   userId: string,
   sessionId: string,
-  data: Partial<Pick<InterviewSessionDoc, "score" | "feedback">>
+  data: Partial<Pick<InterviewSessionDoc, 'score' | 'feedback'>>
 ) => {
   try {
-    const sessionDocRef = doc(db, "interview_sessions", userId, "sessions", sessionId);
+    const sessionDocRef = doc(
+      db,
+      'interview_sessions',
+      userId,
+      'sessions',
+      sessionId
+    );
     await setDoc(
       sessionDocRef,
       {
         ...data,
-        status: "completed",
+        status: 'completed',
         completedAt: DocumentUtils.createServerTimestamp(),
       },
       { merge: true }
@@ -62,4 +74,4 @@ export const completeInterviewSession = async (
   } catch (error) {
     FirebaseErrorHandler.handle(error, 'complete interview session');
   }
-}; 
+};

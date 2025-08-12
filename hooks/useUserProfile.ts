@@ -15,11 +15,11 @@ export const useUserProfile = () => {
   const { userProfile, updateProfile, profileLoading } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<EditData>({
-    displayName: userProfile?.displayName || "",
-    phoneNumber: userProfile?.phoneNumber || "",
+    displayName: userProfile?.displayName || '',
+    phoneNumber: userProfile?.phoneNumber || '',
     preferences: {
-      theme: userProfile?.preferences.theme || "auto",
-      difficulty: userProfile?.preferences.difficulty || "intermediate",
+      theme: userProfile?.preferences.theme || 'auto',
+      difficulty: userProfile?.preferences.difficulty || 'intermediate',
       dailyGoal: userProfile?.preferences.dailyGoal || 30,
     },
   });
@@ -33,7 +33,7 @@ export const useUserProfile = () => {
       });
       setIsEditing(false);
     } catch (error) {
-      console.error("Error updating profile:", error);
+      console.error('Error updating profile:', error);
     }
   };
 
@@ -41,7 +41,7 @@ export const useUserProfile = () => {
     if (userProfile) {
       setEditData({
         displayName: userProfile.displayName,
-        phoneNumber: userProfile.phoneNumber || "",
+        phoneNumber: userProfile.phoneNumber || '',
         preferences: {
           theme: userProfile.preferences.theme,
           difficulty: userProfile.preferences.difficulty,
@@ -63,7 +63,10 @@ export const useUserProfile = () => {
     }));
   };
 
-  const updatePreferences = (field: keyof EditData['preferences'], value: any) => {
+  const updatePreferences = (
+    field: keyof EditData['preferences'],
+    value: any
+  ) => {
     setEditData(prev => ({
       ...prev,
       preferences: {
@@ -74,10 +77,10 @@ export const useUserProfile = () => {
   };
 
   const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
+    return new Intl.DateTimeFormat('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
     }).format(date);
   };
 
@@ -126,4 +129,4 @@ export const useUserProfile = () => {
     getDifficultyColor,
     getThemeIcon,
   };
-}; 
+};

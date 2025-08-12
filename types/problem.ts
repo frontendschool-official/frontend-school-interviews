@@ -4,26 +4,26 @@
 
 // Interview types
 export type InterviewType =
-  | "machine_coding"
-  | "system_design"
-  | "dsa"
-  | "theory_and_debugging"
-  | "behavioral_and_leadership_principles";
+  | 'machine_coding'
+  | 'system_design'
+  | 'dsa'
+  | 'theory_and_debugging'
+  | 'behavioral_and_leadership_principles';
 
 // Base problem difficulty levels
-export type Difficulty = "easy" | "medium" | "hard";
+export type Difficulty = 'easy' | 'medium' | 'hard';
 
 // Problem status types
-export type ProblemStatus = "attempted" | "solved" | "unsolved";
+export type ProblemStatus = 'attempted' | 'solved' | 'unsolved';
 
 // Problem types for different categories
 export type ProblemType =
-  | "dsa"
-  | "machine_coding"
-  | "system_design"
-  | "theory_and_debugging"
-  | "interview"
-  | "user_generated";
+  | 'dsa'
+  | 'machine_coding'
+  | 'system_design'
+  | 'theory_and_debugging'
+  | 'interview'
+  | 'user_generated';
 
 // Company interface for interview simulations
 export interface Company {
@@ -114,7 +114,11 @@ export interface TheoryProblem {
 
 // Complete Problem Schema
 export interface ProblemSchema {
-  problem?: MachineCodingProblem | SystemDesignProblem | DSAProblem | TheoryProblem;
+  problem?:
+    | MachineCodingProblem
+    | SystemDesignProblem
+    | DSAProblem
+    | TheoryProblem;
 }
 
 // Problem data as stored in Firebase
@@ -143,10 +147,10 @@ export interface ProblemData {
 export interface ParsedProblemData
   extends Omit<
     ProblemData,
-    | "machineCodingProblem"
-    | "systemDesignProblem"
-    | "dsaProblem"
-    | "theoryProblem"
+    | 'machineCodingProblem'
+    | 'systemDesignProblem'
+    | 'dsaProblem'
+    | 'theoryProblem'
   > {
   machineCodingProblem?: MachineCodingProblem | null;
   systemDesignProblem?: SystemDesignProblem | null;
@@ -203,7 +207,7 @@ export interface UnifiedProblemContent {
 export interface UnifiedProblem {
   id?: string;
   title: string;
-  type: "machine_coding" | "dsa" | "system_design" | "theory_and_debugging";
+  type: 'machine_coding' | 'dsa' | 'system_design' | 'theory_and_debugging';
   difficulty: Difficulty;
   company: string;
   role: string;
@@ -248,14 +252,14 @@ export const isValidMachineCodingProblem = (
   data: any
 ): data is MachineCodingProblem => {
   return (
-    typeof data === "object" &&
-    typeof data.title === "string" &&
-    typeof data.description === "string" &&
+    typeof data === 'object' &&
+    typeof data.title === 'string' &&
+    typeof data.description === 'string' &&
     Array.isArray(data.requirements) &&
     Array.isArray(data.constraints) &&
     Array.isArray(data.acceptanceCriteria) &&
-    ["easy", "medium", "hard"].includes(data.difficulty) &&
-    typeof data.estimatedTime === "string" &&
+    ['easy', 'medium', 'hard'].includes(data.difficulty) &&
+    typeof data.estimatedTime === 'string' &&
     Array.isArray(data.technologies)
   );
 };
@@ -264,72 +268,72 @@ export const isValidSystemDesignProblem = (
   data: any
 ): data is SystemDesignProblem => {
   return (
-    typeof data === "object" &&
-    typeof data.title === "string" &&
-    typeof data.description === "string" &&
+    typeof data === 'object' &&
+    typeof data.title === 'string' &&
+    typeof data.description === 'string' &&
     Array.isArray(data.functionalRequirements) &&
     Array.isArray(data.nonFunctionalRequirements) &&
     Array.isArray(data.constraints) &&
-    typeof data.scale === "object" &&
+    typeof data.scale === 'object' &&
     data.scale !== null &&
     // Flexible scale validation - accept any scale object with user-related metric
-    (typeof data.scale.users === "string" ||
-      typeof data.scale.dailyActiveUsers === "string" ||
-      typeof data.scale.monthlyActiveUsers === "string" ||
+    (typeof data.scale.users === 'string' ||
+      typeof data.scale.dailyActiveUsers === 'string' ||
+      typeof data.scale.monthlyActiveUsers === 'string' ||
       Object.keys(data.scale).some(
-        (key) =>
-          key.toLowerCase().includes("user") &&
-          typeof data.scale[key] === "string"
+        key =>
+          key.toLowerCase().includes('user') &&
+          typeof data.scale[key] === 'string'
       )) &&
     // Ensure scale has at least 2 metrics (not just users)
     Object.keys(data.scale).length >= 2 &&
     // Ensure all scale values are strings
-    Object.values(data.scale).every((value) => typeof value === "string") &&
+    Object.values(data.scale).every(value => typeof value === 'string') &&
     Array.isArray(data.expectedDeliverables) &&
-    ["easy", "medium", "hard"].includes(data.difficulty) &&
-    typeof data.estimatedTime === "string" &&
+    ['easy', 'medium', 'hard'].includes(data.difficulty) &&
+    typeof data.estimatedTime === 'string' &&
     Array.isArray(data.technologies)
   );
 };
 
 export const isValidDSAProblem = (data: any): data is DSAProblem => {
   return (
-    typeof data === "object" &&
-    typeof data.title === "string" &&
-    typeof data.description === "string" &&
-    typeof data.problemStatement === "string" &&
-    typeof data.inputFormat === "string" &&
-    typeof data.outputFormat === "string" &&
+    typeof data === 'object' &&
+    typeof data.title === 'string' &&
+    typeof data.description === 'string' &&
+    typeof data.problemStatement === 'string' &&
+    typeof data.inputFormat === 'string' &&
+    typeof data.outputFormat === 'string' &&
     Array.isArray(data.constraints) &&
     Array.isArray(data.examples) &&
     data.examples.every(
-      (ex: any) => typeof ex.input === "string" && typeof ex.output === "string"
+      (ex: any) => typeof ex.input === 'string' && typeof ex.output === 'string'
     ) &&
-    ["easy", "medium", "hard"].includes(data.difficulty) &&
-    typeof data.estimatedTime === "string" &&
-    typeof data.category === "string" &&
+    ['easy', 'medium', 'hard'].includes(data.difficulty) &&
+    typeof data.estimatedTime === 'string' &&
+    typeof data.category === 'string' &&
     Array.isArray(data.tags)
   );
 };
 
 export const isValidTheoryProblem = (data: any): data is TheoryProblem => {
   return (
-    typeof data === "object" &&
-    typeof data.title === "string" &&
-    typeof data.description === "string" &&
-    typeof data.question === "string" &&
-    typeof data.expectedAnswer === "string" &&
+    typeof data === 'object' &&
+    typeof data.title === 'string' &&
+    typeof data.description === 'string' &&
+    typeof data.question === 'string' &&
+    typeof data.expectedAnswer === 'string' &&
     Array.isArray(data.keyPoints) &&
-    ["easy", "medium", "hard"].includes(data.difficulty) &&
-    typeof data.estimatedTime === "string" &&
-    typeof data.category === "string" &&
+    ['easy', 'medium', 'hard'].includes(data.difficulty) &&
+    typeof data.estimatedTime === 'string' &&
+    typeof data.category === 'string' &&
     Array.isArray(data.tags)
   );
 };
 
 export const isValidProblemSchema = (data: any): data is ProblemSchema => {
   return (
-    typeof data === "object" &&
+    typeof data === 'object' &&
     // For DSA problems, only validate dsaProblem
     (data.dsaProblem ? isValidDSAProblem(data.dsaProblem) : true) &&
     // For coding/design problems, validate machineCodingProblem and systemDesignProblem
@@ -346,20 +350,15 @@ export const isValidProblemSchema = (data: any): data is ProblemSchema => {
 
 // Utility functions for working with problem data
 export const parseProblemData = (problemData: any): ParsedProblemData => {
-  console.log("=== parseProblemData Debug ===");
-  console.log("Input problemData:", problemData);
-  console.log("Interview Type:", problemData.interviewType);
-  console.log("Theory Problem raw:", problemData.theoryProblem);
+  console.log('=== parseProblemData Debug ===');
+  console.log('Input problemData:', problemData);
+  console.log('Interview Type:', problemData.interviewType);
+  console.log('Theory Problem raw:', problemData.theoryProblem);
 
   try {
     // Support unified schema documents saved into `interview_problems`
     // Unified shape: { title, type, difficulty, company, role, problem: { ... }, createdAt, updatedAt }
-    if (
-      problemData &&
-      problemData.problem &&
-      problemData.type 
- 
-    ) {
+    if (problemData && problemData.problem && problemData.type) {
       const unifiedType: string = problemData.type;
       const content: any = problemData.problem || {};
 
@@ -368,86 +367,86 @@ export const parseProblemData = (problemData: any): ParsedProblemData => {
 
       // Prepare legacy problem fields as JSON strings to keep UI logic intact
       let legacyFields: any = {};
-      if (interviewType === "dsa") {
-        const dsa: DSAProblem = {
-          title: problemData.title || "DSA Problem",
-          description: content.description || "",
-          problemStatement: content.description || "",
-          inputFormat: content.input_format || "",
-          outputFormat: content.output_format || "",
+      if (interviewType === 'dsa') {
+        const dsaProblem: DSAProblem = {
+          title: problemData.title || 'DSA Problem',
+          description: content.description || '',
+          problemStatement: content.description || '',
+          inputFormat: content.input_format || '',
+          outputFormat: content.output_format || '',
           constraints:
-            typeof content.constraints === "string"
-              ? content.constraints.split("\n").filter(Boolean)
+            typeof content.constraints === 'string'
+              ? content.constraints.split('\n').filter(Boolean)
               : content.constraints || [],
           examples:
             content.sample_input || content.sample_output
               ? [
                   {
-                    input: content.sample_input || "",
-                    output: content.sample_output || "",
+                    input: content.sample_input || '',
+                    output: content.sample_output || '',
                   },
                 ]
               : [],
-          difficulty: (problemData.difficulty as any) || "medium",
-          estimatedTime: "15-30 minutes",
-          category: "General",
+          difficulty: (problemData.difficulty as any) || 'medium',
+          estimatedTime: '15-30 minutes',
+          category: 'General',
           tags: [],
           followUpQuestions: content.follow_up_questions || [],
         };
-        
-      } else if (interviewType === "system_design") {
+        legacyFields.dsaProblem = JSON.stringify(dsaProblem);
+      } else if (interviewType === 'system_design') {
         const sd: SystemDesignProblem = {
-          title: problemData.title || "System Design Problem",
-          description: content.description || "",
+          title: problemData.title || 'System Design Problem',
+          description: content.description || '',
           functionalRequirements: [],
           nonFunctionalRequirements: [],
           constraints:
-            typeof content.constraints === "string"
-              ? content.constraints.split("\n").filter(Boolean)
+            typeof content.constraints === 'string'
+              ? content.constraints.split('\n').filter(Boolean)
               : content.constraints || [],
-          scale: { users: "", requestsPerSecond: "", dataSize: "" },
+          scale: { users: '', requestsPerSecond: '', dataSize: '' },
           expectedDeliverables: [],
-          difficulty: (problemData.difficulty as any) || "medium",
-          estimatedTime: "30-45 minutes",
+          difficulty: (problemData.difficulty as any) || 'medium',
+          estimatedTime: '30-45 minutes',
           technologies: [],
           followUpQuestions: content.follow_up_questions || [],
         };
         legacyFields.systemDesignProblem = JSON.stringify(sd);
-      } else if (interviewType === "machine_coding") {
+      } else if (interviewType === 'machine_coding') {
         const mc: MachineCodingProblem = {
-          title: problemData.title || "Machine Coding Problem",
-          description: content.description || "",
+          title: problemData.title || 'Machine Coding Problem',
+          description: content.description || '',
           requirements:
-            typeof content.input_format === "string"
-              ? content.input_format.split("\n").filter(Boolean)
+            typeof content.input_format === 'string'
+              ? content.input_format.split('\n').filter(Boolean)
               : [],
           constraints:
-            typeof content.constraints === "string"
-              ? content.constraints.split("\n").filter(Boolean)
+            typeof content.constraints === 'string'
+              ? content.constraints.split('\n').filter(Boolean)
               : content.constraints || [],
           acceptanceCriteria:
-            typeof content.output_format === "string"
-              ? content.output_format.split("\n").filter(Boolean)
+            typeof content.output_format === 'string'
+              ? content.output_format.split('\n').filter(Boolean)
               : [],
-          difficulty: (problemData.difficulty as any) || "medium",
-          estimatedTime: "30-45 minutes",
+          difficulty: (problemData.difficulty as any) || 'medium',
+          estimatedTime: '30-45 minutes',
           technologies: [],
           hints: content.follow_up_questions || [],
         };
         legacyFields.machineCodingProblem = JSON.stringify(mc);
       } else {
         const th: TheoryProblem = {
-          title: problemData.title || "JS Concepts",
-          description: content.description || "",
-          question: content.description || "",
-          expectedAnswer: content.sample_output || "",
+          title: problemData.title || 'JS Concepts',
+          description: content.description || '',
+          question: content.description || '',
+          expectedAnswer: content.sample_output || '',
           keyPoints:
-            typeof content.constraints === "string"
-              ? content.constraints.split("\n").filter(Boolean)
+            typeof content.constraints === 'string'
+              ? content.constraints.split('\n').filter(Boolean)
               : [],
-          difficulty: (problemData.difficulty as any) || "medium",
-          estimatedTime: "10-20 minutes",
-          category: "JavaScript",
+          difficulty: (problemData.difficulty as any) || 'medium',
+          estimatedTime: '10-20 minutes',
+          category: 'JavaScript',
           tags: [],
           followUpQuestions: content.follow_up_questions || [],
         };
@@ -456,17 +455,17 @@ export const parseProblemData = (problemData: any): ParsedProblemData => {
 
       const transformed = {
         id: problemData.id,
-        userId: problemData.userId || "system",
-        designation: problemData.role || "",
-        companies: problemData.company || "",
-        round: problemData.round || "",
-        title: problemData.title || "",
+        userId: problemData.userId || 'system',
+        designation: problemData.role || '',
+        companies: problemData.company || '',
+        round: problemData.round || '',
+        title: problemData.title || '',
         interviewType,
-        description: content.description || "",
-        difficulty: (problemData.difficulty as any) || "medium",
+        description: content.description || '',
+        difficulty: (problemData.difficulty as any) || 'medium',
         estimatedTime: undefined,
         content: undefined,
-        source: problemData.source || "unified",
+        source: problemData.source || 'unified',
         createdAt: problemData.createdAt,
         ...legacyFields,
       } as ProblemData;
@@ -486,17 +485,17 @@ export const parseProblemData = (problemData: any): ParsedProblemData => {
         ? (JSON.parse(problemData.dsaProblem) as DSAProblem)
         : null,
       theoryProblem: problemData.theoryProblem
-        ? typeof problemData.theoryProblem === "string"
+        ? typeof problemData.theoryProblem === 'string'
           ? (JSON.parse(problemData.theoryProblem) as TheoryProblem)
           : (problemData.theoryProblem as TheoryProblem)
         : null,
     };
-    console.log("Parsed result:", parsed);
-    console.log("=== End parseProblemData Debug ===");
+    console.log('Parsed result:', parsed);
+    console.log('=== End parseProblemData Debug ===');
     return parsed;
   } catch (error) {
-    console.error("Error parsing problem data:", error);
-    console.log("=== End parseProblemData Debug (Error) ===");
+    console.error('Error parsing problem data:', error);
+    console.log('=== End parseProblemData Debug (Error) ===');
     return {
       ...problemData,
       machineCodingProblem: null,
@@ -537,57 +536,63 @@ export const stringifyProblemData = (problemData: {
 export const getProblemCardInfo = (
   problem: ProblemData | ParsedProblemData | PredefinedProblem | UnifiedProblem
 ): ProblemCardInfo => {
-  let title = "";
-  let difficulty: Difficulty = "medium";
+  let title = '';
+  let difficulty: Difficulty = 'medium';
   let technologies: string[] = [];
-  let estimatedTime = "";
-  let category = "";
-  let type: ProblemType = "user_generated";
+  let estimatedTime = '';
+  let category = '';
+  let type: ProblemType = 'user_generated';
 
   // Handle unified schema (new format)
-  if (problem && 'type' in problem && 'problem' in problem && 
-      (problem.type === "machine_coding" || problem.type === "dsa" || 
-       problem.type === "system_design" || problem.type === "theory_and_debugging")) {
+  if (
+    problem &&
+    'type' in problem &&
+    'problem' in problem &&
+    (problem.type === 'machine_coding' ||
+      problem.type === 'dsa' ||
+      problem.type === 'system_design' ||
+      problem.type === 'theory_and_debugging')
+  ) {
     const unifiedProblem = problem as UnifiedProblem;
-    title = unifiedProblem.title || "Untitled Problem";
-    difficulty = unifiedProblem.difficulty || "medium";
+    title = unifiedProblem.title || 'Untitled Problem';
+    difficulty = unifiedProblem.difficulty || 'medium';
     type = unifiedProblem.type as ProblemType;
-    
+
     // Extract info from the problem content
     const problemContent = unifiedProblem.problem || {};
     if (problemContent.description) {
-      category = "Interview Problem";
+      category = 'Interview Problem';
     }
-    
+
     // Set default estimated time based on type
     switch (type) {
-      case "dsa":
-        estimatedTime = "15-30 minutes";
+      case 'dsa':
+        estimatedTime = '15-30 minutes';
         break;
-      case "machine_coding":
-        estimatedTime = "30-45 minutes";
+      case 'machine_coding':
+        estimatedTime = '30-45 minutes';
         break;
-      case "system_design":
-        estimatedTime = "30-45 minutes";
+      case 'system_design':
+        estimatedTime = '30-45 minutes';
         break;
-      case "theory_and_debugging":
-        estimatedTime = "15-30 minutes";
+      case 'theory_and_debugging':
+        estimatedTime = '15-30 minutes';
         break;
       default:
-        estimatedTime = "30-45 minutes";
+        estimatedTime = '30-45 minutes';
     }
-    
+
     return { title, difficulty, technologies, estimatedTime, category, type };
   }
 
   // Handle predefined problems
-  if ("type" in problem && problem.type !== "user_generated") {
-    console.log(problem, "predefinedProblem");
+  if ('type' in problem && problem.type !== 'user_generated') {
+    console.log(problem, 'predefinedProblem');
     const predefinedProblem = problem as PredefinedProblem;
     title = predefinedProblem.title;
     difficulty = predefinedProblem.difficulty;
     technologies = predefinedProblem.technologies || [];
-    estimatedTime = predefinedProblem.estimatedTime || "";
+    estimatedTime = predefinedProblem.estimatedTime || '';
     category = predefinedProblem.category;
     type = predefinedProblem.type;
   } else {
@@ -599,10 +604,10 @@ export const getProblemCardInfo = (
       if ((problem as any).machineCodingProblem) {
         console.log(
           (problem as any).machineCodingProblem,
-          "machineCodingProblem"
+          'machineCodingProblem'
         );
         const machineCoding =
-          typeof (problem as any).machineCodingProblem === "string"
+          typeof (problem as any).machineCodingProblem === 'string'
             ? JSON.parse((problem as any).machineCodingProblem)
             : (problem as any).machineCodingProblem;
 
@@ -619,11 +624,11 @@ export const getProblemCardInfo = (
           estimatedTime = machineCoding.estimatedTime;
         }
       } else if (
-        (problem as any).interviewType === "system_design" &&
+        (problem as any).interviewType === 'system_design' &&
         (problem as any).systemDesignProblem
       ) {
         const systemDesign =
-          typeof (problem as any).systemDesignProblem === "string"
+          typeof (problem as any).systemDesignProblem === 'string'
             ? JSON.parse((problem as any).systemDesignProblem)
             : (problem as any).systemDesignProblem;
 
@@ -640,53 +645,11 @@ export const getProblemCardInfo = (
           estimatedTime = systemDesign.estimatedTime;
         }
       } else if (
-        (problem as any).interviewType === "machine_coding" &&
-        (problem as any).machineCodingProblem
-      ) {
-        const machineCoding =
-          typeof (problem as any).machineCodingProblem === "string"
-            ? JSON.parse((problem as any).machineCodingProblem)
-            : (problem as any).machineCodingProblem;
-
-        if (machineCoding.title) {
-          title = machineCoding.title;
-        }
-        if (machineCoding.difficulty) {
-          difficulty = machineCoding.difficulty;
-        }
-        if (machineCoding.technologies) {
-          technologies = machineCoding.technologies;
-        }
-        if (machineCoding.estimatedTime) {
-          estimatedTime = machineCoding.estimatedTime;
-        }
-      } else if (
-        (problem as any).interviewType === "dsa" &&
-        (problem as any).dsaProblem
-      ) {
-        const dsaProblem =
-          typeof (problem as any).dsaProblem === "string"
-            ? JSON.parse((problem as any).dsaProblem)
-            : (problem as any).dsaProblem;
-
-        if (dsaProblem.title) {
-          title = dsaProblem.title;
-        }
-        if (dsaProblem.difficulty) {
-          difficulty = dsaProblem.difficulty;
-        }
-        if (dsaProblem.tags) {
-          technologies = dsaProblem.tags;
-        }
-        if (dsaProblem.estimatedTime) {
-          estimatedTime = dsaProblem.estimatedTime;
-        }
-      } else if (
-        (problem as any).interviewType === "theory" &&
+        (problem as any).interviewType === 'theory' &&
         (problem as any).theoryProblem
       ) {
         const theoryProblem =
-          typeof (problem as any).theoryProblem === "string"
+          typeof (problem as any).theoryProblem === 'string'
             ? JSON.parse((problem as any).theoryProblem)
             : (problem as any).theoryProblem;
 
@@ -704,34 +667,34 @@ export const getProblemCardInfo = (
         }
       }
     } catch (error) {
-      console.error("Error parsing problem data:", error);
+      console.error('Error parsing problem data:', error);
     }
 
     // Set category and type based on interviewType if not already set
     if (!category) {
       category =
-        (problem as any).interviewType === "dsa"
-          ? "Data Structures & Algorithms"
-          : (problem as any).interviewType === "machine_coding"
-          ? "Machine Coding"
-          : (problem as any).interviewType === "system_design"
-          ? "System Design"
-          : (problem as any).interviewType === "theory"
-          ? "Frontend Theory"
-          : "Custom Problems";
+        (problem as any).interviewType === 'dsa'
+          ? 'Data Structures & Algorithms'
+          : (problem as any).interviewType === 'machine_coding'
+            ? 'Machine Coding'
+            : (problem as any).interviewType === 'system_design'
+              ? 'System Design'
+              : (problem as any).interviewType === 'theory'
+                ? 'Frontend Theory'
+                : 'Custom Problems';
     }
 
-    if (!type || type === "user_generated") {
+    if (!type || type === 'user_generated') {
       type =
-        (problem as any).interviewType === "dsa"
-          ? "dsa"
-          : (problem as any).interviewType === "machine_coding"
-          ? "machine_coding"
-          : (problem as any).interviewType === "system_design"
-          ? "system_design"
-          : (problem as any).interviewType === "theory_and_debugging"
-          ? "theory_and_debugging"
-          : "user_generated";
+        (problem as any).interviewType === 'dsa'
+          ? 'dsa'
+          : (problem as any).interviewType === 'machine_coding'
+            ? 'machine_coding'
+            : (problem as any).interviewType === 'system_design'
+              ? 'system_design'
+              : (problem as any).interviewType === 'theory_and_debugging'
+                ? 'theory_and_debugging'
+                : 'user_generated';
     }
   }
 
@@ -746,7 +709,7 @@ export interface InterviewRound {
   duration: string; // e.g., "45-60 minutes"
   focusAreas: string[]; // e.g., ["React", "TypeScript", "State Management"]
   evaluationCriteria: string[]; // e.g., ["Code quality", "Problem solving", "Communication"]
-  difficulty: "easy" | "medium" | "hard";
+  difficulty: 'easy' | 'medium' | 'hard';
   tips: string[]; // e.g., ["Practice system design", "Know your fundamentals"]
 }
 
@@ -784,7 +747,7 @@ export interface InterviewSimulationData {
   rounds: InterviewRound[];
   currentRound: number;
   completedRounds: number[];
-  status: "active" | "completed";
+  status: 'active' | 'completed';
   createdAt: any; // Firebase Timestamp
   simulationConfig?: any; // SimulationConfig from interview-simulation service
 }
@@ -800,7 +763,7 @@ export interface MockInterviewSession {
   roundType: InterviewType;
   problems: MockInterviewProblem[];
   currentProblemIndex: number;
-  status: "active" | "completed" | "evaluated";
+  status: 'active' | 'completed' | 'evaluated';
   startedAt: any; // Firebase Timestamp
   completedAt?: any; // Firebase Timestamp
   totalScore?: number;
@@ -880,7 +843,7 @@ export interface SimulationProblem {
   type: InterviewType;
   title: string;
   description: string;
-  difficulty: "easy" | "medium" | "hard";
+  difficulty: 'easy' | 'medium' | 'hard';
   estimatedTime: string;
   content: any; // Specific content based on type
   roundName: string;

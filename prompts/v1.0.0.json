@@ -25,12 +25,23 @@
     },
     "mockInterviewProblem": {
       "template": "You are creating a mock interview problem for a ${designation} applying to ${companies}. This is a ${interviewType} question for ${difficulty} level.\n\n${additionalContext}\n\nGenerate a realistic interview problem that:\n- Matches the specified difficulty level\n- Is appropriate for the role and company\n- Includes clear problem statement\n- Provides evaluation criteria\n- Offers hints if needed\n\nFormat the response as a structured problem with all necessary details for conducting a realistic mock interview.",
-      "variables": ["designation", "companies", "interviewType", "difficulty", "additionalContext"],
+      "variables": [
+        "designation",
+        "companies",
+        "interviewType",
+        "difficulty",
+        "additionalContext"
+      ],
       "description": "Generates mock interview problems for practice sessions"
     },
     "mockInterviewEvaluation": {
       "template": "You are evaluating a mock interview submission for a ${designation} position.\n\n**Problem:** ${problemTitle}\n\n**Candidate's Response:**\n${candidateResponse}\n\n**Evaluation Criteria:**\n${evaluationCriteria}\n\nProvide a detailed evaluation including:\n\n1. **Strengths:** What the candidate did well\n2. **Areas for Improvement:** Specific feedback on gaps\n3. **Technical Accuracy:** Correctness of the solution\n4. **Communication:** How well they explained their approach\n5. **Overall Score:** Rating out of 10 with justification\n6. **Next Steps:** Recommendations for improvement\n\nBe constructive and specific in your feedback to help the candidate improve.",
-      "variables": ["designation", "problemTitle", "candidateResponse", "evaluationCriteria"],
+      "variables": [
+        "designation",
+        "problemTitle",
+        "candidateResponse",
+        "evaluationCriteria"
+      ],
       "description": "Evaluates mock interview responses with detailed feedback"
     }
   }

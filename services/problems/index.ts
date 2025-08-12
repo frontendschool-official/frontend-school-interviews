@@ -1,10 +1,8 @@
 import {
-  MockInterviewProblem,
   ParsedProblemData,
   parseProblemData,
-  ProblemSchema,
   InterviewSimulationProblemResponse,
-} from "../../types/problem";
+} from '../../types/problem';
 import {
   collection,
   query,
@@ -14,28 +12,28 @@ import {
   writeBatch,
   doc,
   serverTimestamp,
-} from "firebase/firestore";
-import { db } from "../firebase/config";
-import { COLLECTIONS } from "../../enums/collections";
-import { GEMINI_ENDPOINT, getGeminiApiKey } from "../ai/gemini-config";
+} from 'firebase/firestore';
+import { db } from '../firebase/config';
+import { COLLECTIONS } from '../../enums/collections';
+import { GEMINI_ENDPOINT, getGeminiApiKey } from '../ai/gemini-config';
 
 // Fetch all problems from the interview_problems collection
 export const getAllProblems = async () => {
   try {
     const ref = collection(db, COLLECTIONS.INTERVIEW_PROBLEMS);
-    const q = query(ref, orderBy("createdAt", "desc"));
+    const q = query(ref, orderBy('createdAt', 'desc'));
     const querySnapshot = await getDocs(q);
 
     const problems: ParsedProblemData[] = [];
-    querySnapshot?.forEach((doc) => {
+    querySnapshot?.forEach(doc => {
       const data = doc.data();
       const parsedData = parseProblemData({ ...data, id: doc.id });
       problems.push(parsedData);
     });
     return problems;
   } catch (error) {
-    console.error("Error getting all problems:", error);
-    throw new Error("Failed to get problems");
+    console.error('Error getting all problems:', error);
+    throw new Error('Failed to get problems');
   }
 };
 
@@ -44,26 +42,26 @@ export const getAllProblemsByUserId = async (userId: string) => {
     const ref = collection(db, COLLECTIONS.INTERVIEW_PROBLEMS);
     const q = query(
       ref,
-      where("userId", "==", userId),
-      orderBy("createdAt", "desc")
+      where('userId', '==', userId),
+      orderBy('createdAt', 'desc')
     );
     const querySnapshot = await getDocs(q);
     const problems: ParsedProblemData[] = [];
-    querySnapshot?.forEach((doc) => {
+    querySnapshot?.forEach(doc => {
       const data = doc.data();
       const parsedData = parseProblemData({ ...data, id: doc.id });
       problems.push(parsedData);
     });
     return problems;
   } catch (error) {
-    console.error("Error getting all problems by user id:", error);
-    throw new Error("Failed to get problems by user id");
+    console.error('Error getting all problems by user id:', error);
+    throw new Error('Failed to get problems by user id');
   }
 };
 
 export const createProblems = async (problems: any) => {
   try {
-    console.log(problems, "problems createProblems");
+    console.log(problems, 'problems createProblems');
     const ref = collection(db, COLLECTIONS.INTERVIEW_PROBLEMS);
     const batch = writeBatch(db);
     problems?.forEach((problem: any) => {
@@ -73,13 +71,13 @@ export const createProblems = async (problems: any) => {
         createdAt: serverTimestamp(),
       });
     });
-    console.log(batch, "batch createProblems");
+    console.log(batch, 'batch createProblems');
     const result = await batch.commit();
-    console.log(result, "result createProblems");
+    console.log(result, 'result createProblems');
     return result;
   } catch (error) {
-    console.error("Error creating problems:", error);
-    throw new Error("Failed to create problems");
+    console.error('Error creating problems:', error);
+    throw new Error('Failed to create problems');
   }
 };
 
@@ -89,7 +87,7 @@ export const generateInterviewSimulationProblems = async (
   try {
     console.log(
       activeRoundInfo,
-      "activeRoundInfo generateInterviewSimulationProblems"
+      'activeRoundInfo generateInterviewSimulationProblems'
     );
     const prompt = `
 You are an expert interviewer for frontend developers.
@@ -109,18 +107,18 @@ Round Context:
 - Description: ${activeRoundInfo?.description}
 - Tips: ${
       Array.isArray(activeRoundInfo?.tips)
-        ? activeRoundInfo?.tips.join(", ")
-        : ""
+        ? activeRoundInfo?.tips.join(', ')
+        : ''
     }
 - Focus Areas: ${
       Array.isArray(activeRoundInfo?.focusAreas)
-        ? activeRoundInfo?.focusAreas.join(", ")
-        : ""
+        ? activeRoundInfo?.focusAreas.join(', ')
+        : ''
     }
 - Evaluation Criteria: ${
       Array.isArray(activeRoundInfo?.evaluationCriteria)
-        ? activeRoundInfo?.evaluationCriteria.join(", ")
-        : ""
+        ? activeRoundInfo?.evaluationCriteria.join(', ')
+        : ''
     }
 - Experience Level: ${activeRoundInfo?.experienceLevel}
 
@@ -161,8 +159,8 @@ SCHEMA (must match exactly):
       "estimatedTimeMinutes": 10,
       "category": "${activeRoundInfo?.category}",
       "tags": ["${activeRoundInfo?.category}", "frontend", "${
-      activeRoundInfo?.companies
-    }"],
+        activeRoundInfo?.companies
+      }"],
       "hints": [
         "Contextual hint",
         "Performance/clarity hint"
@@ -189,7 +187,7 @@ CONSTRAINTS:
     const body: any = {
       contents: [
         {
-          role: "user",
+          role: 'user',
           parts: [{ text: prompt }],
         },
       ],
@@ -197,33 +195,33 @@ CONSTRAINTS:
 
     const apiKey = getGeminiApiKey();
     const res = await fetch(`${GEMINI_ENDPOINT}?key=${apiKey}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     });
     const data = await res.json();
-    const text: string = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    const text: string = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
     if (!text) {
-      console.error("❌ Empty response from Gemini API");
-      throw new Error("Empty response from AI service");
+      console.error('❌ Empty response from Gemini API');
+      throw new Error('Empty response from AI service');
     }
     let parsedResponse: InterviewSimulationProblemResponse;
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      console.error("❌ No JSON found in response:", text);
-      throw new Error("No valid JSON found in response");
+      console.error('❌ No JSON found in response:', text);
+      throw new Error('No valid JSON found in response');
     }
 
-    console.log("📋 JSON match found, length:", jsonMatch[0].length);
+    console.log('📋 JSON match found, length:', jsonMatch[0].length);
     parsedResponse = JSON.parse(jsonMatch[0]);
 
-    console.log(data, "data generateInterviewSimulationProblems");
+    console.log(data, 'data generateInterviewSimulationProblems');
     return parsedResponse;
   } catch (error) {
     console.error(
-      "Error generating interview simulation problems: generateInterviewSimulationProblems",
+      'Error generating interview simulation problems: generateInterviewSimulationProblems',
       error
     );
-    throw new Error("Failed to generate interview simulation problems");
+    throw new Error('Failed to generate interview simulation problems');
   }
-}; 
+};

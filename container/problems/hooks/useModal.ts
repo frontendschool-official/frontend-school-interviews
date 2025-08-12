@@ -3,8 +3,8 @@ import { useAppStore } from '@/store';
 
 export const useModal = (initialState = false) => {
   // We keep a single prompt modal state in store to keep UI consistent across pages
-  const promptModalOpen = useAppStore((s) => s.promptModalOpen);
-  const setPromptModalOpen = useAppStore((s) => s.setPromptModalOpen);
+  const promptModalOpen = useAppStore(s => s.promptModalOpen);
+  const setPromptModalOpen = useAppStore(s => s.setPromptModalOpen);
 
   // Respect initial override on first use
   useEffect(() => {
@@ -23,4 +23,4 @@ export const useModal = (initialState = false) => {
     close,
     toggle,
   };
-}; 
+};

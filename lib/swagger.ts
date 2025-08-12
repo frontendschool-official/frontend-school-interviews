@@ -14,12 +14,14 @@ const options: swaggerJSDoc.Options = {
     },
     servers: [
       {
-        url: process.env.NODE_ENV === 'production' 
-          ? 'https://frontend-school-interviews.vercel.app' 
-          : 'http://localhost:3000',
-        description: process.env.NODE_ENV === 'production' 
-          ? 'Production server' 
-          : 'Development server',
+        url:
+          process.env.NODE_ENV === 'production'
+            ? 'https://frontend-school-interviews.vercel.app'
+            : 'http://localhost:3000',
+        description:
+          process.env.NODE_ENV === 'production'
+            ? 'Production server'
+            : 'Development server',
       },
     ],
     components: {
@@ -74,7 +76,13 @@ const options: swaggerJSDoc.Options = {
         },
         PaymentDetails: {
           type: 'object',
-          required: ['amount', 'currency', 'customerName', 'customerEmail', 'items'],
+          required: [
+            'amount',
+            'currency',
+            'customerName',
+            'customerEmail',
+            'items',
+          ],
           properties: {
             amount: {
               type: 'number',
@@ -356,251 +364,257 @@ const options: swaggerJSDoc.Options = {
         },
       },
     },
-  paths: {
-    "/api/create-order": {
-      "post": {
-        "summary": "Create a payment order",
-        "description": "Creates a payment order with Razorpay for processing payments",
-        "tags": ["Payment"],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PaymentDetails"
-              }
-            }
-          }
+    paths: {
+      '/api/create-order': {
+        post: {
+          summary: 'Create a payment order',
+          description:
+            'Creates a payment order with Razorpay for processing payments',
+          tags: ['Payment'],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/PaymentDetails',
+                },
+              },
+            },
+          },
+          responses: {
+            '200': {
+              description: 'Order created successfully',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean' },
+                      order: { $ref: '#/components/schemas/RazorpayOrder' },
+                    },
+                  },
+                },
+              },
+            },
+            '400': {
+              description: 'Bad request',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/ErrorResponse' },
+                },
+              },
+            },
+            '405': {
+              description: 'Method not allowed',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/ErrorResponse' },
+                },
+              },
+            },
+            '500': {
+              description: 'Internal server error',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/ErrorResponse' },
+                },
+              },
+            },
+          },
         },
-        "responses": {
-          "200": {
-            "description": "Order created successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "order": { "$ref": "#/components/schemas/RazorpayOrder" }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-              }
-            }
-          },
-          "405": {
-            "description": "Method not allowed",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/verify-payment": {
-      "post": {
-        "summary": "Verify payment signature",
-        "description": "Verifies the payment signature from Razorpay to ensure payment authenticity",
-        "tags": ["Payment"],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PaymentVerification"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Payment verified successfully",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/PaymentResponse" }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid signature or missing fields",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-              }
-            }
-          },
-          "405": {
-            "description": "Method not allowed",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/save-payment": {
-      "post": {
-        "summary": "Save payment to database",
-        "description": "Saves successful payment details to Firebase database for record keeping",
-        "tags": ["Payment"],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SavePaymentRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Payment saved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "paymentId": { "type": "string" },
-                    "message": { "type": "string" }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Missing required fields",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-              }
-            }
-          },
-          "405": {
-            "description": "Method not allowed",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/interview-insights": {
-      "post": {
-        "summary": "Get interview insights",
-        "description": "Generate or retrieve interview insights for a specific company and role level",
-        "tags": ["Interview"],
-        "parameters": [
-          {
-            "in": "query",
-            "name": "refresh",
-            "schema": { "type": "boolean" },
-            "description": "Force refresh insights (generate new ones)"
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/InterviewInsightsRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Interview insights retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/InterviewInsightsResponse" }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid input",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-              }
-            }
-          },
-          "405": {
-            "description": "Method not allowed",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-              }
-            }
-          },
-          "503": {
-            "description": "Service unavailable",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-              }
-            }
-          }
-        }
       },
-      "options": {
-        "summary": "CORS preflight",
-        "description": "Handle CORS preflight requests",
-        "tags": ["Interview"],
-        "responses": {
-          "200": {
-            "description": "CORS preflight successful"
-          }
-        }
-      }
-    }
-  }
+      '/api/verify-payment': {
+        post: {
+          summary: 'Verify payment signature',
+          description:
+            'Verifies the payment signature from Razorpay to ensure payment authenticity',
+          tags: ['Payment'],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/PaymentVerification',
+                },
+              },
+            },
+          },
+          responses: {
+            '200': {
+              description: 'Payment verified successfully',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/PaymentResponse' },
+                },
+              },
+            },
+            '400': {
+              description: 'Invalid signature or missing fields',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/ErrorResponse' },
+                },
+              },
+            },
+            '405': {
+              description: 'Method not allowed',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/ErrorResponse' },
+                },
+              },
+            },
+            '500': {
+              description: 'Internal server error',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/ErrorResponse' },
+                },
+              },
+            },
+          },
+        },
+      },
+      '/api/save-payment': {
+        post: {
+          summary: 'Save payment to database',
+          description:
+            'Saves successful payment details to Firebase database for record keeping',
+          tags: ['Payment'],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/SavePaymentRequest',
+                },
+              },
+            },
+          },
+          responses: {
+            '200': {
+              description: 'Payment saved successfully',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean' },
+                      paymentId: { type: 'string' },
+                      message: { type: 'string' },
+                    },
+                  },
+                },
+              },
+            },
+            '400': {
+              description: 'Missing required fields',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/ErrorResponse' },
+                },
+              },
+            },
+            '405': {
+              description: 'Method not allowed',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/ErrorResponse' },
+                },
+              },
+            },
+            '500': {
+              description: 'Internal server error',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/ErrorResponse' },
+                },
+              },
+            },
+          },
+        },
+      },
+      '/api/interview-insights': {
+        post: {
+          summary: 'Get interview insights',
+          description:
+            'Generate or retrieve interview insights for a specific company and role level',
+          tags: ['Interview'],
+          parameters: [
+            {
+              in: 'query',
+              name: 'refresh',
+              schema: { type: 'boolean' },
+              description: 'Force refresh insights (generate new ones)',
+            },
+          ],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/InterviewInsightsRequest',
+                },
+              },
+            },
+          },
+          responses: {
+            '200': {
+              description: 'Interview insights retrieved successfully',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/InterviewInsightsResponse',
+                  },
+                },
+              },
+            },
+            '400': {
+              description: 'Invalid input',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/ErrorResponse' },
+                },
+              },
+            },
+            '405': {
+              description: 'Method not allowed',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/ErrorResponse' },
+                },
+              },
+            },
+            '500': {
+              description: 'Internal server error',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/ErrorResponse' },
+                },
+              },
+            },
+            '503': {
+              description: 'Service unavailable',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/ErrorResponse' },
+                },
+              },
+            },
+          },
+        },
+        options: {
+          summary: 'CORS preflight',
+          description: 'Handle CORS preflight requests',
+          tags: ['Interview'],
+          responses: {
+            '200': {
+              description: 'CORS preflight successful',
+            },
+          },
+        },
+      },
+    },
   },
   apis: ['./pages/api/**/*.ts'], // Path to the API docs
 };

@@ -46,19 +46,28 @@ export default function DashboardStats() {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8'>
       {statItems.map((stat, index) => (
-        <div key={index} className="bg-secondary border border-border rounded-xl p-6 flex items-center gap-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-border/20">
-          <div 
-            className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
+        <div
+          key={index}
+          className='bg-secondary border border-border rounded-xl p-6 flex items-center gap-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-border/20'
+        >
+          <div
+            className='w-12 h-12 rounded-xl flex items-center justify-center text-2xl'
             style={{ backgroundColor: `${stat.color}20`, color: stat.color }}
           >
             <stat.icon />
           </div>
-          <div className="flex-1">
-            <div className="text-3xl font-bold text-text mb-1">{stat.value}</div>
-            <div className="text-sm text-text/80 font-medium mb-1">{stat.label}</div>
-            <div className={`text-xs font-semibold flex items-center gap-1 ${stat.positive ? 'text-green-500' : 'text-red-500'}`}>
+          <div className='flex-1'>
+            <div className='text-3xl font-bold text-text mb-1'>
+              {stat.value}
+            </div>
+            <div className='text-sm text-text/80 font-medium mb-1'>
+              {stat.label}
+            </div>
+            <div
+              className={`text-xs font-semibold flex items-center gap-1 ${stat.positive ? 'text-green-500' : 'text-red-500'}`}
+            >
               {stat.change}
             </div>
           </div>
@@ -66,4 +75,4 @@ export default function DashboardStats() {
       ))}
     </div>
   );
-} 
+}

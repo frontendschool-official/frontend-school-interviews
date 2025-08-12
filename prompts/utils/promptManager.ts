@@ -26,9 +26,9 @@ export interface PromptVersion {
 /**
  * Available prompt types
  */
-export type PromptType = 
+export type PromptType =
   | 'dsaProblem'
-  | 'theoryProblem' 
+  | 'theoryProblem'
   | 'machineCodingProblem'
   | 'systemDesignProblem'
   // | 'combinedProblem'
@@ -85,26 +85,27 @@ export class PromptManager {
   /**
    * Fetches prompt data - to be implemented based on environment
    */
-  protected async fetchPromptData(version: string): Promise<PromptVersion> {
+  protected async fetchPromptData(_version: string): Promise<PromptVersion> {
     // This will be implemented by the specific environment (Node.js, browser, etc.)
     // For now, we'll throw an error to be overridden
-    throw new Error('fetchPromptData must be implemented by the environment-specific manager');
+    throw new Error(
+      'fetchPromptData must be implemented by the environment-specific manager'
+    );
   }
 
   /**
    * Gets a specific prompt template
    */
-  async getPrompt(
-    type: PromptType, 
-    version?: string
-  ): Promise<PromptTemplate> {
-    const targetVersion = version || this.currentVersion;
+  async getPrompt(type: PromptType): Promise<PromptTemplate> {
+    const targetVersion = this.currentVersion;
     const promptVersion = await this.loadPromptVersion(targetVersion);
-    
+
     if (!promptVersion.prompts[type]) {
-      throw new Error(`Prompt type '${type}' not found in version ${targetVersion}`);
+      throw new Error(
+        `Prompt type '${type}' not found in version ${targetVersion}`
+      );
     }
-    
+
     return promptVersion.prompts[type];
   }
 
@@ -115,19 +116,19 @@ export class PromptManager {
     type: PromptType,
     variables: VariableMap,
     options: {
-      version?: string;
+      _version?: string;
       config?: PromptConfig;
     } = {}
   ): Promise<string> {
-    const prompt = await this.getPrompt(type, options.version);
+    const prompt = await this.getPrompt(type);
     return replaceVariables(prompt.template, variables, options.config);
   }
 
   /**
    * Gets all available prompt types for a version
    */
-  async getAvailablePrompts(version?: string): Promise<string[]> {
-    const targetVersion = version || this.currentVersion;
+  async getAvailablePrompts(_version?: string): Promise<string[]> {
+    const targetVersion = _version || this.currentVersion;
     const promptVersion = await this.loadPromptVersion(targetVersion);
     return Object.keys(promptVersion.prompts);
   }
@@ -136,10 +137,10 @@ export class PromptManager {
    * Gets required variables for a specific prompt
    */
   async getRequiredVariables(
-    type: PromptType, 
-    version?: string
+    type: PromptType,
+    _version?: string
   ): Promise<string[]> {
-    const prompt = await this.getPrompt(type, version);
+    const prompt = await this.getPrompt(type);
     return prompt.variables;
   }
 
@@ -155,15 +156,15 @@ export class PromptManager {
   /**
    * Gets metadata about a specific version
    */
-  async getVersionInfo(version?: string): Promise<{
+  async getVersionInfo(_version?: string): Promise<{
     version: string;
     createdAt: string;
     description: string;
     promptCount: number;
   }> {
-    const targetVersion = version || this.currentVersion;
+    const targetVersion = _version || this.currentVersion;
     const promptVersion = await this.loadPromptVersion(targetVersion);
-    
+
     return {
       version: promptVersion.version,
       createdAt: promptVersion.createdAt,
@@ -178,23 +179,23 @@ export class PromptManager {
   async validatePromptVariables(
     type: PromptType,
     variables: VariableMap,
-    version?: string
+    _version?: string
   ): Promise<{
     isValid: boolean;
-    missingVariables: string[];
-    extraVariables: string[];
+    missing: string[];
+    extra: string[];
   }> {
-    const prompt = await this.getPrompt(type, version);
-    const requiredVars = new Set(prompt.variables);
-    const providedVars = new Set(Object.keys(variables));
-    
-    const missingVariables = prompt.variables.filter(v => !providedVars.has(v));
-    const extraVariables = Object.keys(variables).filter(v => !requiredVars.has(v));
-    
+    const prompt = await this.getPrompt(type);
+    const required = prompt.variables;
+    const provided = Object.keys(variables);
+
+    const missing = required.filter(v => !provided.includes(v));
+    const extra = provided.filter(v => !required.includes(v));
+
     return {
-      isValid: missingVariables.length === 0,
-      missingVariables,
-      extraVariables,
+      isValid: missing.length === 0,
+      missing,
+      extra,
     };
   }
 
@@ -223,7 +224,7 @@ export class ServerPromptManager extends PromptManager {
     try {
       this.fs = await import('fs');
       this.path = await import('path');
-    } catch (error) {
+    } catch {
       console.warn('Node.js modules not available, some features may not work');
     }
   }
@@ -233,12 +234,16 @@ export class ServerPromptManager extends PromptManager {
       throw new Error('File system access not available');
     }
 
-    const filePath = this.path.join(process.cwd(), this.basePath, `v${version}.json`);
-    
+    const filePath = this.path.join(
+      process.cwd(),
+      this.basePath,
+      `v${version}.json`
+    );
+
     try {
       const fileContent = await this.fs.promises.readFile(filePath, 'utf-8');
       return JSON.parse(fileContent);
-    } catch (error) {
+    } catch {
       throw new Error(`Failed to read prompt file: ${filePath}`);
     }
   }
@@ -254,13 +259,15 @@ export class ServerPromptManager extends PromptManager {
     try {
       const promptDir = this.path.join(process.cwd(), this.basePath);
       const files = await this.fs.promises.readdir(promptDir);
-      
+
       return files
-        .filter((file: string) => file.startsWith('v') && file.endsWith('.json'))
+        .filter(
+          (file: string) => file.startsWith('v') && file.endsWith('.json')
+        )
         .map((file: string) => file.slice(1, -5)) // Remove 'v' prefix and '.json' suffix
         .sort();
-    } catch (error) {
-      console.warn('Could not scan prompt directory:', error);
+    } catch {
+      console.warn('Could not scan prompt directory');
       return super.getAvailableVersions();
     }
   }
@@ -281,8 +288,8 @@ export class ClientPromptManager extends PromptManager {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       return await response.json();
-    } catch (error) {
-      throw new Error(`Failed to fetch prompt version ${version}: ${error}`);
+    } catch {
+      throw new Error(`Failed to fetch prompt version ${version}`);
     }
   }
 }
@@ -307,11 +314,12 @@ export class StaticPromptManager extends PromptManager {
       description: 'Initial version of interview prompts',
       prompts: {
         dsaProblem: {
-          template: 'Generate a DSA problem for ${designation} at ${companies}, round ${round}',
+          template:
+            'Generate a DSA problem for ${designation} at ${companies}, round ${round}',
           variables: ['designation', 'companies', 'round'],
-          description: 'Basic DSA problem generator'
-        }
-      }
+          description: 'Basic DSA problem generator',
+        },
+      },
     };
 
     this.staticPrompts.set('1.0.0', v100);
@@ -333,7 +341,9 @@ export class StaticPromptManager extends PromptManager {
 /**
  * Factory function to create appropriate prompt manager based on environment
  */
-export function createPromptManager(environment?: 'server' | 'client' | 'static'): PromptManager {
+export function createPromptManager(
+  environment?: 'server' | 'client' | 'static'
+): PromptManager {
   if (environment === 'server') {
     return new ServerPromptManager();
   } else if (environment === 'client') {

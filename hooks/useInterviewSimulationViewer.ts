@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/router';
-import { useAuth } from './useAuth';
-import { MockInterviewSession, MockInterviewEvaluation } from '../types/problem';
+import {
+  MockInterviewEvaluation,
+  MockInterviewSession,
+} from '../types/problem';
 
 interface UseInterviewSimulationViewerProps {
   session: MockInterviewSession;
-  onComplete: (result: any) => void;
+  onComplete: (score: number, feedback: string) => void;
   onExit: () => void;
 }
 
@@ -14,25 +15,30 @@ export const useInterviewSimulationViewer = ({
   onComplete,
   onExit,
 }: UseInterviewSimulationViewerProps) => {
-  const router = useRouter();
-  const { user } = useAuth();
   const excalidrawRef = useRef<any>(null);
 
   // State management
-  const [currentProblemIndex, setCurrentProblemIndex] = useState(session.currentProblemIndex || 0);
-  const [code, setCode] = useState<string>("");
+  const [currentProblemIndex, setCurrentProblemIndex] = useState(
+    session.currentProblemIndex || 0
+  );
+  const [code, setCode] = useState<string>('');
   const [isProblemPanelCollapsed, setIsProblemPanelCollapsed] = useState(false);
   const [problemPanelWidth, setProblemPanelWidth] = useState(400);
-  const [isCanvasReady, setCanvasReady] = useState(false);
-  const [isEvaluating, setIsEvaluating] = useState(false);
-  const [feedback, setFeedback] = useState<string | null>(null);
+
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
-  const [feedbackData, setFeedbackData] = useState<MockInterviewEvaluation | null>(null);
+  const [feedbackData, setFeedbackData] =
+    useState<MockInterviewEvaluation | null>(null);
   const [timeRemaining, setTimeRemaining] = useState(45 * 60); // 45 minutes in seconds
   const [isTimerActive, setIsTimerActive] = useState(true);
-  const [completedProblems, setCompletedProblems] = useState<Set<number>>(new Set());
-  const [problemScores, setProblemScores] = useState<Record<number, number>>({});
-  const [problemFeedbacks, setProblemFeedbacks] = useState<Record<number, string>>({});
+  const [completedProblems, setCompletedProblems] = useState<Set<number>>(
+    new Set()
+  );
+  const [problemScores, setProblemScores] = useState<Record<number, number>>(
+    {}
+  );
+  const [problemFeedbacks, setProblemFeedbacks] = useState<
+    Record<number, string>
+  >({});
 
   const currentProblem = session.problems[currentProblemIndex];
   const problemPanelRef = useRef<HTMLDivElement>(null);
@@ -42,7 +48,7 @@ export const useInterviewSimulationViewer = ({
     if (!isTimerActive || timeRemaining <= 0) return;
 
     const timer = setInterval(() => {
-      setTimeRemaining((prev) => {
+      setTimeRemaining(prev => {
         if (prev <= 1) {
           setIsTimerActive(false);
           // Auto-submit when time runs out
@@ -100,7 +106,7 @@ export const useInterviewSimulationViewer = ({
   const handleNextProblem = () => {
     if (currentProblemIndex < session.problems.length - 1) {
       setCurrentProblemIndex(currentProblemIndex + 1);
-      setCode("");
+      setCode('');
       setFeedback(null);
     }
   };
@@ -108,7 +114,7 @@ export const useInterviewSimulationViewer = ({
   const handlePreviousProblem = () => {
     if (currentProblemIndex > 0) {
       setCurrentProblemIndex(currentProblemIndex - 1);
-      setCode("");
+      setCode('');
       setFeedback(null);
     }
   };
@@ -137,8 +143,14 @@ export const useInterviewSimulationViewer = ({
 
       const result = await response.json();
       setFeedback(result.feedback);
-      setProblemScores(prev => ({ ...prev, [currentProblemIndex]: result.score }));
-      setProblemFeedbacks(prev => ({ ...prev, [currentProblemIndex]: result.feedback }));
+      setProblemScores(prev => ({
+        ...prev,
+        [currentProblemIndex]: result.score,
+      }));
+      setProblemFeedbacks(prev => ({
+        ...prev,
+        [currentProblemIndex]: result.feedback,
+      }));
       setCompletedProblems(prev => new Set([...prev, currentProblemIndex]));
       setShowFeedbackModal(true);
       setFeedbackData(result);
@@ -152,9 +164,12 @@ export const useInterviewSimulationViewer = ({
 
   const handleCompleteInterview = async () => {
     try {
-      const totalScore = Object.values(problemScores).reduce((sum, score) => sum + score, 0);
+      const totalScore = Object.values(problemScores).reduce(
+        (sum, score) => sum + score,
+        0
+      );
       const averageScore = totalScore / session.problems.length;
-      
+
       const result = {
         sessionId: session.id,
         totalScore,
@@ -165,7 +180,10 @@ export const useInterviewSimulationViewer = ({
         timeSpent: 45 * 60 - timeRemaining,
       };
 
-      onComplete(result);
+      onComplete(
+        totalScore,
+        result.problemFeedbacks[currentProblemIndex] || ''
+      );
     } catch (error) {
       console.error('Error completing interview:', error);
     }
@@ -212,7 +230,8 @@ export const useInterviewSimulationViewer = ({
     formattedTime: formatTime(timeRemaining),
     isLastProblem: currentProblemIndex === session.problems.length - 1,
     isFirstProblem: currentProblemIndex === 0,
-    progressPercentage: ((currentProblemIndex + 1) / session.problems.length) * 100,
+    progressPercentage:
+      ((currentProblemIndex + 1) / session.problems.length) * 100,
 
     // Handlers
     setCode,
@@ -225,4 +244,4 @@ export const useInterviewSimulationViewer = ({
     handleCanvasReady,
     setShowFeedbackModal,
   };
-}; 
+};

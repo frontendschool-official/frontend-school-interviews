@@ -76,17 +76,28 @@ class ApiClient {
   }
 
   async getSubmissionsByUserId(userId: string) {
-    return this.request(`/api/problems/get-submissions-by-user?userId=${userId}`);
+    return this.request(
+      `/api/problems/get-submissions-by-user?userId=${userId}`
+    );
   }
 
-  async markProblemAsAttempted(userId: string, problemId: string, problemData: any) {
+  async markProblemAsAttempted(
+    userId: string,
+    problemId: string,
+    problemData: any
+  ) {
     return this.request('/api/problems/mark-attempted', {
       method: 'POST',
       body: JSON.stringify({ userId, problemId, problemData }),
     });
   }
 
-  async markProblemAsCompleted(userId: string, problemId: string, score: number, timeSpent: number) {
+  async markProblemAsCompleted(
+    userId: string,
+    problemId: string,
+    score: number,
+    timeSpent: number
+  ) {
     return this.request('/api/problems/mark-completed', {
       method: 'POST',
       body: JSON.stringify({ userId, problemId, score, timeSpent }),
@@ -115,7 +126,11 @@ class ApiClient {
   }
 
   // Evaluation-related API calls
-  async evaluateSubmission(designation: string, code: string, drawingImage?: string) {
+  async evaluateSubmission(
+    designation: string,
+    code: string,
+    drawingImage?: string
+  ) {
     return this.request('/api/evaluation/evaluate-submission', {
       method: 'POST',
       body: JSON.stringify({ designation, code, drawingImage }),
@@ -207,4 +222,4 @@ export const {
   createOrder,
   verifyPayment,
   savePayment,
-} = apiClient; 
+} = apiClient;

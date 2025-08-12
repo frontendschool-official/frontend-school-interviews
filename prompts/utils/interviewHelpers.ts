@@ -93,10 +93,12 @@ export function createInterviewPromptProcessor(promptManager: PromptManager) {
     /**
      * Generates a theory problem prompt
      */
-    async generateTheoryProblem(params: ProblemGenerationParams): Promise<string> {
+    async generateTheoryProblem(
+      params: ProblemGenerationParams
+    ): Promise<string> {
       const primaryTech = params.technologyStack?.[0] || 'React';
       const secondaryTech = params.technologyStack?.[1] || 'JavaScript';
-      
+
       const variables = new PromptVariableBuilder()
         .setInterviewContext({
           designation: params.designation,
@@ -107,7 +109,8 @@ export function createInterviewPromptProcessor(promptManager: PromptManager) {
         .setTechnology({
           primaryTechnology: primaryTech,
           secondaryTechnology: secondaryTech,
-          technologyStack: params.technologyStack?.join(', ') || 'React, JavaScript, CSS',
+          technologyStack:
+            params.technologyStack?.join(', ') || 'React, JavaScript, CSS',
         })
         .setProblemConfig({
           difficulty: params.difficulty || 'medium',
@@ -126,10 +129,12 @@ export function createInterviewPromptProcessor(promptManager: PromptManager) {
       });
     },
 
-     /**
+    /**
      * Generates machine coding problem
      */
-    async generateMachineCodingProblem(params: ProblemGenerationParams): Promise<string> {
+    async generateMachineCodingProblem(
+      params: ProblemGenerationParams
+    ): Promise<string> {
       const variables = new PromptVariableBuilder()
         .setInterviewContext({
           designation: params.designation,
@@ -159,7 +164,9 @@ export function createInterviewPromptProcessor(promptManager: PromptManager) {
     /**
      * Generates system design problem
      */
-    async generateSystemDesignProblem(params: ProblemGenerationParams): Promise<string> {
+    async generateSystemDesignProblem(
+      params: ProblemGenerationParams
+    ): Promise<string> {
       const variables = new PromptVariableBuilder()
         .setInterviewContext({
           designation: params.designation,
@@ -187,10 +194,12 @@ export function createInterviewPromptProcessor(promptManager: PromptManager) {
     /**
      * Generates combined machine coding and system design problems
      */
-    async generateCombinedProblems(params: ProblemGenerationParams): Promise<string> {
+    async generateCombinedProblems(
+      params: ProblemGenerationParams
+    ): Promise<string> {
       const primaryTech = params.technologyStack?.[0] || 'React';
       const secondaryTech = params.technologyStack?.[1] || 'TypeScript';
-      
+
       const variables = new PromptVariableBuilder()
         .setInterviewContext({
           designation: params.designation,
@@ -201,7 +210,8 @@ export function createInterviewPromptProcessor(promptManager: PromptManager) {
         .setTechnology({
           primaryTechnology: primaryTech,
           secondaryTechnology: secondaryTech,
-          technologyStack: params.technologyStack?.join(', ') || 'React, TypeScript, CSS',
+          technologyStack:
+            params.technologyStack?.join(', ') || 'React, TypeScript, CSS',
           cssFramework: 'Tailwind CSS',
         })
         .setProblemConfig({
@@ -279,7 +289,9 @@ export function createInterviewPromptProcessor(promptManager: PromptManager) {
     /**
      * Generates mock interview problem
      */
-    async generateMockInterviewProblem(params: MockInterviewParams): Promise<string> {
+    async generateMockInterviewProblem(
+      params: MockInterviewParams
+    ): Promise<string> {
       const variables = new PromptVariableBuilder()
         .setInterviewContext({
           designation: params.designation,
@@ -294,7 +306,9 @@ export function createInterviewPromptProcessor(promptManager: PromptManager) {
         .setCustom({
           duration: params.duration || '60 minutes',
           focusAreas: params.focusAreas?.join(', ') || 'Technical Skills',
-          companyContext: params.companyContext || `${params.companies} is a leading technology company focusing on innovation and user experience.`,
+          companyContext:
+            params.companyContext ||
+            `${params.companies} is a leading technology company focusing on innovation and user experience.`,
           additionalContext: params.additionalContext || '',
         })
         .build();
@@ -343,7 +357,6 @@ export function createInterviewPromptProcessor(promptManager: PromptManager) {
         case 'conceptual':
           return 'theoryProblem';
         case 'machine-coding':
-        case 'system-design':
           return 'machineCodingProblem';
         case 'system-design':
           return 'systemDesignProblem';
@@ -377,8 +390,15 @@ export function createInterviewPromptProcessor(promptManager: PromptManager) {
         errors.push('Round must be a positive number');
       }
 
-      if (params.experienceLevel && !['junior', 'mid-level', 'senior', 'lead'].includes(params.experienceLevel)) {
-        errors.push('Experience level must be one of: junior, mid-level, senior, lead');
+      if (
+        params.experienceLevel &&
+        !['junior', 'mid-level', 'senior', 'lead'].includes(
+          params.experienceLevel
+        )
+      ) {
+        errors.push(
+          'Experience level must be one of: junior, mid-level, senior, lead'
+        );
       }
 
       return {

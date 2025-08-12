@@ -1,13 +1,10 @@
-import { NextApiResponse } from "next";
-import { getUserProgress } from "@/services/firebase/user-progress";
-import { withRequiredAuth, AuthenticatedRequest } from "@/lib/auth";
+import { NextApiResponse } from 'next';
+import { getUserProgress } from '@/services/firebase/user-progress';
+import { withRequiredAuth, AuthenticatedRequest } from '@/lib/auth';
 
-async function handler(
-  req: AuthenticatedRequest,
-  res: NextApiResponse
-) {
-  if (req.method !== "GET") {
-    return res.status(405).json({ error: "Method not allowed" });
+async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
@@ -21,12 +18,12 @@ async function handler(
       progress,
     });
   } catch (error) {
-    console.error("Error fetching user progress:", error);
+    console.error('Error fetching user progress:', error);
     res.status(500).json({
-      error: "Failed to fetch user progress",
-      message: error instanceof Error ? error.message : "Unknown error"
+      error: 'Failed to fetch user progress',
+      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 }
 
-export default withRequiredAuth(handler); 
+export default withRequiredAuth(handler);

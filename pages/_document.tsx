@@ -6,9 +6,16 @@ export default class MyDocument extends Document {
       <Html suppressHydrationWarning>
         <Head>
           {/* Inter font */}
-          <link rel="preconnect" href="https://fonts.googleapis.com" />
-          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-          <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+          <link rel='preconnect' href='https://fonts.googleapis.com' />
+          <link
+            rel='preconnect'
+            href='https://fonts.gstatic.com'
+            crossOrigin='anonymous'
+          />
+          <link
+            href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap'
+            rel='stylesheet'
+          />
           {/* Prevent theme flash: set dark class ASAP */}
           <script
             dangerouslySetInnerHTML={{
@@ -25,7 +32,8 @@ export default class MyDocument extends Document {
                   }
                 } catch (e) {}
               })();
-            `}}
+            `,
+            }}
           />
         </Head>
         <body>

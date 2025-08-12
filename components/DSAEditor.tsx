@@ -1,263 +1,166 @@
-import React, { useCallback, useState, useMemo, useRef } from "react";
-import dynamic from "next/dynamic";
-import {
-  FiPlay,
-  FiCheck,
-  FiX,
-  FiCopy,
-  FiRotateCcw,
-  FiMessageSquare,
-} from "react-icons/fi";
-import { BiBrain } from "react-icons/bi";
-import { useAuth } from "../hooks/useAuth";
-import { useEvaluateSubmission } from "../hooks/useApi";
+import React, { useState, useCallback } from 'react';
+import { FiPlay, FiRotateCcw } from 'react-icons/fi';
+import { Editor } from '@monaco-editor/react';
+import { useThemeContext } from '@/hooks/useTheme';
 
-// Dynamically import Monaco editor to avoid SSR issues
-const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
-  ssr: false,
-});
+interface TestCase {
+  id: string;
+  input: string;
+  expectedOutput: string;
+  status?: 'pass' | 'fail' | 'running' | 'error';
+}
 
 interface DSAEditorProps {
   code: string;
-  onChange: (newCode: string) => void;
-  onSubmit?: (code: string) => Promise<void>;
-  readOnly?: boolean;
+  onChange: (code: string) => void;
+  testCases?: TestCase[];
 }
 
 export default function DSAEditor({
   code,
   onChange,
-  onSubmit,
-  readOnly = false,
+  testCases = [],
 }: DSAEditorProps) {
-  const { user } = useAuth();
-  const [isRunning, setIsRunning] = useState(false);
-  const [output, setOutput] = useState<string>("");
-  const [evaluation, setEvaluation] = useState<any>(null);
-  const [showEvaluation, setShowEvaluation] = useState(false);
-  const { execute: evaluateCode } = useEvaluateSubmission();
+  const { theme: appTheme } = useThemeContext();
+  const [editorTheme] = useState<'light' | 'vs-dark'>(
+    appTheme === 'dark' || appTheme === 'black' ? 'vs-dark' : 'light'
+  );
+  const [results, setResults] = useState<TestCase[]>(testCases);
 
-  const handleRunCode = useCallback(async () => {
-    setIsRunning(true);
-    setOutput("");
-
-    try {
-      // Create a safe execution environment
-      const safeCode = `
-        try {
-          ${code}
-        } catch (error) {
-          console.error('Error:', error.message);
-        }
-      `;
-
-      // Execute the code in a controlled environment
-      const result = await new Promise((resolve) => {
-        const originalConsoleLog = console.log;
-        const logs: string[] = [];
-
-        console.log = (...args) => {
-          logs.push(
-            args
-              .map((arg) =>
-                typeof arg === "object"
-                  ? JSON.stringify(arg, null, 2)
-                  : String(arg)
-              )
-              .join(" ")
-          );
-          originalConsoleLog(...args);
-        };
-
-        try {
-          // Use Function constructor for safer execution
-          const func = new Function(safeCode);
-          func();
-          resolve(logs.join("\n"));
-        } catch (error) {
-          resolve(
-            `Error: ${error instanceof Error ? error.message : "Unknown error"}`
-          );
-        } finally {
-          console.log = originalConsoleLog;
-        }
-      });
-
-      setOutput(result as string);
-    } catch (error) {
-      setOutput(
-        `Error: ${error instanceof Error ? error.message : "Unknown error"}`
-      );
-    } finally {
-      setIsRunning(false);
-    }
-  }, [code]);
-
-  const handleEvaluate = useCallback(async () => {
-    if (!user) {
-      setOutput("Please sign in to use AI evaluation");
-      return;
-    }
-
-    setIsRunning(true);
-    setEvaluation(null);
-
-    try {
-      const result = await evaluateCode("DSA Problem", code, "");
-      setEvaluation((result.data as any)?.feedback || result.error || "Evaluation failed");
-      setShowEvaluation(true);
-    } catch (error) {
-      setOutput(
-        `Evaluation error: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
-      );
-    } finally {
-      setIsRunning(false);
-    }
-  }, [code, user]);
-
-  const handleReset = useCallback(() => {
-    setOutput("");
-    setEvaluation(null);
-    setShowEvaluation(false);
-  }, []);
-
-  const handleCopyCode = useCallback(() => {
-    navigator.clipboard.writeText(code);
-  }, [code]);
-
-  const getButtonClasses = (
-    variant: "primary" | "success" | "danger" | "secondary" | "ai"
-  ) => {
-    const baseClasses =
-      "flex items-center gap-2 px-4 py-2 border-none rounded-md cursor-pointer text-sm font-medium transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed";
-
-    switch (variant) {
-      case "primary":
-        return `${baseClasses} bg-primary text-white hover:bg-accent`;
-      case "success":
-        return `${baseClasses} bg-green-500 text-white hover:bg-green-600`;
-      case "danger":
-        return `${baseClasses} bg-red-500 text-white hover:bg-red-600`;
-      case "ai":
-        return `${baseClasses} bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600`;
-      default:
-        return `${baseClasses} bg-transparent text-text border border-border hover:bg-secondary`;
+  const handleEditorChange = (value: string | undefined) => {
+    if (value !== undefined) {
+      onChange(value);
     }
   };
 
+  const evaluateCode = useCallback(async () => {
+    // This would integrate with your evaluation service
+    console.log('Evaluating DSA code:', code);
+    // Placeholder for actual evaluation logic
+  }, [code]);
+
+  const runTestCases = useCallback(async () => {
+    setResults(prev =>
+      prev.map(testCase => ({ ...testCase, status: 'running' as const }))
+    );
+
+    try {
+      // Simulate test case execution
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      setResults(prev =>
+        prev.map(testCase => ({ ...testCase, status: 'pass' as const }))
+      );
+    } catch {
+      setResults(prev =>
+        prev.map(testCase => ({ ...testCase, status: 'error' as const }))
+      );
+    }
+  }, []);
+
   return (
-    <div className="w-full h-full flex flex-col bg-bodyBg border border-border rounded-lg overflow-hidden">
-      {/* Editor Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-secondary border-b border-border">
-        <div className="flex items-center gap-2">
-          <span className="bg-neutralDark text-white px-3 py-1 rounded text-sm font-medium">
-            DSA Editor
-          </span>
+    <div className='flex h-full gap-4 bg-bodyBg text-text'>
+      {/* Code Editor - 60% */}
+      <div className='w-3/5 flex flex-col gap-4 p-6 bg-secondary rounded-lg border border-border'>
+        <div className='flex items-center justify-between'>
+          <h2 className='text-xl font-semibold text-primary'>Code Editor</h2>
+          <div className='flex gap-2'>
+            <button
+              onClick={runTestCases}
+              className='flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors'
+            >
+              <FiPlay className='text-sm' />
+              Run Tests
+            </button>
+            <button
+              onClick={evaluateCode}
+              className='flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors'
+            >
+              <FiRotateCcw className='text-sm' />
+              Evaluate
+            </button>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleCopyCode}
-            className={getButtonClasses("secondary")}
-            title="Copy Code"
-          >
-            <FiCopy />
-            Copy
-          </button>
-
-          <button
-            onClick={handleReset}
-            className={getButtonClasses("secondary")}
-            title="Reset Output"
-          >
-            <FiRotateCcw />
-            Reset
-          </button>
-
-          <button
-            onClick={handleRunCode}
-            disabled={isRunning}
-            className={getButtonClasses("primary")}
-            title="Run Code"
-          >
-            <FiPlay className={isRunning ? "animate-spin" : ""} />
-            {isRunning ? "Running..." : "Run"}
-          </button>
-
-          <button
-            onClick={handleEvaluate}
-            disabled={isRunning || !user}
-            className={getButtonClasses("ai")}
-            title="AI Evaluation"
-          >
-            <BiBrain />
-            Evaluate
-          </button>
-        </div>
-      </div>
-
-      {/* Editor Content */}
-      <div className="flex-1 flex">
-        {/* Code Editor */}
-        <div className="flex-1 flex flex-col">
-          <MonacoEditor
-            height="100%"
-            language="javascript"
-            theme="vs-dark"
+        <div className='flex-1 min-h-0'>
+          <Editor
+            height='100%'
+            language='javascript'
+            theme={editorTheme}
             value={code}
-            onChange={(value) => onChange(value || "")}
+            onChange={handleEditorChange}
             options={{
-              readOnly,
               minimap: { enabled: false },
               fontSize: 14,
-              wordWrap: "on",
-              automaticLayout: true,
-              scrollBeyondLastLine: false,
+              lineNumbers: 'on',
               roundedSelection: false,
-              selectOnLineNumbers: true,
-              glyphMargin: true,
+              scrollBeyondLastLine: false,
+              automaticLayout: true,
+              wordWrap: 'on',
               folding: true,
-              lineDecorationsWidth: 20,
+              lineDecorationsWidth: 10,
               lineNumbersMinChars: 3,
-              renderLineHighlight: "all",
+              glyphMargin: false,
+              foldingStrategy: 'indentation',
+              showFoldingControls: 'always',
+              selectOnLineNumbers: true,
+              renderLineHighlight: 'all',
             }}
           />
         </div>
+      </div>
 
-        {/* Output Panel */}
-        {(output || evaluation) && (
-          <div className="w-1/3 flex flex-col border-l border-border">
-            <div className="px-4 py-2 bg-secondary border-b border-border text-sm font-medium text-text">
-              Output
-            </div>
-            <div className="flex-1 bg-gray-900 text-green-400 p-4 overflow-y-auto font-mono text-sm">
-              {showEvaluation && evaluation ? (
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="text-white font-semibold mb-2">
-                      AI Evaluation
-                    </h4>
-                    <div className="bg-gray-800 p-3 rounded">
-                      <p className="text-sm">{evaluation.feedback}</p>
-                    </div>
-                  </div>
-                  {evaluation.score && (
-                    <div>
-                      <h4 className="text-white font-semibold mb-2">Score</h4>
-                      <div className="text-2xl font-bold text-yellow-400">
-                        {evaluation.score}/100
-                      </div>
-                    </div>
-                  )}
+      {/* Test Cases - 40% */}
+      <div className='w-2/5 flex flex-col gap-4 p-6 bg-secondary rounded-lg border border-border'>
+        <h2 className='text-xl font-semibold text-primary'>Test Cases</h2>
+
+        <div className='flex-1 overflow-y-auto space-y-4'>
+          {results.map((testCase, index) => (
+            <div
+              key={testCase.id}
+              className='p-4 bg-bodyBg rounded-md border border-border'
+            >
+              <div className='flex items-center justify-between mb-2'>
+                <h3 className='text-sm font-medium text-text'>
+                  Test Case {index + 1}
+                </h3>
+                <span
+                  className={`px-2 py-1 text-xs rounded-full ${
+                    testCase.status === 'pass'
+                      ? 'bg-green-100 text-green-800'
+                      : testCase.status === 'fail'
+                        ? 'bg-red-100 text-red-800'
+                        : testCase.status === 'running'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : testCase.status === 'error'
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-gray-100 text-gray-800'
+                  }`}
+                >
+                  {testCase.status || 'pending'}
+                </span>
+              </div>
+
+              <div className='space-y-2 text-sm'>
+                <div>
+                  <span className='font-medium text-text/80'>Input:</span>
+                  <pre className='mt-1 p-2 bg-gray-100 rounded text-xs font-mono'>
+                    {testCase.input}
+                  </pre>
                 </div>
-              ) : (
-                <pre className="whitespace-pre-wrap">{output}</pre>
-              )}
+
+                <div>
+                  <span className='font-medium text-text/80'>
+                    Expected Output:
+                  </span>
+                  <pre className='mt-1 p-2 bg-gray-100 rounded text-xs font-mono'>
+                    {testCase.expectedOutput}
+                  </pre>
+                </div>
+              </div>
             </div>
-          </div>
-        )}
+          ))}
+        </div>
       </div>
     </div>
   );

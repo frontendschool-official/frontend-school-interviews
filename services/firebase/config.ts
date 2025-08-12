@@ -1,6 +1,6 @@
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -13,18 +13,18 @@ const firebaseConfig = {
 
 // Check if Firebase configuration is complete
 const missingConfig = Object.entries(firebaseConfig).filter(
-  ([key, value]) => !value
+  ([, value]) => !value
 );
 if (missingConfig.length > 0) {
   console.error(
-    "Missing Firebase configuration:",
+    'Missing Firebase configuration:',
     missingConfig.map(([key]) => key)
   );
   console.error(
-    "Please create a .env.local file with your Firebase project credentials"
+    'Please create a .env.local file with your Firebase project credentials'
   );
 }
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 export const auth = getAuth(app);
-export const db = getFirestore(app); 
+export const db = getFirestore(app);

@@ -21,7 +21,7 @@ export {
   TableRowSkeleton,
   HeaderSkeleton,
   GridSkeleton,
-  StatsGridSkeleton
+  StatsGridSkeleton,
 } from './Skeleton';
 
 // Loading State Components
@@ -29,5 +29,5 @@ export {
   PageLoadingState,
   CardLoadingState,
   ProblemCardLoadingState,
-  DashboardLoadingState
-} from './LoadingState'; 
+  DashboardLoadingState,
+} from './LoadingState';

@@ -1,9 +1,8 @@
 import {
   InterviewInsightsData,
   InterviewInsightsDocument,
-  InterviewInsightsRequest,
   InterviewInsightsResponse,
-} from "../../types/problem";
+} from '../../types/problem';
 import {
   addDoc,
   collection,
@@ -11,10 +10,10 @@ import {
   query,
   Timestamp,
   where,
-} from "firebase/firestore";
-import { db } from "../firebase/config";
-import { COLLECTIONS } from "../../enums/collections";
-import { GEMINI_ENDPOINT, getGeminiApiKey } from "../ai/gemini-config";
+} from 'firebase/firestore';
+import { db } from '../firebase/config';
+import { COLLECTIONS } from '../../enums/collections';
+import { GEMINI_ENDPOINT, getGeminiApiKey } from '../ai/gemini-config';
 
 /**
  * Generate interview insights using Gemini API
@@ -68,7 +67,7 @@ Provide realistic total rounds and duration based on ${companyName}'s typical in
   const body = {
     contents: [
       {
-        role: "user",
+        role: 'user',
         parts: [{ text: prompt }],
       },
     ],
@@ -77,8 +76,8 @@ Provide realistic total rounds and duration based on ${companyName}'s typical in
   try {
     const apiKey = getGeminiApiKey();
     const res = await fetch(`${GEMINI_ENDPOINT}?key=${apiKey}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     });
 
@@ -87,25 +86,25 @@ Provide realistic total rounds and duration based on ${companyName}'s typical in
     }
 
     const data = await res.json();
-    const text: string = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    const text: string = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
     // Extract JSON from the response
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      throw new Error("No valid JSON found in Gemini response");
+      throw new Error('No valid JSON found in Gemini response');
     }
 
     const parsedResponse = JSON.parse(jsonMatch[0]);
 
     // Validate the response structure
     if (!parsedResponse?.rounds || !Array.isArray(parsedResponse?.rounds)) {
-      throw new Error("Invalid response structure from Gemini API");
+      throw new Error('Invalid response structure from Gemini API');
     }
 
     return parsedResponse as InterviewInsightsData;
   } catch (error) {
-    console.error("Error generating interview insights:", error);
-    throw new Error("Failed to generate interview insights");
+    console.error('Error generating interview insights:', error);
+    throw new Error('Failed to generate interview insights');
   }
 }
 
@@ -115,7 +114,7 @@ export async function getInterviewInsights(
   companyId: string
 ): Promise<InterviewInsightsResponse> {
   if (!companyName || !designation || !companyId) {
-    throw new Error("Company name and role level are required");
+    throw new Error('Company name and role level are required');
   }
 
   try {
@@ -124,7 +123,7 @@ export async function getInterviewInsights(
 
     if (cachedInsights) {
       console.log(
-        "Returning cached interview insights for:",
+        'Returning cached interview insights for:',
         companyName,
         designation
       );
@@ -138,7 +137,7 @@ export async function getInterviewInsights(
 
     // If not cached, generate new insights
     console.log(
-      "Generating new interview insights for:",
+      'Generating new interview insights for:',
       companyName,
       designation
     );
@@ -158,12 +157,12 @@ export async function getInterviewInsights(
     try {
       await saveInsightsToCache(insights);
     } catch (cacheError) {
-      console.warn("Failed to cache insights, but continuing:", cacheError);
+      console.warn('Failed to cache insights, but continuing:', cacheError);
     }
 
     return insights;
   } catch (error) {
-    console.error("Error in getInterviewInsights:", error);
+    console.error('Error in getInterviewInsights:', error);
     throw error;
   }
 }
@@ -178,15 +177,15 @@ async function getCachedInsights(
   try {
     // Check if Firebase is properly initialized
     if (!db) {
-      console.warn("Firebase not initialized, skipping cache check");
+      console.warn('Firebase not initialized, skipping cache check');
       return null;
     }
 
     const insightsRef = collection(db, COLLECTIONS.INTERVIEW_INSIGHTS);
     const q = query(
       insightsRef,
-      where("companyName", "==", companyName),
-      where("roleLevel", "==", roleLevel)
+      where('companyName', '==', companyName),
+      where('roleLevel', '==', roleLevel)
     );
 
     const snapshot = await getDocs(q);
@@ -202,7 +201,7 @@ async function getCachedInsights(
     return null;
   } catch (error) {
     console.warn(
-      "Error fetching cached insights (continuing without cache):",
+      'Error fetching cached insights (continuing without cache):',
       error
     );
     return null;
@@ -218,7 +217,7 @@ export async function saveInsightsToCache(
   try {
     // Check if Firebase is properly initialized
     if (!db) {
-      console.warn("Firebase not initialized, skipping cache save");
+      console.warn('Firebase not initialized, skipping cache save');
       return;
     }
 
@@ -229,9 +228,9 @@ export async function saveInsightsToCache(
     });
   } catch (error) {
     console.warn(
-      "Error saving insights to cache (continuing without cache):",
+      'Error saving insights to cache (continuing without cache):',
       error
     );
     // Don't throw error, just log it and continue
   }
-} 
+}

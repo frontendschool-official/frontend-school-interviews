@@ -17,10 +17,10 @@ const MockInterviewSetup: React.FC = () => {
       handleRetry={() => {}}
       handleBack={() => router.back()}
     >
-      <Loader 
-        text="Redirecting to Mock Interview Setup..." 
-        size="lg" 
-        fullScreen 
+      <Loader
+        text='Redirecting to Mock Interview Setup...'
+        size='lg'
+        fullScreen
       />
     </Layout>
   );

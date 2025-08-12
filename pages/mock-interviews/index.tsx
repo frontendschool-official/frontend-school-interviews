@@ -16,7 +16,7 @@ export default function MockInterviewsPage() {
 
   if (loading) {
     return (
-      <Layout isLoading={true} loadingText="Loading mock interviews...">
+      <Layout isLoading={true} loadingText='Loading mock interviews...'>
         <div />
       </Layout>
     );
@@ -31,4 +31,4 @@ export default function MockInterviewsPage() {
       <MockInterviewHub />
     </Layout>
   );
-} 
+}

@@ -1,21 +1,19 @@
-import { NextApiResponse } from "next";
-import { markProblemAsCompleted } from "@/services/firebase/user-progress";
-import { withRequiredAuth, AuthenticatedRequest } from "@/lib/auth";
+import { NextApiResponse } from 'next';
+import { markProblemAsCompleted } from '@/services/firebase/user-progress';
+import { withRequiredAuth, AuthenticatedRequest } from '@/lib/auth';
 
-async function handler(
-  req: AuthenticatedRequest,
-  res: NextApiResponse
-) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
     const { problemId, score, timeSpent } = req.body;
 
     if (!problemId || score === undefined || timeSpent === undefined) {
-      return res.status(400).json({ 
-        error: "Missing required fields: problemId, score, and timeSpent are required" 
+      return res.status(400).json({
+        error:
+          'Missing required fields: problemId, score, and timeSpent are required',
       });
     }
 
@@ -26,12 +24,12 @@ async function handler(
 
     res.status(200).json({ success: true });
   } catch (error) {
-    console.error("Error marking problem as completed:", error);
-    res.status(500).json({ 
-      error: "Failed to mark problem as completed",
-      message: error instanceof Error ? error.message : "Unknown error"
+    console.error('Error marking problem as completed:', error);
+    res.status(500).json({
+      error: 'Failed to mark problem as completed',
+      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 }
 
-export default withRequiredAuth(handler); 
+export default withRequiredAuth(handler);

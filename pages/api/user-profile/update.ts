@@ -1,22 +1,19 @@
-import { NextApiResponse } from "next";
-import { updateUserProfile } from "@/services/firebase/user-profile";
-import { ProfileUpdateData } from "@/types/user";
-import { withRequiredAuth, AuthenticatedRequest } from "@/lib/auth";
+import { NextApiResponse } from 'next';
+import { updateUserProfile } from '@/services/firebase/user-profile';
+import { ProfileUpdateData } from '@/types/user';
+import { withRequiredAuth, AuthenticatedRequest } from '@/lib/auth';
 
-async function handler(
-  req: AuthenticatedRequest,
-  res: NextApiResponse
-) {
-  if (req.method !== "PUT") {
-    return res.status(405).json({ error: "Method not allowed" });
+async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
+  if (req.method !== 'PUT') {
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
     const { updates } = req.body;
 
     if (!updates) {
-      return res.status(400).json({ 
-        error: "Missing required field: updates is required" 
+      return res.status(400).json({
+        error: 'Missing required field: updates is required',
       });
     }
 
@@ -27,12 +24,12 @@ async function handler(
 
     res.status(200).json({ success: true });
   } catch (error) {
-    console.error("Error updating user profile:", error);
-    res.status(500).json({ 
-      error: "Failed to update user profile",
-      message: error instanceof Error ? error.message : "Unknown error"
+    console.error('Error updating user profile:', error);
+    res.status(500).json({
+      error: 'Failed to update user profile',
+      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 }
 
-export default withRequiredAuth(handler); 
+export default withRequiredAuth(handler);

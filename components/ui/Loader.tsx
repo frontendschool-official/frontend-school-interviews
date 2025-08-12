@@ -12,14 +12,14 @@ const sizeClasses = {
   sm: 'h-4 w-4',
   md: 'h-8 w-8',
   lg: 'h-12 w-12',
-  xl: 'h-16 w-16'
+  xl: 'h-16 w-16',
 };
 
 const textSizes = {
   sm: 'text-sm',
   md: 'text-base',
   lg: 'text-lg',
-  xl: 'text-xl'
+  xl: 'text-xl',
 };
 
 export const Loader: React.FC<LoaderProps> = ({
@@ -27,15 +27,17 @@ export const Loader: React.FC<LoaderProps> = ({
   text = 'Loading...',
   className = '',
   variant = 'spinner',
-  fullScreen = false
+  fullScreen = false,
 }) => {
   const renderSpinner = () => (
-    <div className={`animate-spin rounded-full border-4 border-primary border-t-transparent ${sizeClasses[size]}`} />
+    <div
+      className={`animate-spin rounded-full border-4 border-primary border-t-transparent ${sizeClasses[size]}`}
+    />
   );
 
   const renderDots = () => (
-    <div className="flex space-x-1">
-      {[0, 1, 2].map((i) => (
+    <div className='flex space-x-1'>
+      {[0, 1, 2].map(i => (
         <div
           key={i}
           className={`bg-primary rounded-full animate-bounce ${sizeClasses[size].replace('h-', 'h-').replace('w-', 'w-')}`}
@@ -46,7 +48,9 @@ export const Loader: React.FC<LoaderProps> = ({
   );
 
   const renderPulse = () => (
-    <div className={`bg-primary rounded-full animate-pulse ${sizeClasses[size]}`} />
+    <div
+      className={`bg-primary rounded-full animate-pulse ${sizeClasses[size]}`}
+    />
   );
 
   const renderVariant = () => {
@@ -61,8 +65,10 @@ export const Loader: React.FC<LoaderProps> = ({
   };
 
   const content = (
-    <div className={`flex flex-col items-center justify-center ${fullScreen ? 'min-h-screen' : ''} ${className}`}>
-      <div className="text-center">
+    <div
+      className={`flex flex-col items-center justify-center ${fullScreen ? 'min-h-screen' : ''} ${className}`}
+    >
+      <div className='text-center'>
         {renderVariant()}
         {text && (
           <p className={`text-text/80 mt-4 font-medium ${textSizes[size]}`}>
@@ -76,4 +82,4 @@ export const Loader: React.FC<LoaderProps> = ({
   return content;
 };
 
-export default Loader; 
+export default Loader;

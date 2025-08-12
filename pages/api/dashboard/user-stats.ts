@@ -1,15 +1,12 @@
-import { NextApiResponse } from "next";
-import { getUserProgress } from "@/services/firebase/user-progress";
-import { getUserProfile } from "@/services/firebase/user-profile";
-import { getProblemById } from "@/services/firebase/problems";
-import { withRequiredAuth, AuthenticatedRequest } from "@/lib/auth";
+import { NextApiResponse } from 'next';
+import { getUserProgress } from '@/services/firebase/user-progress';
+import { getUserProfile } from '@/services/firebase/user-profile';
+import { getProblemById } from '@/services/firebase/problems';
+import { withRequiredAuth, AuthenticatedRequest } from '@/lib/auth';
 
-async function handler(
-  req: AuthenticatedRequest,
-  res: NextApiResponse
-) {
-  if (req.method !== "GET") {
-    return res.status(405).json({ error: "Method not allowed" });
+async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
@@ -19,7 +16,7 @@ async function handler(
     // Fetch user progress and profile data
     const [userProgress, userProfile] = await Promise.all([
       getUserProgress(userId),
-      getUserProfile(userId)
+      getUserProfile(userId),
     ]);
 
     // Calculate recent activity (last 7 days)
@@ -27,18 +24,31 @@ async function handler(
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
     const recentActivity = userProgress.filter((progress: any) => {
-      const lastAttempted = progress.lastAttemptedAt?.toDate?.() || new Date(progress.lastAttemptedAt);
+      const lastAttempted =
+        progress.lastAttemptedAt?.toDate?.() ||
+        new Date(progress.lastAttemptedAt);
       return lastAttempted >= sevenDaysAgo;
     });
 
     // Calculate weekly stats
     const weeklyStats = {
       problemsAttempted: recentActivity.length,
-      problemsCompleted: recentActivity.filter((p: any) => p.status === 'completed').length,
-      timeSpent: recentActivity.reduce((total: number, p: any) => total + (p.timeSpent || 0), 0),
-      averageScore: recentActivity.length > 0 
-        ? Math.round(recentActivity.reduce((total: number, p: any) => total + (p.score || 0), 0) / recentActivity.length)
-        : 0
+      problemsCompleted: recentActivity.filter(
+        (p: any) => p.status === 'completed'
+      ).length,
+      timeSpent: recentActivity.reduce(
+        (total: number, p: any) => total + (p.timeSpent || 0),
+        0
+      ),
+      averageScore:
+        recentActivity.length > 0
+          ? Math.round(
+              recentActivity.reduce(
+                (total: number, p: any) => total + (p.score || 0),
+                0
+              ) / recentActivity.length
+            )
+          : 0,
     };
 
     // Get recent problems with details
@@ -49,12 +59,16 @@ async function handler(
           return {
             id: progress.problemId,
             title: problem?.title || progress.problemTitle || 'Unknown Problem',
-            type: (problem as any)?.interviewType || (problem as any)?.type || progress.problemType || 'Unknown',
+            type:
+              (problem as any)?.interviewType ||
+              (problem as any)?.type ||
+              progress.problemType ||
+              'Unknown',
             status: progress.status,
             score: progress.score,
             timeSpent: progress.timeSpent,
             lastAttemptedAt: progress.lastAttemptedAt,
-            difficulty: problem?.difficulty || 'medium'
+            difficulty: problem?.difficulty || 'medium',
           };
         } catch (error) {
           console.error('Error fetching problem details:', error);
@@ -66,7 +80,7 @@ async function handler(
             score: progress.score,
             timeSpent: progress.timeSpent,
             lastAttemptedAt: progress.lastAttemptedAt,
-            difficulty: 'medium'
+            difficulty: 'medium',
           };
         }
       })
@@ -75,35 +89,64 @@ async function handler(
     // Calculate performance trends
     const performanceByType = {
       dsa: {
-        attempted: userProgress.filter((p: any) => p.problemType?.toLowerCase() === 'dsa').length,
-        completed: userProgress.filter((p: any) => p.problemType?.toLowerCase() === 'dsa' && p.status === 'completed').length,
-        averageScore: 0
+        attempted: userProgress.filter(
+          (p: any) => p.problemType?.toLowerCase() === 'dsa'
+        ).length,
+        completed: userProgress.filter(
+          (p: any) =>
+            p.problemType?.toLowerCase() === 'dsa' && p.status === 'completed'
+        ).length,
+        averageScore: 0,
       },
       machineCoding: {
-        attempted: userProgress.filter((p: any) => p.problemType?.toLowerCase() === 'machine coding').length,
-        completed: userProgress.filter((p: any) => p.problemType?.toLowerCase() === 'machine coding' && p.status === 'completed').length,
-        averageScore: 0
+        attempted: userProgress.filter(
+          (p: any) => p.problemType?.toLowerCase() === 'machine coding'
+        ).length,
+        completed: userProgress.filter(
+          (p: any) =>
+            p.problemType?.toLowerCase() === 'machine coding' &&
+            p.status === 'completed'
+        ).length,
+        averageScore: 0,
       },
       systemDesign: {
-        attempted: userProgress.filter((p: any) => p.problemType?.toLowerCase() === 'system design').length,
-        completed: userProgress.filter((p: any) => p.problemType?.toLowerCase() === 'system design' && p.status === 'completed').length,
-        averageScore: 0
+        attempted: userProgress.filter(
+          (p: any) => p.problemType?.toLowerCase() === 'system design'
+        ).length,
+        completed: userProgress.filter(
+          (p: any) =>
+            p.problemType?.toLowerCase() === 'system design' &&
+            p.status === 'completed'
+        ).length,
+        averageScore: 0,
       },
       theory: {
-        attempted: userProgress.filter((p: any) => p.problemType?.toLowerCase() === 'theory').length,
-        completed: userProgress.filter((p: any) => p.problemType?.toLowerCase() === 'theory' && p.status === 'completed').length,
-        averageScore: 0
-      }
+        attempted: userProgress.filter(
+          (p: any) => p.problemType?.toLowerCase() === 'theory'
+        ).length,
+        completed: userProgress.filter(
+          (p: any) =>
+            p.problemType?.toLowerCase() === 'theory' &&
+            p.status === 'completed'
+        ).length,
+        averageScore: 0,
+      },
     };
 
     // Calculate average scores by type
     Object.keys(performanceByType).forEach(type => {
-      const typeProgress = userProgress.filter((p: any) => 
-        p.problemType?.toLowerCase() === type.toLowerCase() && p.score
+      const typeProgress = userProgress.filter(
+        (p: any) =>
+          p.problemType?.toLowerCase() === type.toLowerCase() && p.score
       );
       if (typeProgress.length > 0) {
-        performanceByType[type as keyof typeof performanceByType].averageScore = 
-          Math.round(typeProgress.reduce((total: number, p: any) => total + (p.score || 0), 0) / typeProgress.length);
+        performanceByType[type as keyof typeof performanceByType].averageScore =
+          Math.round(
+            typeProgress.reduce(
+              (total: number, p: any) => total + (p.score || 0),
+              0
+            ) / typeProgress.length
+          );
       }
     });
 
@@ -114,20 +157,22 @@ async function handler(
       weeklyStats,
       performanceByType,
       totalProblems: userProgress.length,
-      completedProblems: userProgress.filter((p: any) => p.status === 'completed').length,
+      completedProblems: userProgress.filter(
+        (p: any) => p.status === 'completed'
+      ).length,
       currentStreak: userProfile?.stats?.currentStreak || 0,
       longestStreak: userProfile?.stats?.longestStreak || 0,
-      totalTimeSpent: userProfile?.stats?.totalTimeSpent || 0
+      totalTimeSpent: userProfile?.stats?.totalTimeSpent || 0,
     };
 
     res.status(200).json(userStats);
   } catch (error) {
-    console.error("Error getting user stats:", error);
-    res.status(500).json({ 
-      error: "Failed to get user statistics",
-      message: error instanceof Error ? error.message : "Unknown error"
+    console.error('Error getting user stats:', error);
+    res.status(500).json({
+      error: 'Failed to get user statistics',
+      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 }
 
-export default withRequiredAuth(handler); 
+export default withRequiredAuth(handler);

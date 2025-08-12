@@ -33,7 +33,7 @@ export const useMockInterviewData = (): MockInterviewData => {
     totalInterviews: 0,
     averageScore: 0,
     completedRounds: 0,
-    totalTime: '0h 0m'
+    totalTime: '0h 0m',
   });
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,22 +50,23 @@ export const useMockInterviewData = (): MockInterviewData => {
       setError(null);
 
       // Fetch mock interview statistics from dedicated API
-      const response = await fetch(`/api/mock-interviews/stats?userId=${user.uid}`);
+      const response = await fetch(
+        `/api/mock-interviews/stats?userId=${user.uid}`
+      );
       if (!response.ok) {
         throw new Error('Failed to fetch mock interview statistics');
       }
-      
+
       const data = await response.json();
-      
+
       setStats({
         totalInterviews: data.totalInterviews || 0,
         averageScore: data.averageScore || 0,
         completedRounds: data.completedRounds || 0,
-        totalTime: data.totalTime || '0h 0m'
+        totalTime: data.totalTime || '0h 0m',
       });
 
       setRecentActivity(data.recentActivity || []);
-
     } catch (err) {
       console.error('Error fetching mock interview data:', err);
       setError('Failed to load mock interview data');
@@ -87,6 +88,6 @@ export const useMockInterviewData = (): MockInterviewData => {
     recentActivity,
     loading,
     error,
-    refresh
+    refresh,
   };
-}; 
+};

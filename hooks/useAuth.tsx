@@ -35,7 +35,9 @@ const AuthContext = createContext<AuthContextValue>({
   refreshProfile: async () => {},
 });
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -46,7 +48,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setProfileLoading(true);
       let profile = await getUserProfile(firebaseUser.uid);
       let isNewUser = false;
-      
+
       if (!profile) {
         // Create new user profile
         profile = await createUserProfile(firebaseUser);
@@ -55,7 +57,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Update last login
         await updateLastLogin(firebaseUser.uid);
       }
-      
+
       setUserProfile(profile);
       return { profile, isNewUser };
     } catch (error) {
@@ -68,30 +70,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     console.log('🔥 Setting up auth state listener...');
-    const unsubscribe = onUserStateChange(async (firebaseUser) => {
-      console.log('🔥 Auth state changed:', firebaseUser ? 'User logged in' : 'User logged out');
+    const unsubscribe = onUserStateChange(async firebaseUser => {
+      console.log(
+        '🔥 Auth state changed:',
+        firebaseUser ? 'User logged in' : 'User logged out'
+      );
       console.log('🔥 Firebase user object:', firebaseUser);
       setUser(firebaseUser);
-      
+
       if (firebaseUser) {
         // Create session cookie for server-side authentication
         try {
           const idToken = await firebaseUser.getIdToken();
-          const { createSessionCookie } = await import('../services/firebase/auth');
+          const { createSessionCookie } = await import(
+            '../services/firebase/auth'
+          );
           await createSessionCookie(idToken);
           console.log('🔥 Session cookie created successfully');
         } catch (error) {
           console.error('🔥 Error creating session cookie:', error);
         }
-        
+
         await loadUserProfile(firebaseUser);
       } else {
         setUserProfile(null);
       }
-      
+
       setLoading(false);
     });
-    
+
     console.log('🔥 Auth listener setup complete');
     return () => {
       console.log('🔥 Cleaning up auth listener');
@@ -99,11 +106,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  const [isNewUser, setIsNewUser] = useState(false);
-
   const signIn = async (): Promise<SignInResult> => {
     try {
-      const result = await signInWithGoogle();
+      await signInWithGoogle();
       // Check if this is a new user by looking at the user profile
       if (userProfile && !userProfile.onboardingCompleted) {
         return { success: true, isNewUser: true };
@@ -111,12 +116,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: true, isNewUser: false };
     } catch (error) {
       console.error('Sign-in error', error);
-      return { 
-        success: false, 
-        error: { 
-          code: 'signin-failed', 
-          message: error instanceof Error ? error.message : 'Sign-in failed' 
-        } 
+      return {
+        success: false,
+        error: {
+          code: 'signin-failed',
+          message: error instanceof Error ? error.message : 'Sign-in failed',
+        },
       };
     }
   };
@@ -126,14 +131,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('🔥 Starting sign out process...');
       console.log('🔥 Current user state:', user);
       console.log('🔥 Current profile state:', userProfile);
-      
+
       await signOutUser();
-      
+
       console.log('🔥 Firebase signOut completed, clearing local state...');
       setUserProfile(null);
       setUser(null);
       console.log('🔥 Local state cleared successfully');
-      
+
       return { success: true };
     } catch (error) {
       console.error('🔥 Sign-out error:', error);
@@ -147,13 +152,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateProfile = async (updates: any) => {
     if (!user) return;
-    
+
     try {
       setProfileLoading(true);
       // Update in Firebase
       await updateUserProfile(user.uid, updates);
       // Update local state
-      setUserProfile(prev => prev ? { ...prev, ...updates, updatedAt: new Date() } : null);
+      setUserProfile(prev =>
+        prev ? { ...prev, ...updates, updatedAt: new Date() } : null
+      );
     } catch (error) {
       console.error('Error updating profile:', error);
       throw error;
@@ -164,7 +171,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const refreshProfile = async () => {
     if (!user) return;
-    
+
     try {
       setProfileLoading(true);
       const profile = await getUserProfile(user.uid);
@@ -177,16 +184,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      userProfile, 
-      loading, 
-      profileLoading, 
-      signIn, 
-      signOut, 
-      updateProfile, 
-      refreshProfile 
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        userProfile,
+        loading,
+        profileLoading,
+        signIn,
+        signOut,
+        updateProfile,
+        refreshProfile,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

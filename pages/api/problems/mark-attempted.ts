@@ -1,21 +1,19 @@
-import { NextApiResponse } from "next";
-import { markProblemAsAttempted } from "@/services/firebase/user-progress";
-import { withRequiredAuth, AuthenticatedRequest } from "@/lib/auth";
+import { NextApiResponse } from 'next';
+import { markProblemAsAttempted } from '@/services/firebase/user-progress';
+import { withRequiredAuth, AuthenticatedRequest } from '@/lib/auth';
 
-async function handler(
-  req: AuthenticatedRequest,
-  res: NextApiResponse
-) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
     const { problemId, attemptData } = req.body;
 
     if (!problemId || !attemptData) {
-      return res.status(400).json({ 
-        error: "Missing required fields: problemId and attemptData are required" 
+      return res.status(400).json({
+        error:
+          'Missing required fields: problemId and attemptData are required',
       });
     }
 
@@ -26,15 +24,15 @@ async function handler(
 
     res.status(200).json({
       success: true,
-      message: "Problem marked as attempted successfully",
+      message: 'Problem marked as attempted successfully',
     });
   } catch (error) {
-    console.error("Error marking problem as attempted:", error);
+    console.error('Error marking problem as attempted:', error);
     res.status(500).json({
-      error: "Failed to mark problem as attempted",
-      message: error instanceof Error ? error.message : "Unknown error"
+      error: 'Failed to mark problem as attempted',
+      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 }
 
-export default withRequiredAuth(handler); 
+export default withRequiredAuth(handler);

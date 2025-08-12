@@ -1,18 +1,23 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from './useAuth';
-import { InterviewSimulationData, InterviewRound, MockInterviewSession, MockInterviewResult, InterviewType } from '../types/problem';
-import { COLLECTIONS } from '@/enums/collections';
+import {
+  InterviewSimulationData,
+  InterviewRound,
+  MockInterviewSession,
+  MockInterviewResult,
+  InterviewType,
+} from '../types/problem';
 
 const getProblemsCount = (duration: string): number => {
   switch (duration) {
-    case "15min":
+    case '15min':
       return 1;
-    case "30min":
+    case '30min':
       return 2;
-    case "45min":
+    case '45min':
       return 3;
-    case "60min":
+    case '60min':
       return 4;
     default:
       return 2;
@@ -21,18 +26,18 @@ const getProblemsCount = (duration: string): number => {
 
 const determineRoundType = (round: InterviewRound): InterviewType => {
   const roundName = round.name.toLowerCase();
-  
-  if (roundName.includes("dsa") || roundName.includes("algorithm")) {
-    return "dsa";
-  } else if (roundName.includes("machine") || roundName.includes("coding")) {
-    return "machine_coding";
-  } else if (roundName.includes("system") || roundName.includes("design")) {
-    return "system_design";
-  } else if (roundName.includes("theory") || roundName.includes("concept")) {
-    return "theory_and_debugging";
+
+  if (roundName.includes('dsa') || roundName.includes('algorithm')) {
+    return 'dsa';
+  } else if (roundName.includes('machine') || roundName.includes('coding')) {
+    return 'machine_coding';
+  } else if (roundName.includes('system') || roundName.includes('design')) {
+    return 'system_design';
+  } else if (roundName.includes('theory') || roundName.includes('concept')) {
+    return 'theory_and_debugging';
   }
-  
-  return "dsa"; // default fallback
+
+  return 'dsa'; // default fallback
 };
 
 export const useInterviewSimulationRound = () => {
@@ -40,7 +45,9 @@ export const useInterviewSimulationRound = () => {
   const { id, interview_round } = router.query;
   const { user } = useAuth();
 
-  const [simulation, setSimulation] = useState<InterviewSimulationData | null>(null);
+  const [simulation, setSimulation] = useState<InterviewSimulationData | null>(
+    null
+  );
   const [currentRound, setCurrentRound] = useState<InterviewRound | null>(null);
   const [session, setSession] = useState<MockInterviewSession | null>(null);
   const [loading, setLoading] = useState(true);
@@ -58,7 +65,7 @@ export const useInterviewSimulationRound = () => {
 
   const fetchRoundData = async () => {
     const timeoutId = setTimeout(() => {
-      setError("Request timed out. Please try again.");
+      setError('Request timed out. Please try again.');
       setLoading(false);
     }, 10000);
 
@@ -67,18 +74,22 @@ export const useInterviewSimulationRound = () => {
       setError(null);
 
       // Fetch simulation data using API
-      if (!id || typeof id !== "string") {
-        setError("Invalid simulation ID");
+      if (!id || typeof id !== 'string') {
+        setError('Invalid simulation ID');
         return;
       }
 
-      const simulationResponse = await fetch(`/api/interview-simulation/get-simulation?id=${id}`);
-      
+      const simulationResponse = await fetch(
+        `/api/interview-simulation/get-simulation?id=${id}`
+      );
+
       if (!simulationResponse.ok) {
         if (simulationResponse.status === 404) {
-          setError("Simulation not found. Please check the URL or create a new simulation.");
+          setError(
+            'Simulation not found. Please check the URL or create a new simulation.'
+          );
         } else {
-          setError("Failed to load simulation data");
+          setError('Failed to load simulation data');
         }
         return;
       }
@@ -90,13 +101,13 @@ export const useInterviewSimulationRound = () => {
       if (roundIndex >= 0 && roundIndex < simulationData.rounds.length) {
         setCurrentRound(simulationData.rounds[roundIndex]);
       } else {
-        setError("Invalid round number");
+        setError('Invalid round number');
         return;
       }
 
       // Check for existing session using API
       if (!user) {
-        setError("User not authenticated");
+        setError('User not authenticated');
         return;
       }
 
@@ -110,14 +121,14 @@ export const useInterviewSimulationRound = () => {
           setSession(sessionData.session);
           setHasExistingSession(true);
 
-          if (sessionData.session.status === "active") {
+          if (sessionData.session.status === 'active') {
             setShowInterview(true);
           }
         }
       }
     } catch (err) {
-      console.error("Error fetching round data:", err);
-      setError("Failed to load round data");
+      console.error('Error fetching round data:', err);
+      setError('Failed to load round data');
     } finally {
       clearTimeout(timeoutId);
       setLoading(false);
@@ -133,9 +144,9 @@ export const useInterviewSimulationRound = () => {
       const response = await fetch(
         `/api/interview-simulation/start-interview?userId=${user?.uid}&simulationId=${id}`
       );
-      
+
       if (!response.ok) {
-        throw new Error("Failed to start interview");
+        throw new Error('Failed to start interview');
       }
 
       // Fetch problems from interview_problems collection
@@ -144,13 +155,13 @@ export const useInterviewSimulationRound = () => {
       );
 
       if (!problemsResponse.ok) {
-        throw new Error("Failed to fetch problems");
+        throw new Error('Failed to fetch problems');
       }
 
       const problemsData = await problemsResponse.json();
-      
+
       if (!problemsData.problems || problemsData.problems.length === 0) {
-        throw new Error("No problems found for this round");
+        throw new Error('No problems found for this round');
       }
 
       // Create session with problems
@@ -163,21 +174,24 @@ export const useInterviewSimulationRound = () => {
         roundType: determineRoundType(currentRound!),
         problems: problemsData.problems,
         currentProblemIndex: 0,
-        status: "active",
+        status: 'active',
         startedAt: new Date(),
       };
 
       // Save session to database
-      const sessionResponse = await fetch("/api/interview-simulation/session/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(sessionData),
-      });
+      const sessionResponse = await fetch(
+        '/api/interview-simulation/session/create',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(sessionData),
+        }
+      );
 
       if (!sessionResponse.ok) {
-        throw new Error("Failed to create session");
+        throw new Error('Failed to create session');
       }
 
       const sessionResult = await sessionResponse.json();
@@ -187,8 +201,10 @@ export const useInterviewSimulationRound = () => {
       setShowInterview(true);
       setHasExistingSession(true);
     } catch (error) {
-      console.error("Error starting round:", error);
-      setError(error instanceof Error ? error.message : "Failed to start round");
+      console.error('Error starting round:', error);
+      setError(
+        error instanceof Error ? error.message : 'Failed to start round'
+      );
     } finally {
       setIsStarting(false);
     }
@@ -198,28 +214,31 @@ export const useInterviewSimulationRound = () => {
     try {
       // Update session with completion data
       if (session) {
-        const response = await fetch("/api/interview-simulation/session/update", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            sessionId: session.id,
-            result,
-            status: "completed",
-          }),
-        });
+        const response = await fetch(
+          '/api/interview-simulation/session/update',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              sessionId: session.id,
+              result,
+              status: 'completed',
+            }),
+          }
+        );
 
         if (!response.ok) {
-          throw new Error("Failed to update session");
+          throw new Error('Failed to update session');
         }
       }
 
       // Navigate to results page
       router.push(`/interview-simulation/${id}/result`);
     } catch (error) {
-      console.error("Error completing interview:", error);
-      setError("Failed to complete interview");
+      console.error('Error completing interview:', error);
+      setError('Failed to complete interview');
     }
   };
 
@@ -240,7 +259,7 @@ export const useInterviewSimulationRound = () => {
       // Delete existing session if any
       if (session) {
         await fetch(`/api/interview-simulation/session/${session.id}`, {
-          method: "DELETE",
+          method: 'DELETE',
         });
       }
 
@@ -248,8 +267,8 @@ export const useInterviewSimulationRound = () => {
       await startRound();
       setShowInterview(true);
     } catch (error) {
-      console.error("Error restarting round:", error);
-      setError("Failed to restart round");
+      console.error('Error restarting round:', error);
+      setError('Failed to restart round');
     } finally {
       setIsStarting(false);
     }
@@ -266,7 +285,7 @@ export const useInterviewSimulationRound = () => {
 
           if (problemsResponse.ok) {
             const problemsData = await problemsResponse.json();
-            
+
             if (problemsData.problems && problemsData.problems.length > 0) {
               // Update session with problems
               const updatedSession = {
@@ -277,10 +296,10 @@ export const useInterviewSimulationRound = () => {
             }
           }
         } catch (error) {
-          console.error("Error fetching problems for existing session:", error);
+          console.error('Error fetching problems for existing session:', error);
         }
       }
-      
+
       setShowInterview(true);
     }
   };
@@ -299,7 +318,7 @@ export const useInterviewSimulationRound = () => {
 
     // Computed values
     problemsCount: currentRound ? getProblemsCount(currentRound.duration) : 2,
-    roundType: currentRound ? determineRoundType(currentRound) : "dsa",
+    roundType: currentRound ? determineRoundType(currentRound) : 'dsa',
 
     // Router and ID
     router,
@@ -314,4 +333,4 @@ export const useInterviewSimulationRound = () => {
     restartRound,
     continueRound,
   };
-}; 
+};

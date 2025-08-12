@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { useAuth } from "./useAuth";
-import { ParsedProblemData } from "../types/problem";
+import { useState } from 'react';
+import { useAuth } from './useAuth';
+import { ParsedProblemData } from '../types/problem';
 
 export const useInterviewAttempt = (problem: ParsedProblemData | null) => {
   const { user } = useAuth();
@@ -11,29 +11,29 @@ export const useInterviewAttempt = (problem: ParsedProblemData | null) => {
 
     setIsTrackingAttempt(true);
     try {
-      const response = await fetch("/api/problems/mark-attempted", {
-        method: "POST",
+      const response = await fetch('/api/problems/mark-attempted', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           userId: user.uid,
-          problemId: problem.id || "",
+          problemId: problem.id || '',
           attemptData: {
             title: problem.designation,
             type: problem.interviewType,
             designation: problem.designation,
-            companies: problem.companies || "",
+            companies: problem.companies || '',
             round: problem.round,
           },
         }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to track problem attempt");
+        throw new Error('Failed to track problem attempt');
       }
     } catch (error) {
-      console.error("Error tracking problem attempt:", error);
+      console.error('Error tracking problem attempt:', error);
     } finally {
       setIsTrackingAttempt(false);
     }
@@ -51,4 +51,4 @@ export const useInterviewAttempt = (problem: ParsedProblemData | null) => {
     trackProblemAttempt,
     handleCodeChange,
   };
-}; 
+};

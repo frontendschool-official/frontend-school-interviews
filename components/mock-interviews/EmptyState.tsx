@@ -9,23 +9,23 @@ interface EmptyStateProps {
   actionLink?: string;
 }
 
-export default function EmptyState({ 
-  title = "No recent activity yet.",
-  message = "Start your first mock interview to see your progress here.",
-  actionText = "Start your first mock interview",
-  actionLink = "/interview-simulation"
+export default function EmptyState({
+  title = 'No recent activity yet.',
+  message = 'Start your first mock interview to see your progress here.',
+  actionText = 'Start your first mock interview',
+  actionLink = '/interview-simulation',
 }: EmptyStateProps) {
   return (
-    <div className="text-center py-8 text-text/70">
-      <p className="mb-4">{title}</p>
-      <p className="mb-6 text-sm">{message}</p>
-      <Link 
-        href={actionLink} 
-        className="inline-flex items-center gap-2 text-primary hover:text-accent transition-colors"
+    <div className='text-center py-8 text-text/70'>
+      <p className='mb-4'>{title}</p>
+      <p className='mb-6 text-sm'>{message}</p>
+      <Link
+        href={actionLink}
+        className='inline-flex items-center gap-2 text-primary hover:text-accent transition-colors'
       >
-        <FiPlay className="text-sm" />
+        <FiPlay className='text-sm' />
         {actionText}
       </Link>
     </div>
   );
-} 
+}

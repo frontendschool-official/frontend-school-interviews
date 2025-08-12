@@ -40,7 +40,10 @@ import { replaceVariables as replaceVars } from './replacer';
  * Quick utility to process a template with variables
  * @deprecated Use promptManager.processPrompt() for better version control
  */
-export function quickReplaceTemplate(template: string, variables: Record<string, any>): string {
+export function quickReplaceTemplate(
+  template: string,
+  variables: Record<string, any>
+): string {
   return replaceVars(template, variables);
 }
 

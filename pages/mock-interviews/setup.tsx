@@ -27,7 +27,7 @@ export default function MockInterviewSetupPage() {
   if (loading) {
     return (
       <Layout isLoading={false}>
-        <Loader text="Loading setup..." size="lg" fullScreen />
+        <Loader text='Loading setup...' size='lg' fullScreen />
       </Layout>
     );
   }
@@ -38,7 +38,7 @@ export default function MockInterviewSetupPage() {
 
   return (
     <Layout>
-      <Loader text="Redirecting to interview setup..." size="md" />
+      <Loader text='Redirecting to interview setup...' size='md' />
     </Layout>
   );
-} 
+}

@@ -1,23 +1,21 @@
-import { NextApiResponse } from "next";
-import { collection, query, where, getDocs } from "firebase/firestore";
-import { db } from "@/services/firebase/config";
-import { COLLECTIONS } from "@/enums/collections";
-import { withRequiredAuth, AuthenticatedRequest } from "@/lib/auth";
+import { NextApiResponse } from 'next';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '@/services/firebase/config';
+import { COLLECTIONS } from '@/enums/collections';
+import { withRequiredAuth, AuthenticatedRequest } from '@/lib/auth';
 
-async function handler(
-  req: AuthenticatedRequest,
-  res: NextApiResponse
-) {
-  if (req.method !== "GET") {
-    return res.status(405).json({ error: "Method not allowed" });
+async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
     const { interviewId, roundNumber } = req.query;
 
     if (!interviewId || !roundNumber) {
-      return res.status(400).json({ 
-        error: "Missing required fields: interviewId and roundNumber are required" 
+      return res.status(400).json({
+        error:
+          'Missing required fields: interviewId and roundNumber are required',
       });
     }
 
@@ -28,21 +26,21 @@ async function handler(
     const problemsRef = collection(db, COLLECTIONS.INTERVIEW_PROBLEMS);
     const q = query(
       problemsRef,
-      where("interviewId", "==", interviewId),
-      where("roundNumber", "==", parseInt(roundNumber as string)),
-      where("userId", "==", userId)
+      where('interviewId', '==', interviewId),
+      where('roundNumber', '==', parseInt(roundNumber as string)),
+      where('userId', '==', userId)
     );
 
     const querySnapshot = await getDocs(q);
     const problems: any[] = [];
 
-    querySnapshot.forEach((doc) => {
+    querySnapshot.forEach(doc => {
       const data = doc.data();
       problems.push({
         id: doc.id,
         ...data,
         // Map the type to match InterviewType
-        type: data.type === "js_concepts" ? "theory_and_debugging" : data.type,
+        type: data.type === 'js_concepts' ? 'theory_and_debugging' : data.type,
       });
     });
 
@@ -59,12 +57,12 @@ async function handler(
       count: problems.length,
     });
   } catch (error) {
-    console.error("Error fetching round problems:", error);
-    res.status(500).json({ 
-      error: "Failed to fetch round problems",
-      message: error instanceof Error ? error.message : "Unknown error"
+    console.error('Error fetching round problems:', error);
+    res.status(500).json({
+      error: 'Failed to fetch round problems',
+      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 }
 
-export default withRequiredAuth(handler); 
+export default withRequiredAuth(handler);

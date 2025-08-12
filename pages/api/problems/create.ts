@@ -1,47 +1,53 @@
-import { generateInterviewQuestions } from "@/services/ai/problem-generation";
-import { saveProblemSet } from "@/services/firebase/problems";
-import { NextApiResponse } from "next";
-import { withRequiredAuth, AuthenticatedRequest } from "@/lib/auth";
+import { generateInterviewQuestions } from '@/services/ai/problem-generation';
+import { saveProblemSet } from '@/services/firebase/problems';
+import { NextApiResponse } from 'next';
+import { withRequiredAuth, AuthenticatedRequest } from '@/lib/auth';
 
-async function handler(
-  req: AuthenticatedRequest,
-  res: NextApiResponse
-) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
     const { designation, companies, round, interviewType } = req.body;
 
     if (!designation || !companies || !round || !interviewType) {
-      return res.status(400).json({ 
-        error: "Missing required fields: designation, companies, round, and interviewType are required" 
+      return res.status(400).json({
+        error:
+          'Missing required fields: designation, companies, round, and interviewType are required',
       });
     }
 
     // Get user ID from authenticated session (verified server-side)
     const userId = req.userId!;
 
-    console.log("🚀 Starting interview generation with values:", { designation, companies, round, interviewType, userId });
+    console.log('🚀 Starting interview generation with values:', {
+      designation,
+      companies,
+      round,
+      interviewType,
+      userId,
+    });
 
     // Step 1: Generate interview questions
-    console.log("📝 Calling generateInterviewQuestions...");
+    console.log('📝 Calling generateInterviewQuestions...');
     const result = await generateInterviewQuestions({
       designation,
       companies,
       round,
       interviewType,
     });
-    console.log("✅ Generated result:", result);
+    console.log('✅ Generated result:', result);
 
     if (!result) {
-      return res.status(400).json({ error: "No problems generated" });
+      return res.status(400).json({ error: 'No problems generated' });
     }
 
     // Step 2: Validate the generated result
     if (!result.problem) {
-      return res.status(400).json({ error: "Problem was not generated properly" });
+      return res
+        .status(400)
+        .json({ error: 'Problem was not generated properly' });
     }
 
     // Step 3: Prepare problem data for database
@@ -55,51 +61,58 @@ async function handler(
 
     // Store problem data in unified 'problem' field
     problemData.problem = result.problem;
-    console.log("📋 Setting unified problem data:", {
+    console.log('📋 Setting unified problem data:', {
       hasProblem: !!problemData.problem,
-      problemKeys: problemData.problem ? Object.keys(JSON.parse(problemData.problem)) : [],
+      problemKeys: problemData.problem
+        ? Object.keys(JSON.parse(problemData.problem))
+        : [],
     });
 
     // Step 4: Save to database
-    console.log("💾 Saving problem set to database...");
-    console.log("📋 Problem data structure:", {
+    console.log('💾 Saving problem set to database...');
+    console.log('📋 Problem data structure:', {
       interviewType: problemData.interviewType,
       hasProblem: !!problemData.problem,
       problemKeys: problemData.problem ? Object.keys(problemData.problem) : [],
-      dataKeys: Object.keys(problemData)
+      dataKeys: Object.keys(problemData),
     });
     const docRef = await saveProblemSet(userId, problemData);
-    console.log("✅ Problem set saved successfully with ID:", docRef.id);
+    console.log('✅ Problem set saved successfully with ID:', docRef.id);
 
     return res.status(200).json({
       success: true,
       docRef,
       problemData,
-      message: "Interview problems generated and saved successfully",
+      message: 'Interview problems generated and saved successfully',
     });
   } catch (error) {
-    console.error("❌ Error in create problems API:", error);
-    
-    let errorMessage = "Failed to create problems";
+    console.error('❌ Error in create problems API:', error);
+
+    let errorMessage = 'Failed to create problems';
     if (error instanceof Error) {
       errorMessage = error.message;
-      
+
       // Check for specific error types
-      if (error.message.includes("permission-denied")) {
-        errorMessage = "Permission denied: Unable to save interview data. Please check your account permissions.";
-      } else if (error.message.includes("network") || error.message.includes("unavailable")) {
-        errorMessage = "Network error: Please check your internet connection and try again.";
-      } else if (error.message.includes("Gemini API")) {
-        errorMessage = "AI service error: Unable to generate interview questions. Please try again.";
+      if (error.message.includes('permission-denied')) {
+        errorMessage =
+          'Permission denied: Unable to save interview data. Please check your account permissions.';
+      } else if (
+        error.message.includes('network') ||
+        error.message.includes('unavailable')
+      ) {
+        errorMessage =
+          'Network error: Please check your internet connection and try again.';
+      } else if (error.message.includes('Gemini API')) {
+        errorMessage =
+          'AI service error: Unable to generate interview questions. Please try again.';
       }
     }
-    
-    return res.status(500).json({ 
+
+    return res.status(500).json({
       error: errorMessage,
-      message: error instanceof Error ? error.message : "Unknown error"
+      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 }
 
 export default withRequiredAuth(handler);
-

@@ -13,14 +13,14 @@ export async function authenticatedFetch(
   try {
     // Get the current user
     const currentUser = auth.currentUser;
-    
+
     if (!currentUser) {
       throw new Error('User not authenticated');
     }
 
     // Get the ID token
     const idToken = await currentUser.getIdToken();
-    
+
     // Prepare headers
     const headers = new Headers(options.headers);
     headers.set('Content-Type', 'application/json');
@@ -54,7 +54,9 @@ export async function authenticatedPost<T = any>(
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+    throw new Error(
+      errorData.error || `HTTP ${response.status}: ${response.statusText}`
+    );
   }
 
   return response.json();
@@ -72,7 +74,9 @@ export async function authenticatedGet<T = any>(url: string): Promise<T> {
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+    throw new Error(
+      errorData.error || `HTTP ${response.status}: ${response.statusText}`
+    );
   }
 
   return response.json();
@@ -95,7 +99,9 @@ export async function authenticatedPut<T = any>(
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+    throw new Error(
+      errorData.error || `HTTP ${response.status}: ${response.statusText}`
+    );
   }
 
   return response.json();
@@ -113,8 +119,10 @@ export async function authenticatedDelete<T = any>(url: string): Promise<T> {
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+    throw new Error(
+      errorData.error || `HTTP ${response.status}: ${response.statusText}`
+    );
   }
 
   return response.json();
-} 
+}

@@ -29,32 +29,35 @@ import {
   OutputPanel,
   OutputHeader,
   OutputContent,
-  AuthMessage,
 } from '@/container/interviews/interviews.styled';
 
 interface ProblemSolverProps {
   problemId: string;
 }
 
+// Define proper types for the refs and data structures
+interface ExcalidrawRef {
+  getScene: () => unknown;
+  exportToCanvas: () => Promise<HTMLCanvasElement>;
+}
+
 export default function ProblemSolver({ problemId }: ProblemSolverProps) {
   const router = useRouter();
-  const excalidrawRef = useRef<any>(null);
+  const excalidrawRef = useRef<ExcalidrawRef | null>(null);
 
   // Custom hooks
   const { problem, loading, error, retry } = useInterviewProblem();
-  const { code, updateCode, clearCode } = useInterviewCode(problem);
+  const { code, updateCode } = useInterviewCode(problem);
   const {
     feedback,
     showFeedbackModal,
     feedbackData,
     handleEvaluated,
-    clearFeedback,
     closeFeedbackModal,
   } = useInterviewFeedback(problem);
   const {
     isProblemPanelCollapsed,
     problemPanelWidth,
-    isCanvasReady,
     problemPanelRef,
     handleResizeStart,
     toggleProblemPanel,
@@ -84,7 +87,10 @@ export default function ProblemSolver({ problemId }: ProblemSolverProps) {
     console.log('Problem:', problem);
     console.log('Interview Type:', problem.interviewType);
     console.log('Theory Problem exists:', !!problem.theoryProblem);
-    console.log('Machine Coding Problem exists:', !!problem.machineCodingProblem);
+    console.log(
+      'Machine Coding Problem exists:',
+      !!problem.machineCodingProblem
+    );
     console.log('DSA Problem exists:', !!problem.dsaProblem);
     console.log('System Design Problem exists:', !!problem.systemDesignProblem);
 
@@ -94,7 +100,7 @@ export default function ProblemSolver({ problemId }: ProblemSolverProps) {
       if (problem.theoryProblem) {
         return 'theory';
       }
-      
+
       switch (problem.interviewType) {
         case 'dsa':
           return 'dsa';
@@ -111,42 +117,24 @@ export default function ProblemSolver({ problemId }: ProblemSolverProps) {
 
     const editorType = getEditorType();
     console.log('Selected Editor Type:', editorType);
-    if (problem.theoryProblem && problem.interviewType !== 'theory_and_debugging') {
-      console.log('⚠️ FALLBACK: Problem has theoryProblem but interviewType is not "theory_and_debugging"');
+    if (
+      problem.theoryProblem &&
+      problem.interviewType !== 'theory_and_debugging'
+    ) {
+      console.log(
+        '⚠️ FALLBACK: Problem has theoryProblem but interviewType is not "theory_and_debugging"'
+      );
       console.log('Using theory editor as fallback');
     }
     console.log('=== End Debug ===');
 
-    // Transform DSA examples to TestCase format
-    const transformTestCases = () => {
-      if (problem.dsaProblem?.examples) {
-        return problem.dsaProblem.examples.map((example, index) => ({
-          id: `test-${index}`,
-          input: example.input,
-          expectedOutput: example.output,
-          status: undefined as "pass" | "fail" | "running" | "error" | undefined
-        }));
-      }
-      return [];
-    };
-
     switch (editorType) {
       case 'machine-coding':
         return (
-          <CodeEditor
-            code={code}
-            onChange={handleCodeUpdate}
-
-            theme="dark"
-          />
+          <CodeEditor code={code} onChange={handleCodeUpdate} theme='dark' />
         );
       case 'dsa':
-        return (
-          <DSAEditor
-            code={code}
-            onChange={handleCodeUpdate}
-          />
-        );
+        return <DSAEditor code={code} onChange={handleCodeUpdate} />;
       case 'system-design':
         return (
           <SystemDesignCanvas
@@ -155,28 +143,27 @@ export default function ProblemSolver({ problemId }: ProblemSolverProps) {
           />
         );
       case 'theory':
-        return (
+        return problem.theoryProblem ? (
           <TheoryEditor
-            problem={problem.theoryProblem!}
+            problem={problem.theoryProblem}
             problemId={problemId}
             onEvaluationComplete={handleEvaluated}
           />
+        ) : (
+          <div className='flex items-center justify-center h-full'>
+            <p>No theory problem data available</p>
+          </div>
         );
       default:
         return (
-          <CodeEditor
-            code={code}
-            onChange={handleCodeUpdate}
-
-            theme="dark"
-          />
+          <CodeEditor code={code} onChange={handleCodeUpdate} theme='dark' />
         );
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-bodyBg text-text p-6">
+      <div className='min-h-screen bg-bodyBg text-text p-6'>
         <div>Loading problem...</div>
       </div>
     );
@@ -184,7 +171,7 @@ export default function ProblemSolver({ problemId }: ProblemSolverProps) {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-bodyBg text-text p-6">
+      <div className='min-h-screen bg-bodyBg text-text p-6'>
         <div>Error: {error.message}</div>
         <button onClick={handleRetry}>Retry</button>
         <button onClick={handleBack}>Back to Problems</button>
@@ -194,7 +181,7 @@ export default function ProblemSolver({ problemId }: ProblemSolverProps) {
 
   if (!problem) {
     return (
-      <div className="min-h-screen bg-bodyBg text-text p-6">
+      <div className='min-h-screen bg-bodyBg text-text p-6'>
         <div>Problem not found</div>
         <button onClick={handleBack}>Back to Problems</button>
       </div>
@@ -202,7 +189,7 @@ export default function ProblemSolver({ problemId }: ProblemSolverProps) {
   }
 
   return (
-    <div className="min-h-screen bg-bodyBg text-text">
+    <div className='min-h-screen bg-bodyBg text-text'>
       <MainContent>
         <ProblemPanel
           ref={problemPanelRef}
@@ -218,47 +205,61 @@ export default function ProblemSolver({ problemId }: ProblemSolverProps) {
             </CollapseButton>
           </ProblemHeader>
           <ProblemContent>
-            <div dangerouslySetInnerHTML={{ __html: problem.description || '' }} />
-            {problem.interviewType === 'coding' && problem.machineCodingProblem?.requirements && (
-              <div>
-                <h3>Requirements:</h3>
-                <ul>
-                  {problem.machineCodingProblem.requirements.map((req: string, index: number) => (
-                    <li key={index}>{req}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            {problem.interviewType === 'coding' && problem.machineCodingProblem?.constraints && (
-              <div>
-                <h3>Constraints:</h3>
-                <ul>
-                  {problem.machineCodingProblem.constraints.map((constraint: string, index: number) => (
-                    <li key={index}>{constraint}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            {problem.interviewType === 'dsa' && problem.dsaProblem?.constraints && (
-              <div>
-                <h3>Constraints:</h3>
-                <ul>
-                  {problem.dsaProblem.constraints.map((constraint: string, index: number) => (
-                    <li key={index}>{constraint}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            {problem.interviewType === 'theory_and_debugging' && problem.theoryProblem?.keyPoints && (
-              <div>
-                <h3>Key Points:</h3>
-                <ul>
-                  {problem.theoryProblem.keyPoints.map((point: string, index: number) => (
-                    <li key={index}>{point}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            <div
+              dangerouslySetInnerHTML={{ __html: problem.description || '' }}
+            />
+            {problem.interviewType === 'coding' &&
+              problem.machineCodingProblem?.requirements && (
+                <div>
+                  <h3>Requirements:</h3>
+                  <ul>
+                    {problem.machineCodingProblem.requirements.map(
+                      (req: string, index: number) => (
+                        <li key={index}>{req}</li>
+                      )
+                    )}
+                  </ul>
+                </div>
+              )}
+            {problem.interviewType === 'coding' &&
+              problem.machineCodingProblem?.constraints && (
+                <div>
+                  <h3>Constraints:</h3>
+                  <ul>
+                    {problem.machineCodingProblem.constraints.map(
+                      (constraint: string, index: number) => (
+                        <li key={index}>{constraint}</li>
+                      )
+                    )}
+                  </ul>
+                </div>
+              )}
+            {problem.interviewType === 'dsa' &&
+              problem.dsaProblem?.constraints && (
+                <div>
+                  <h3>Constraints:</h3>
+                  <ul>
+                    {problem.dsaProblem.constraints.map(
+                      (constraint: string, index: number) => (
+                        <li key={index}>{constraint}</li>
+                      )
+                    )}
+                  </ul>
+                </div>
+              )}
+            {problem.interviewType === 'theory_and_debugging' &&
+              problem.theoryProblem?.keyPoints && (
+                <div>
+                  <h3>Key Points:</h3>
+                  <ul>
+                    {problem.theoryProblem.keyPoints.map(
+                      (point: string, index: number) => (
+                        <li key={index}>{point}</li>
+                      )
+                    )}
+                  </ul>
+                </div>
+              )}
           </ProblemContent>
         </ProblemPanel>
 
@@ -278,15 +279,17 @@ export default function ProblemSolver({ problemId }: ProblemSolverProps) {
                   problemId={problemId}
                   onEvaluated={handleEvaluated}
                   interviewType={problem.interviewType}
-                  problemStatement={problem.dsaProblem?.problemStatement || problem.machineCodingProblem?.description || ''}
+                  problemStatement={
+                    problem.dsaProblem?.problemStatement ||
+                    problem.machineCodingProblem?.description ||
+                    ''
+                  }
                   problemTitle={problem.title}
                 />
               )}
             </ActionButtons>
           </EditorHeader>
-          <EditorContainer>
-            {renderEditor()}
-          </EditorContainer>
+          <EditorContainer>{renderEditor()}</EditorContainer>
         </EditorPanel>
 
         <OutputPanel isVisible={!!feedback}>
@@ -307,10 +310,14 @@ export default function ProblemSolver({ problemId }: ProblemSolverProps) {
       {showFeedbackModal && feedbackData && (
         <FeedbackModal
           isOpen={showFeedbackModal}
-          feedback={feedbackData.overallFeedback || feedbackData.rawFeedback || 'No feedback available'}
+          feedback={
+            feedbackData.overallFeedback ||
+            feedbackData.rawFeedback ||
+            'No feedback available'
+          }
           onClose={closeFeedbackModal}
         />
       )}
     </div>
   );
-} 
+}

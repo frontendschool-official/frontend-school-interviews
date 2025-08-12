@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
-import { useRouter } from "next/router";
-import { useAuth } from "./useAuth";
-import { RoadmapDocument } from "@/types/roadmap";
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
+import { useAuth } from './useAuth';
+import { RoadmapDocument } from '@/types/roadmap';
 
 interface UseRoadmapViewReturn {
   roadmap: RoadmapDocument | null;
@@ -31,14 +31,14 @@ export const useRoadmapView = (): UseRoadmapViewReturn => {
         if (data.success && data.roadmap) {
           setRoadmap(data.roadmap);
         } else {
-          router.push("/roadmap");
+          router.push('/roadmap');
         }
       } else {
-        router.push("/roadmap");
+        router.push('/roadmap');
       }
     } catch (error) {
-      console.error("Error fetching roadmap:", error);
-      router.push("/roadmap");
+      console.error('Error fetching roadmap:', error);
+      router.push('/roadmap');
     }
   };
 
@@ -63,14 +63,16 @@ export const useRoadmapView = (): UseRoadmapViewReturn => {
           newCompletedProblemsCount++;
         }
       } else {
-        newCompletedProblems = newCompletedProblems.filter(id => id !== problemId);
+        newCompletedProblems = newCompletedProblems.filter(
+          id => id !== problemId
+        );
         newCompletedProblemsCount = Math.max(0, newCompletedProblemsCount - 1);
       }
 
-      const response = await fetch("/api/roadmap/update-progress", {
-        method: "POST",
+      const response = await fetch('/api/roadmap/update-progress', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           roadmapId: roadmap.id,
@@ -80,17 +82,21 @@ export const useRoadmapView = (): UseRoadmapViewReturn => {
       });
 
       if (response.ok) {
-        setRoadmap(prev => prev ? {
-          ...prev,
-          progress: {
-            ...prev.progress!,
-            completedProblems: newCompletedProblems,
-            completedProblemsCount: newCompletedProblemsCount,
-          }
-        } : null);
+        setRoadmap(prev =>
+          prev
+            ? {
+                ...prev,
+                progress: {
+                  ...prev.progress!,
+                  completedProblems: newCompletedProblems,
+                  completedProblemsCount: newCompletedProblemsCount,
+                },
+              }
+            : null
+        );
       }
     } catch (error) {
-      console.error("Error updating progress:", error);
+      console.error('Error updating progress:', error);
     } finally {
       setUpdatingProgress(false);
     }
@@ -102,21 +108,25 @@ export const useRoadmapView = (): UseRoadmapViewReturn => {
 
   const getProgressPercentage = () => {
     if (!roadmap?.progress) return 0;
-    return Math.round((roadmap.progress.completedProblemsCount / roadmap.overview.totalProblems) * 100);
+    return Math.round(
+      (roadmap.progress.completedProblemsCount /
+        roadmap.overview.totalProblems) *
+        100
+    );
   };
 
   useEffect(() => {
     if (!user) {
-      router.push("/login");
+      router.push('/login');
       return;
     }
 
     const { id } = router.query;
-    
+
     if (id && typeof id === 'string') {
       fetchRoadmapFromDatabase(id);
     } else {
-      router.push("/roadmap");
+      router.push('/roadmap');
     }
     setLoading(false);
   }, [user, router]);
@@ -134,4 +144,4 @@ export const useRoadmapView = (): UseRoadmapViewReturn => {
     getProgressPercentage,
     currentDay,
   };
-}; 
+};

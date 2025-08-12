@@ -6,4 +6,4 @@ const PaymentSuccessPage: NextPage = () => {
   return <PaymentSuccessContainer />;
 };
 
-export default PaymentSuccessPage; 
+export default PaymentSuccessPage;

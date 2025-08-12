@@ -10,8 +10,8 @@ export interface RoadmapDay {
 export interface RoadmapProblem {
   title: string;
   description: string;
-  type: "dsa" | "machine_coding" | "system_design" | "theory_and_debugging";
-  difficulty: "easy" | "medium" | "hard";
+  type: 'dsa' | 'machine_coding' | 'system_design' | 'theory_and_debugging';
+  difficulty: 'easy' | 'medium' | 'hard';
   estimatedTime: string;
   focusAreas: string[];
   learningObjectives: string[];
@@ -55,6 +55,14 @@ export interface RoadmapGenerationState {
 
 export type RoadmapDuration = 7 | 15 | 30 | 90;
 
+// Firebase Timestamp type
+interface FirebaseTimestamp {
+  seconds: number;
+  nanoseconds: number;
+  toDate: () => Date;
+  toMillis: () => number;
+}
+
 // Database types for roadmaps
 export interface RoadmapDocument {
   id?: string;
@@ -67,15 +75,15 @@ export interface RoadmapDocument {
   overview: RoadmapOverview;
   dailyPlan: RoadmapDay[];
   tips: string[];
-  status: "active" | "completed" | "archived";
+  status: 'active' | 'completed' | 'archived';
   progress?: {
     completedDays: number[];
     completedProblems: string[];
     totalProblems: number;
     completedProblemsCount: number;
   };
-  createdAt: any; // Firebase Timestamp
-  updatedAt?: any; // Firebase Timestamp
+  createdAt: FirebaseTimestamp;
+  updatedAt?: FirebaseTimestamp;
 }
 
 export interface RoadmapProgress {
@@ -85,5 +93,5 @@ export interface RoadmapProgress {
   completedProblems: string[];
   totalProblems: number;
   completedProblemsCount: number;
-  lastUpdated: any; // Firebase Timestamp
-} 
+  lastUpdated: FirebaseTimestamp;
+}

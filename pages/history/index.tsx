@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '@/hooks/useAuth';
 import Layout from '@/components/Layout';
@@ -16,7 +16,7 @@ export default function HistoryPage() {
 
   if (loading) {
     return (
-      <Layout isLoading={true} loadingText="Loading history...">
+      <Layout isLoading={true} loadingText='Loading history...'>
         <div />
       </Layout>
     );
@@ -31,4 +31,4 @@ export default function HistoryPage() {
       <InterviewHistory />
     </Layout>
   );
-} 
+}

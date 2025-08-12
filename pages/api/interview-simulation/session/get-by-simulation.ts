@@ -1,23 +1,21 @@
-import { NextApiResponse } from "next";
-import { collection, query, where, getDocs } from "firebase/firestore";
-import { db } from "@/services/firebase/config";
-import { COLLECTIONS } from "@/enums/collections";
-import { withRequiredAuth, AuthenticatedRequest } from "@/lib/auth";
+import { NextApiResponse } from 'next';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '@/services/firebase/config';
+import { COLLECTIONS } from '@/enums/collections';
+import { withRequiredAuth, AuthenticatedRequest } from '@/lib/auth';
 
-async function handler(
-  req: AuthenticatedRequest,
-  res: NextApiResponse
-) {
-  if (req.method !== "GET") {
-    return res.status(405).json({ error: "Method not allowed" });
+async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
     const { simulationId, roundName } = req.query;
 
     if (!simulationId || !roundName) {
-      return res.status(400).json({ 
-        error: "Missing required parameters: simulationId and roundName are required" 
+      return res.status(400).json({
+        error:
+          'Missing required parameters: simulationId and roundName are required',
       });
     }
 
@@ -26,17 +24,17 @@ async function handler(
 
     const sessionsQuery = query(
       collection(db, COLLECTIONS.INTERVIEW_SIMULATION_SESSIONS),
-      where("simulationId", "==", simulationId),
-      where("userId", "==", userId),
-      where("roundName", "==", roundName)
+      where('simulationId', '==', simulationId),
+      where('userId', '==', userId),
+      where('roundName', '==', roundName)
     );
 
     const sessionsSnapshot = await getDocs(sessionsQuery);
 
     if (sessionsSnapshot.empty) {
       return res.status(404).json({
-        error: "Session not found",
-        message: "No session found for the given parameters"
+        error: 'Session not found',
+        message: 'No session found for the given parameters',
       });
     }
 
@@ -50,12 +48,12 @@ async function handler(
       session: sessionData,
     });
   } catch (error) {
-    console.error("Error fetching session by simulation:", error);
+    console.error('Error fetching session by simulation:', error);
     res.status(500).json({
-      error: "Failed to fetch session",
-      message: error instanceof Error ? error.message : "Unknown error"
+      error: 'Failed to fetch session',
+      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 }
 
-export default withRequiredAuth(handler); 
+export default withRequiredAuth(handler);

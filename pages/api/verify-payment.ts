@@ -62,14 +62,18 @@ export default async function handler(
   res: NextApiResponse
 ) {
   console.log('Verify payment API called with method:', req.method);
-  
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
     const { orderId, paymentId, signature } = req.body;
-    console.log('Payment verification data:', { orderId, paymentId, signature });
+    console.log('Payment verification data:', {
+      orderId,
+      paymentId,
+      signature,
+    });
 
     // Validate required fields
     if (!orderId || !paymentId || !signature) {
@@ -120,4 +124,4 @@ export default async function handler(
       error: 'Failed to verify payment',
     });
   }
-} 
+}

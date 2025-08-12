@@ -1,4 +1,4 @@
-import ProfileContainer from "@/container/profile";
+import ProfileContainer from '@/container/profile';
 
 const ProfilePage: React.FC = () => {
   return <ProfileContainer />;

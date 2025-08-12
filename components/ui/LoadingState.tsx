@@ -1,13 +1,11 @@
 import React from 'react';
 import Loader from './Loader';
-import { 
-  Skeleton, 
-  CardSkeleton, 
-  ProblemCardSkeleton, 
-  DashboardCardSkeleton,
+import {
+  CardSkeleton,
+  ProblemCardSkeleton,
   GridSkeleton,
   StatsGridSkeleton,
-  HeaderSkeleton
+  HeaderSkeleton,
 } from './Skeleton';
 
 export interface LoadingStateProps {
@@ -34,7 +32,7 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
   type = 'spinner',
   skeletonProps = {},
   loaderProps = {},
-  className = ''
+  className = '',
 }) => {
   if (!loading) {
     return <>{children}</>;
@@ -46,7 +44,7 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
         return <CardSkeleton className={className} />;
       case 'grid':
         return (
-          <GridSkeleton 
+          <GridSkeleton
             items={skeletonProps.items || 6}
             columns={skeletonProps.columns || 3}
             className={skeletonProps.className || className}
@@ -56,7 +54,7 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
         return <StatsGridSkeleton className={className} />;
       case 'cards':
         return (
-          <GridSkeleton 
+          <GridSkeleton
             items={skeletonProps.items || 6}
             columns={skeletonProps.columns || 3}
             itemComponent={ProblemCardSkeleton}
@@ -67,7 +65,7 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
         return <HeaderSkeleton className={className} />;
       default:
         return (
-          <Loader 
+          <Loader
             size={loaderProps.size || 'md'}
             text={loaderProps.text || 'Loading...'}
             variant={loaderProps.variant || 'spinner'}
@@ -82,30 +80,32 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
 };
 
 // Specific loading state components for common use cases
-export const PageLoadingState: React.FC<{ text?: string }> = ({ text = 'Loading page...' }) => (
-  <Loader size="lg" text={text} fullScreen />
-);
+export const PageLoadingState: React.FC<{ text?: string }> = ({
+  text = 'Loading page...',
+}) => <Loader size='lg' text={text} fullScreen />;
 
-export const CardLoadingState: React.FC<{ count?: number; className?: string }> = ({ 
-  count = 6, 
-  className = '' 
-}) => (
+export const CardLoadingState: React.FC<{
+  count?: number;
+  className?: string;
+}> = ({ count = 6, className = '' }) => (
   <GridSkeleton items={count} columns={3} className={className} />
 );
 
-export const ProblemCardLoadingState: React.FC<{ count?: number; className?: string }> = ({ 
-  count = 6, 
-  className = '' 
-}) => (
-  <GridSkeleton 
-    items={count} 
-    columns={3} 
+export const ProblemCardLoadingState: React.FC<{
+  count?: number;
+  className?: string;
+}> = ({ count = 6, className = '' }) => (
+  <GridSkeleton
+    items={count}
+    columns={3}
     itemComponent={ProblemCardSkeleton}
-    className={className} 
+    className={className}
   />
 );
 
-export const DashboardLoadingState: React.FC<{ className?: string }> = ({ className = '' }) => (
+export const DashboardLoadingState: React.FC<{ className?: string }> = ({
+  className = '',
+}) => (
   <div className={className}>
     <HeaderSkeleton />
     <StatsGridSkeleton />
@@ -113,4 +113,4 @@ export const DashboardLoadingState: React.FC<{ className?: string }> = ({ classN
   </div>
 );
 
-export default LoadingState; 
+export default LoadingState;

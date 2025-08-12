@@ -1,17 +1,15 @@
 import {
+  collection,
+  getDocs,
+  query,
+  where,
   doc,
   getDoc,
   updateDoc,
-  collection,
-  query,
-  where,
-  getDocs,
-  addDoc,
-  deleteDoc,
   arrayUnion,
-} from "firebase/firestore";
-import { db } from "@/services/firebase/config";
-import { COLLECTIONS } from "@/enums/collections";
+} from 'firebase/firestore';
+import { db } from '@/services/firebase/config';
+import { COLLECTIONS } from '@/enums/collections';
 
 export const getUserProfileByUserId = async (userId: string) => {
   const docRef = doc(db, COLLECTIONS.USERS, userId);
@@ -21,7 +19,7 @@ export const getUserProfileByUserId = async (userId: string) => {
 
 export const getAllCompanies = async () => {
   const snapshot = await getDocs(query(collection(db, COLLECTIONS.COMPANIES)));
-  return snapshot.docs.map((doc) => ({
+  return snapshot.docs.map(doc => ({
     id: doc.id,
     ...doc.data(),
   })) as any[];
@@ -35,13 +33,13 @@ export const getCompanyById = async (companyId: string) => {
 
 export const searchCompaniesByIncludeQuery = async (
   searchQuery: string,
-  field: string = "name"
+  field: string = 'name'
 ) => {
   const snapshot = await getDocs(collection(db, COLLECTIONS.COMPANIES));
   const searchLower = searchQuery.toLowerCase();
 
   return snapshot.docs
-    .map((doc) => doc.data())
+    .map(doc => doc.data())
     .filter(
       (company: any) =>
         company[field]?.toLowerCase().includes(searchLower) ||
@@ -70,7 +68,7 @@ export const getAllProblems = async () => {
   const snapshot = await getDocs(
     query(collection(db, COLLECTIONS.INTERVIEW_PROBLEMS))
   );
-  return snapshot.docs.map((doc) => doc.data());
+  return snapshot.docs.map(doc => doc.data());
 };
 
 export const getProblemById = async (id: string) => {
@@ -81,15 +79,15 @@ export const getProblemById = async (id: string) => {
 
 export const getActiveInterviewSimulationByUserId = async (
   userId: string,
-  status: string = "active"
+  status: string = 'active'
 ) => {
   const q = query(
     collection(db, COLLECTIONS.INTERVIEW_SIMULATIONS),
-    where("userId", "==", userId),
-    where("status", "==", status)
+    where('userId', '==', userId),
+    where('status', '==', status)
   );
   const snapshot = await getDocs(q);
-  return snapshot.docs.map((doc) => ({
+  return snapshot.docs.map(doc => ({
     id: doc.id,
     ...doc.data(),
   }));

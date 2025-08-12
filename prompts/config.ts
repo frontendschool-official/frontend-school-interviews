@@ -59,7 +59,8 @@ export const DEFAULT_VARIABLES = {
   mockInterview: {
     duration: '60 minutes',
     focusAreas: 'Technical Skills',
-    companyContext: 'Leading technology company focusing on innovation and user experience',
+    companyContext:
+      'Leading technology company focusing on innovation and user experience',
   },
 };
 
@@ -96,7 +97,7 @@ export const EXPERIENCE_LEVEL_MAPPINGS = {
  */
 export const DIFFICULTY_MAPPINGS = {
   1: 'easy',
-  2: 'medium', 
+  2: 'medium',
   3: 'hard',
   easy: 'easy',
   medium: 'medium',
@@ -139,27 +140,32 @@ export const TECH_STACK_PRESETS = {
 export const COMPANY_PRESETS = {
   google: {
     focusAreas: 'scalability, performance, algorithms',
-    companyContext: 'Google is a leading technology company focusing on search, AI, and cloud computing.',
+    companyContext:
+      'Google is a leading technology company focusing on search, AI, and cloud computing.',
     technologyStack: 'React, TypeScript, Angular',
   },
   meta: {
     focusAreas: 'React, performance, user experience',
-    companyContext: 'Meta (Facebook) is a social technology company focusing on connecting people.',
+    companyContext:
+      'Meta (Facebook) is a social technology company focusing on connecting people.',
     technologyStack: 'React, React Native, GraphQL',
   },
   netflix: {
     focusAreas: 'performance, streaming, React',
-    companyContext: 'Netflix is a streaming entertainment service focusing on global content delivery.',
+    companyContext:
+      'Netflix is a streaming entertainment service focusing on global content delivery.',
     technologyStack: 'React, Node.js, microservices',
   },
   uber: {
     focusAreas: 'real-time systems, React, scalability',
-    companyContext: 'Uber is a technology platform focusing on mobility and delivery.',
+    companyContext:
+      'Uber is a technology platform focusing on mobility and delivery.',
     technologyStack: 'React, React Native, Node.js',
   },
   airbnb: {
     focusAreas: 'React, design systems, accessibility',
-    companyContext: 'Airbnb is a platform for unique travel experiences and accommodations.',
+    companyContext:
+      'Airbnb is a platform for unique travel experiences and accommodations.',
     technologyStack: 'React, React Native, Node.js',
   },
 } as const;
@@ -169,11 +175,13 @@ export const COMPANY_PRESETS = {
  */
 export function getCompanyConfig(companyName: string) {
   const normalizedName = companyName.toLowerCase();
-  return COMPANY_PRESETS[normalizedName as keyof typeof COMPANY_PRESETS] || {
-    focusAreas: 'frontend development, user experience',
-    companyContext: `${companyName} is a technology company focusing on innovation and user experience.`,
-    technologyStack: 'React, TypeScript, CSS',
-  };
+  return (
+    COMPANY_PRESETS[normalizedName as keyof typeof COMPANY_PRESETS] || {
+      focusAreas: 'frontend development, user experience',
+      companyContext: `${companyName} is a technology company focusing on innovation and user experience.`,
+      technologyStack: 'React, TypeScript, CSS',
+    }
+  );
 }
 
 /**
@@ -183,7 +191,8 @@ export function getTechStackConfig(techStack: string) {
   const normalizedStack = techStack.toLowerCase();
   if (normalizedStack.includes('vue')) return TECH_STACK_PRESETS.vue;
   if (normalizedStack.includes('angular')) return TECH_STACK_PRESETS.angular;
-  if (normalizedStack.includes('node') || normalizedStack.includes('full')) return TECH_STACK_PRESETS.fullstack;
+  if (normalizedStack.includes('node') || normalizedStack.includes('full'))
+    return TECH_STACK_PRESETS.fullstack;
   return TECH_STACK_PRESETS.react; // Default to React
 }
 
@@ -192,7 +201,11 @@ export function getTechStackConfig(techStack: string) {
  */
 export function normalizeExperienceLevel(level: string): string {
   const normalized = level.toLowerCase().replace(/[-_\s]/g, '');
-  return EXPERIENCE_LEVEL_MAPPINGS[normalized as keyof typeof EXPERIENCE_LEVEL_MAPPINGS] || 'mid-level';
+  return (
+    EXPERIENCE_LEVEL_MAPPINGS[
+      normalized as keyof typeof EXPERIENCE_LEVEL_MAPPINGS
+    ] || 'mid-level'
+  );
 }
 
 /**
@@ -200,8 +213,14 @@ export function normalizeExperienceLevel(level: string): string {
  */
 export function normalizeDifficulty(difficulty: string | number): string {
   if (typeof difficulty === 'number') {
-    return DIFFICULTY_MAPPINGS[difficulty as keyof typeof DIFFICULTY_MAPPINGS] || 'medium';
+    return (
+      DIFFICULTY_MAPPINGS[difficulty as keyof typeof DIFFICULTY_MAPPINGS] ||
+      'medium'
+    );
   }
   const normalized = difficulty.toLowerCase();
-  return DIFFICULTY_MAPPINGS[normalized as keyof typeof DIFFICULTY_MAPPINGS] || 'medium';
+  return (
+    DIFFICULTY_MAPPINGS[normalized as keyof typeof DIFFICULTY_MAPPINGS] ||
+    'medium'
+  );
 }

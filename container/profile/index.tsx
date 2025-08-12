@@ -1,8 +1,8 @@
-import { useEffect } from "react";
-import { useRouter } from "next/router";
-import { useAuth } from "@/hooks/useAuth";
-import Layout from "@/components/Layout";
-import UserProfile from "@/components/UserProfile";
+import { useEffect } from 'react';
+import { useRouter } from 'next/router';
+import { useAuth } from '@/hooks/useAuth';
+import Layout from '@/components/Layout';
+import UserProfile from '@/components/UserProfile';
 
 const ProfileContainer: React.FC = () => {
   const { user, loading, profileLoading } = useAuth();
@@ -10,7 +10,7 @@ const ProfileContainer: React.FC = () => {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.replace("/login");
+      router.replace('/login');
     }
   }, [user, loading, router]);
 
@@ -25,4 +25,4 @@ const ProfileContainer: React.FC = () => {
   );
 };
 
-export default ProfileContainer; 
+export default ProfileContainer;

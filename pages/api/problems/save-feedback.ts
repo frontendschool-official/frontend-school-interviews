@@ -1,21 +1,19 @@
-import { NextApiResponse } from "next";
-import { saveDetailedFeedback } from "@/services/firebase/user-progress";
-import { withRequiredAuth, AuthenticatedRequest } from "@/lib/auth";
+import { NextApiResponse } from 'next';
+import { saveDetailedFeedback } from '@/services/firebase/user-progress';
+import { withRequiredAuth, AuthenticatedRequest } from '@/lib/auth';
 
-async function handler(
-  req: AuthenticatedRequest,
-  res: NextApiResponse
-) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
     const { problemId, feedbackData } = req.body;
 
     if (!problemId || !feedbackData) {
-      return res.status(400).json({ 
-        error: "Missing required fields: problemId and feedbackData are required" 
+      return res.status(400).json({
+        error:
+          'Missing required fields: problemId and feedbackData are required',
       });
     }
 
@@ -26,15 +24,15 @@ async function handler(
 
     res.status(200).json({
       success: true,
-      message: "Feedback saved successfully",
+      message: 'Feedback saved successfully',
     });
   } catch (error) {
-    console.error("Error saving feedback:", error);
+    console.error('Error saving feedback:', error);
     res.status(500).json({
-      error: "Failed to save feedback",
-      message: error instanceof Error ? error.message : "Unknown error"
+      error: 'Failed to save feedback',
+      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 }
 
-export default withRequiredAuth(handler); 
+export default withRequiredAuth(handler);

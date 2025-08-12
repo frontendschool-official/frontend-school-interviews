@@ -4,17 +4,10 @@ import {
   signOut,
   onAuthStateChanged,
   User,
-} from "firebase/auth";
-import { auth } from "./config";
-import { DocumentUtils } from "./utils";
-import {
-  UserProfile,
-  UserPreferences,
-  UserStats,
-  SignInResult,
-  ProfileUpdateData,
-  OnboardingData,
-} from "../../types/user";
+} from 'firebase/auth';
+import { auth } from './config';
+import { DocumentUtils } from './utils';
+import { UserProfile, UserPreferences, UserStats } from '../../types/user';
 
 // Google sign-in provider
 const provider = new GoogleAuthProvider();
@@ -25,7 +18,7 @@ const provider = new GoogleAuthProvider();
 
 export const signInWithGoogle = async () => {
   const result = await signInWithPopup(auth, provider);
-  
+
   // Create session cookie after successful sign-in
   if (result.user) {
     try {
@@ -36,7 +29,7 @@ export const signInWithGoogle = async () => {
       // Don't throw error here as the sign-in was successful
     }
   }
-  
+
   return result;
 };
 
@@ -67,17 +60,20 @@ export const createSessionCookie = async (idToken: string) => {
 export const signOutUser = async () => {
   console.log('🔥 signOutUser called');
   console.log('🔥 Auth object exists:', !!auth);
-  console.log('🔥 Current user before signOut:', auth.currentUser?.email || 'No user');
-  
+  console.log(
+    '🔥 Current user before signOut:',
+    auth.currentUser?.email || 'No user'
+  );
+
   if (!auth.currentUser) {
     console.warn('🔥 No user is currently signed in!');
     return;
   }
-  
+
   try {
     // Clear session cookie
     await clearSessionCookie();
-    
+
     // Sign out from Firebase
     await signOut(auth);
     console.log('🔥 Firebase signOut completed successfully');
@@ -196,7 +192,9 @@ export class UserProfileUtils {
         difficulty: data.preferences?.difficulty || 'intermediate',
         focusAreas: data.preferences?.focusAreas || [],
         dailyGoal: data.preferences?.dailyGoal || 30,
-        timezone: data.preferences?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+        timezone:
+          data.preferences?.timezone ||
+          Intl.DateTimeFormat().resolvedOptions().timeZone,
       },
       stats: {
         totalProblemsAttempted: data.stats?.totalProblemsAttempted || 0,
@@ -220,4 +218,4 @@ export class UserProfileUtils {
       onboardingCompleted: data.onboardingCompleted || false,
     };
   }
-} 
+}
