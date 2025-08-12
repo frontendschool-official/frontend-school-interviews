@@ -3,11 +3,13 @@ import Link from 'next/link';
 import {
   ProblemData,
   UnifiedProblem,
+  PredefinedProblem,
+  ParsedProblemData,
   getProblemCardInfo,
 } from '@/types/problem';
 
 interface ProblemCardProps {
-  problem: ProblemData | UnifiedProblem;
+  problem: ProblemData | UnifiedProblem | PredefinedProblem | ParsedProblemData;
   status?: 'attempted' | 'solved' | 'unsolved';
 }
 

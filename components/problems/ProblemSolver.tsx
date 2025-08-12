@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { useRouter } from 'next/router';
 import CodeEditor from '@/components/CodeEditor';
 import DSAEditor from '@/components/DSAEditor';
-import SystemDesignCanvas from '@/components/SystemDesignCanvas';
+import SystemDesignCanvas, { SystemDesignCanvasRef } from '@/components/SystemDesignCanvas';
 import TheoryEditor from '@/components/TheoryEditor';
 import FeedbackModal from '@/components/FeedbackModal';
 import EvaluateButton from '@/components/EvaluateButton';
@@ -35,15 +35,9 @@ interface ProblemSolverProps {
   problemId: string;
 }
 
-// Define proper types for the refs and data structures
-interface ExcalidrawRef {
-  getScene: () => unknown;
-  exportToCanvas: () => Promise<HTMLCanvasElement>;
-}
-
 export default function ProblemSolver({ problemId }: ProblemSolverProps) {
   const router = useRouter();
-  const excalidrawRef = useRef<ExcalidrawRef | null>(null);
+  const excalidrawRef = useRef<SystemDesignCanvasRef | null>(null);
 
   // Custom hooks
   const { problem, loading, error, retry } = useInterviewProblem();

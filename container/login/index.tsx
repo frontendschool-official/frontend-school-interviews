@@ -9,7 +9,7 @@ import { FcGoogle } from 'react-icons/fc';
 import { FaGithub } from 'react-icons/fa';
 
 const LoginContainer: React.FC = () => {
-  const { user, userProfile, signIn } = useAuth();
+  const { user, userProfile, signIn, loading } = useAuth();
   const { toggleTheme } = useThemeContext();
   const router = useRouter();
   const [showOnboarding, setShowOnboarding] = useState(false);

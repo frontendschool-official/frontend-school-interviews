@@ -8,6 +8,7 @@ import {
 import {
   GenerateParams,
   GeneratedResult,
+  ProblemSchema,
   isValidDSAProblem,
   isValidTheoryProblem,
   isValidMachineCodingProblem,

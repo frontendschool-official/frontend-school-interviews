@@ -39,6 +39,9 @@ export const useInterviewSimulationViewer = ({
   const [problemFeedbacks, setProblemFeedbacks] = useState<
     Record<number, string>
   >({});
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [isEvaluating, setIsEvaluating] = useState(false);
+  const [canvasReady, setCanvasReady] = useState(false);
 
   const currentProblem = session.problems[currentProblemIndex];
   const problemPanelRef = useRef<HTMLDivElement>(null);
@@ -209,7 +212,7 @@ export const useInterviewSimulationViewer = ({
     code,
     isProblemPanelCollapsed,
     problemPanelWidth,
-    isCanvasReady,
+    canvasReady,
     isEvaluating,
     feedback,
     showFeedbackModal,

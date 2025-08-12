@@ -85,7 +85,7 @@ export default function UIShowcase() {
         <section>
           <h2 className='text-2xl font-bold mb-4'>Editor Shell (Sandpack)</h2>
           <EditorShell title='index.tsx'>
-            <SandpackEditor code={code} onChange={setCode} showPreview />
+            <SandpackEditor code={code} onChange={setCode} />
           </EditorShell>
         </section>
 
@@ -108,8 +108,6 @@ export default function UIShowcase() {
                   code={reactCode}
                   onChange={setReactCode}
                   theme='dark'
-                  showPreview={true}
-                  showConsole={true}
                 />
               </div>
             </div>

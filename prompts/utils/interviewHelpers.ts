@@ -86,7 +86,7 @@ export function createInterviewPromptProcessor(promptManager: PromptManager) {
         .build();
 
       return promptManager.processPrompt('dsaProblem', variables, {
-        version: params.version,
+        _version: params.version,
       });
     },
 
@@ -125,7 +125,7 @@ export function createInterviewPromptProcessor(promptManager: PromptManager) {
         .build();
 
       return promptManager.processPrompt('theoryProblem', variables, {
-        version: params.version,
+        _version: params.version,
       });
     },
 
@@ -157,7 +157,7 @@ export function createInterviewPromptProcessor(promptManager: PromptManager) {
         .build();
 
       return promptManager.processPrompt('machineCodingProblem', variables, {
-        version: params.version,
+        _version: params.version,
       });
     },
 
@@ -188,7 +188,7 @@ export function createInterviewPromptProcessor(promptManager: PromptManager) {
         .build();
 
       return promptManager.processPrompt('systemDesignProblem', variables, {
-        version: params.version,
+        _version: params.version,
       });
     },
     /**
@@ -254,7 +254,7 @@ export function createInterviewPromptProcessor(promptManager: PromptManager) {
         .build();
 
       return promptManager.processPrompt('dsaProblem', variables, {
-        version: params.version,
+        _version: params.version,
       });
     },
 
@@ -282,7 +282,7 @@ export function createInterviewPromptProcessor(promptManager: PromptManager) {
       }
 
       return promptManager.processPrompt('evaluateSubmission', variables, {
-        version: params.version,
+        _version: params.version,
       });
     },
 
@@ -314,7 +314,7 @@ export function createInterviewPromptProcessor(promptManager: PromptManager) {
         .build();
 
       return promptManager.processPrompt('mockInterviewProblem', variables, {
-        version: params.version,
+        _version: params.version,
       });
     },
 
@@ -340,7 +340,7 @@ export function createInterviewPromptProcessor(promptManager: PromptManager) {
       delete variables.version;
 
       return promptManager.processPrompt('mockInterviewEvaluation', variables, {
-        version: params.version,
+        _version: params.version,
       });
     },
 

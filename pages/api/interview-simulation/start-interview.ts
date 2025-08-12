@@ -6,6 +6,61 @@ import {
 } from '@/services/interview/simulation';
 import { generateInterviewSimulationProblems } from '@/services/problems';
 import { withRequiredAuth, AuthenticatedRequest } from '@/lib/auth';
+import { SimulationProblem, InterviewType } from '@/types/problem';
+
+/**
+ * Transform generated problems to SimulationProblem format
+ */
+function transformToSimulationProblems(
+  problems: any[],
+  roundName: string,
+  roundType: string
+): SimulationProblem[] {
+  return problems.map((problem, index) => {
+    // Determine the interview type based on category
+    let type: InterviewType;
+    switch (problem.category) {
+      case 'dsa':
+        type = 'dsa';
+        break;
+      case 'js_fundamentals':
+        type = 'theory_and_debugging';
+        break;
+      case 'html_css':
+        type = 'machine_coding';
+        break;
+      case 'system_design':
+        type = 'system_design';
+        break;
+      case 'behavioral':
+        type = 'theory_and_debugging';
+        break;
+      default:
+        type = 'dsa';
+    }
+
+    return {
+      id: `generated-${Date.now()}-${index}`,
+      type,
+      title: problem.title,
+      description: problem.description,
+      difficulty: problem.difficulty as 'easy' | 'medium' | 'hard',
+      estimatedTime: `${problem.estimatedTimeMinutes} minutes`,
+      content: {
+        problemStatement: problem.problemStatement,
+        inputFormat: problem.inputFormat,
+        outputFormat: problem.outputFormat,
+        constraints: problem.constraints,
+        examples: problem.examples,
+        hints: problem.hints,
+        followUpQuestions: problem.followUpQuestions,
+        tags: problem.tags,
+      },
+      roundName,
+      roundType,
+    };
+  });
+}
 
 async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -25,7 +80,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
 
     // Get active round info
     const activeRoundInfo = existingSession.rounds?.find(
-      round => round.roundNumber === roundNumber
+      (round: any) => round.roundNumber === roundNumber
     );
 
     if (!activeRoundInfo) {
@@ -34,7 +89,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
 
     // Get existing simulation session
     const existingSimulationSession =
-      await getExistingSimulationSessionByInterviewId(interviewId);
+      await getExistingSimulationSessionByInterviewId(userId, interviewId);
 
     if (!existingSimulationSession) {
       return res.status(404).json({ error: 'Simulation session not found' });
@@ -42,7 +97,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
 
     // Get sample problems for this round
     const sampleProblems = existingSimulationSession.problems?.filter(
-      problem => problem.roundNumber === roundNumber
+      (problem: any) => problem.roundNumber === roundNumber
     );
 
     // Generate problems for this round
@@ -54,18 +109,26 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       sampleProblems: sampleProblems || [],
     });
 
-    if (!problemsResponse.success) {
+    if (!problemsResponse) {
       return res.status(500).json({
         error: 'Failed to generate problems',
-        details: problemsResponse.error,
       });
     }
 
+    // Transform problems to SimulationProblem format
+    const transformedProblems = transformToSimulationProblems(
+      problemsResponse.problems,
+      problemsResponse.roundName,
+      problemsResponse.category
+    );
+
     // Save generated problems to collection
     await saveGeneratedProblemsToCollection(
-      interviewId,
-      roundNumber,
-      problemsResponse.problems
+      transformedProblems,
+      problemsResponse.company,
+      problemsResponse.role,
+      userId,
+      { interviewId, roundNumber }
     );
 
     return res.status(200).json({
