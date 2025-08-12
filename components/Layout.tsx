@@ -1,67 +1,19 @@
-import React from "react";
-import NavBar from "./NavBar";
-import { Loader } from "./Loader";
-import styled from "styled-components";
-import { FlexContainer } from "@/styles/SharedUI";
-import { ErrorState } from "@/container/interviews/interviews.types";
+import React from 'react';
+import NavBar from './NavBar';
+import Footer from './Footer';
+import Loader from '@/components/ui/Loader';
+import { ErrorState } from '@/container/interviews/interviews.types';
 
-// Layout Components
-export const PageContainer = styled.div`
-  min-height: 100vh;
-  background: ${({ theme }) => theme.bodyBg};
-`;
-
-const ErrorContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-`;
-
-const ErrorMessage = styled.p`
-  color: ${({ theme }) => theme.text};
-`;
-
-const ErrorTitle = styled.h1`
-  color: ${({ theme }) => theme.text};
-`;
-export const RetryButton = styled.button`
-  padding: 0.75rem 1.5rem;
-  background-color: ${({ theme }) => theme.primary};
-  color: ${({ theme }) => theme.bodyBg};
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
-
-  &:hover {
-    background-color: ${({ theme }) => theme.accent};
-  }
-`;
-
-export const BackButton = styled.button`
-  padding: 0.75rem 1.5rem;
-  background-color: transparent;
-  color: ${({ theme }) => theme.text};
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
-
-  &:hover {
-    background-color: ${({ theme }) => theme.secondary};
-  }
-`;
 const Layout = ({
   children,
   showNavBar = true,
   isLoading = false,
-  loadingText = "Loading...",
+  loadingText = 'Loading...',
   isError = false,
   error,
   handleRetry,
   handleBack,
+  fullWidth = false,
 }: {
   children: React.ReactNode;
   showNavBar?: boolean;
@@ -71,28 +23,52 @@ const Layout = ({
   error?: ErrorState;
   handleRetry?: () => void;
   handleBack?: () => void;
+  fullWidth?: boolean;
 }) => {
-  if (isError) {
+  if (isError && !isLoading) {
     return (
-      <PageContainer>
-        <ErrorContainer>
-          <ErrorTitle>Something went wrong!</ErrorTitle>
-          <ErrorMessage>
-            {error?.message || "Please try again later."}
-          </ErrorMessage>
-          <FlexContainer gap={16}>
-            <RetryButton onClick={handleRetry}>Try Again</RetryButton>
-            <BackButton onClick={handleBack}>Back to Problems</BackButton>
-          </FlexContainer>
-        </ErrorContainer>
-      </PageContainer>
+      <div className='min-h-screen bg-bodyBg'>
+        <div className='flex flex-col items-center justify-center h-screen'>
+          <h1 className='text-text text-2xl font-bold mb-4'>
+            Something went wrong!
+          </h1>
+          <p className='text-text mb-6'>
+            {error?.message || 'Please try again later.'}
+          </p>
+          <div className='flex gap-4'>
+            <button
+              onClick={handleRetry}
+              className='px-6 py-3 bg-primary text-bodyBg border-none rounded cursor-pointer text-base hover:bg-accent transition-colors'
+            >
+              Try Again
+            </button>
+            <button
+              onClick={handleBack}
+              className='px-6 py-3 bg-transparent text-text border border-border rounded cursor-pointer text-base hover:bg-secondary transition-colors'
+            >
+              Back to Problems
+            </button>
+          </div>
+        </div>
+      </div>
     );
   }
   return (
-    <PageContainer>
+    <div className='min-h-screen bg-bodyBg flex flex-col'>
       {showNavBar && <NavBar />}
-      {isLoading ? <Loader text={loadingText} /> : <>{children}</>}
-    </PageContainer>
+      {isLoading ? (
+        <Loader text={loadingText} size='lg' fullScreen />
+      ) : (
+        <main className='flex-1'>
+          <div
+            className={`${fullWidth ? 'w-full' : 'max-w-7xl py-4 sm:py-8'} mx-auto px-4 sm:px-6 lg:px-8`}
+          >
+            {children}
+          </div>
+        </main>
+      )}
+      <Footer />
+    </div>
   );
 };
 

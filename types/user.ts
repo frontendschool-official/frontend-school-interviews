@@ -74,4 +74,4 @@ export interface OnboardingData {
   experience: 'student' | 'junior' | 'mid' | 'senior';
   targetCompanies: string[];
   preferredLanguages: string[];
-} 
+}

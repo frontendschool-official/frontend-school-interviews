@@ -1,6 +1,6 @@
 // Simple test to verify hook exports
 import { useProblems } from '../useProblems';
-import { useInterviewGeneration } from '../useInterviewGeneration';
+import { useInterviewGeneration } from '../../container/problems/hooks/useInterviewGeneration';
 import { useProblemFilters } from '../../container/problems/hooks/useProblemFilters';
 import { useModal } from '../../container/problems/hooks/useModal';
 
@@ -21,4 +21,4 @@ describe('Hooks', () => {
   test('useModal should be defined', () => {
     expect(useModal).toBeDefined();
   });
-}); 
+});

@@ -1,12 +1,79 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { PaymentDetails } from '../../types/cart';
 
+/**
+ * @swagger
+ * /api/create-order:
+ *   post:
+ *     summary: Create a payment order
+ *     description: Creates a payment order with Razorpay for processing payments
+ *     tags:
+ *       - Payment
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/PaymentDetails'
+ *           example:
+ *             amount: 999
+ *             currency: "INR"
+ *             customerName: "John Doe"
+ *             customerEmail: "john@example.com"
+ *             customerPhone: "+919876543210"
+ *             items:
+ *               - id: "premium_1"
+ *                 title: "Premium Plan - 3 Months"
+ *                 description: "Access to all premium features"
+ *                 price: 999
+ *                 type: "premium_plan"
+ *                 quantity: 1
+ *                 duration: "3 months"
+ *                 features: ["Unlimited problems", "Mock interviews", "AI feedback"]
+ *     responses:
+ *       200:
+ *         description: Order created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 order:
+ *                   $ref: '#/components/schemas/RazorpayOrder'
+ *       400:
+ *         description: Bad request - Invalid input data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               error: "Missing required fields"
+ *       405:
+ *         description: Method not allowed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               error: "Method not allowed"
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               error: "Failed to create order"
+ */
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
   console.log('Create order API called with method:', req.method);
-  
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -16,11 +83,15 @@ export default async function handler(
     console.log('Payment details received:', paymentDetails);
 
     // Validate required fields
-    if (!paymentDetails.amount || !paymentDetails.currency || !paymentDetails.customerEmail) {
-      console.error('Missing required fields:', { 
-        amount: paymentDetails.amount, 
-        currency: paymentDetails.currency, 
-        email: paymentDetails.customerEmail 
+    if (
+      !paymentDetails.amount ||
+      !paymentDetails.currency ||
+      !paymentDetails.customerEmail
+    ) {
+      console.error('Missing required fields:', {
+        amount: paymentDetails.amount,
+        currency: paymentDetails.currency,
+        email: paymentDetails.customerEmail,
       });
       return res.status(400).json({ error: 'Missing required fields' });
     }
@@ -75,7 +146,9 @@ export default async function handler(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Basic ${Buffer.from(`${razorpayKeyId}:${razorpayKeySecret}`).toString('base64')}`,
+        Authorization: `Basic ${Buffer.from(
+          `${razorpayKeyId}:${razorpayKeySecret}`
+        ).toString('base64')}`,
       },
       body: JSON.stringify(orderData),
     });
@@ -85,18 +158,21 @@ export default async function handler(
     if (!razorpayResponse.ok) {
       const errorData = await razorpayResponse.text();
       console.error('Razorpay API error:', razorpayResponse.status, errorData);
-      
+
       // Try to parse error response
       let errorMessage = 'Failed to create order with payment gateway';
       try {
         const parsedError = JSON.parse(errorData);
         if (parsedError.error) {
-          errorMessage = parsedError.error.description || parsedError.error.message || errorMessage;
+          errorMessage =
+            parsedError.error.description ||
+            parsedError.error.message ||
+            errorMessage;
         }
-      } catch (e) {
+      } catch {
         console.error('Could not parse error response:', errorData);
       }
-      
+
       return res.status(razorpayResponse.status).json({
         error: errorMessage,
         details: errorData,
@@ -119,4 +195,4 @@ export default async function handler(
       details: error instanceof Error ? error.message : 'Unknown error',
     });
   }
-} 
+}

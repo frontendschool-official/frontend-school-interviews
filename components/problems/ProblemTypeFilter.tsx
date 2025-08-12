@@ -1,46 +1,5 @@
 import React from 'react';
-import styled from 'styled-components';
 import { FiTarget, FiCode, FiBarChart2, FiBookOpen } from 'react-icons/fi';
-
-const FilterContainer = styled.div`
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
-`;
-
-const FilterButton = styled.button<{ active: boolean }>`
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 0.9rem;
-  border: 1px solid ${({ theme, active }) => active ? theme.primary : theme.border};
-  background: ${({ theme, active }) => active ? theme.primary : theme.secondary};
-  color: ${({ theme, active }) => active ? 'white' : theme.text};
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px ${({ theme }) => theme.border}20;
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
-`;
-
-const FilterIcon = styled.div<{ color: string }>`
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: inherit;
-`;
 
 export interface ProblemType {
   id: string;
@@ -61,26 +20,35 @@ export default function ProblemTypeFilter({
   types,
   activeType,
   onTypeChange,
-  showCount = true
+  showCount = true,
 }: ProblemTypeFilterProps) {
+  const getFilterButtonClasses = (isActive: boolean) => {
+    const baseClasses =
+      'px-6 py-3 rounded-lg font-semibold text-sm border cursor-pointer transition-all duration-300 flex items-center gap-2 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0';
+    return isActive
+      ? `${baseClasses} border-primary bg-primary text-white`
+      : `${baseClasses} border-border bg-secondary text-text hover:shadow-border/20`;
+  };
+
   return (
-    <FilterContainer>
-      {types.map((type) => (
-        <FilterButton
+    <div className='flex gap-4 mb-8 flex-wrap'>
+      {types.map(type => (
+        <button
           key={type.id}
-          active={activeType === type.id}
+          className={getFilterButtonClasses(activeType === type.id)}
           onClick={() => onTypeChange(type.id)}
         >
-          <FilterIcon color={type.color}>
+          <div
+            className='w-5 h-5 flex items-center justify-center text-inherit'
+            style={{ color: type.color }}
+          >
             <type.icon />
-          </FilterIcon>
+          </div>
           {type.label}
-          {showCount && type.count !== undefined && (
-            <span>({type.count})</span>
-          )}
-        </FilterButton>
+          {showCount && type.count !== undefined && <span>({type.count})</span>}
+        </button>
       ))}
-    </FilterContainer>
+    </div>
   );
 }
 
@@ -90,30 +58,30 @@ export const PROBLEM_TYPES: ProblemType[] = [
     id: 'all',
     label: 'All Problems',
     icon: FiTarget,
-    color: '#6b7280'
+    color: '#6b7280',
   },
   {
     id: 'dsa',
     label: 'DSA',
     icon: FiTarget,
-    color: '#10b981'
+    color: '#10b981',
   },
   {
     id: 'machine-coding',
     label: 'Machine Coding',
     icon: FiCode,
-    color: '#3b82f6'
+    color: '#3b82f6',
   },
   {
     id: 'system-design',
     label: 'System Design',
     icon: FiBarChart2,
-    color: '#f59e0b'
+    color: '#f59e0b',
   },
   {
     id: 'theory',
     label: 'Theory',
     icon: FiBookOpen,
-    color: '#8b5cf6'
-  }
-]; 
+    color: '#8b5cf6',
+  },
+];

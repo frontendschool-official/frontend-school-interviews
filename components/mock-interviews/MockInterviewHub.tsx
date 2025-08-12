@@ -1,346 +1,301 @@
-import React from 'react';
-import styled from 'styled-components';
+import React, { useState } from 'react';
 import Link from 'next/link';
-import { FiTarget, FiClock, FiAward, FiPlay, FiBarChart2 } from 'react-icons/fi';
-
-const HubContainer = styled.div`
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem 0;
-`;
-
-const Header = styled.div`
-  text-align: center;
-  margin-bottom: 3rem;
-`;
-
-const Title = styled.h1`
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: ${({ theme }) => theme.text};
-  margin-bottom: 1rem;
-`;
-
-const Subtitle = styled.p`
-  font-size: 1.1rem;
-  color: ${({ theme }) => theme.text}80;
-  margin-bottom: 2rem;
-  line-height: 1.6;
-`;
-
-const StatsContainer = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 3rem;
-`;
-
-const StatCard = styled.div`
-  background: ${({ theme }) => theme.secondary};
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 12px;
-  padding: 1.5rem;
-  text-align: center;
-  transition: all 0.3s ease;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px ${({ theme }) => theme.border}20;
-  }
-`;
-
-const StatValue = styled.div`
-  font-size: 2rem;
-  font-weight: 700;
-  color: ${({ theme }) => theme.primary};
-  margin-bottom: 0.5rem;
-`;
-
-const StatLabel = styled.div`
-  font-size: 0.9rem;
-  color: ${({ theme }) => theme.text}80;
-  font-weight: 500;
-`;
-
-const InterviewTypesGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: 2rem;
-  margin-bottom: 3rem;
-`;
-
-const InterviewTypeCard = styled.div`
-  background: ${({ theme }) => theme.secondary};
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 16px;
-  padding: 2rem;
-  transition: all 0.3s ease;
-
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 30px ${({ theme }) => theme.border}20;
-    border-color: ${({ theme }) => theme.primary};
-  }
-`;
-
-const TypeHeader = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-`;
-
-const TypeIcon = styled.div<{ color: string }>`
-  width: 50px;
-  height: 50px;
-  border-radius: 12px;
-  background: ${({ color }) => color}20;
-  color: ${({ color }) => color};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-`;
-
-const TypeTitle = styled.h3`
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: ${({ theme }) => theme.text};
-  margin: 0;
-`;
-
-const TypeDescription = styled.p`
-  color: ${({ theme }) => theme.text}80;
-  line-height: 1.6;
-  margin-bottom: 1.5rem;
-`;
-
-const TypeFeatures = styled.ul`
-  list-style: none;
-  padding: 0;
-  margin-bottom: 1.5rem;
-`;
-
-const TypeFeature = styled.li`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-  font-size: 0.9rem;
-  color: ${({ theme }) => theme.text}80;
-
-  &:before {
-    content: '✓';
-    color: #10b981;
-    font-weight: bold;
-  }
-`;
-
-const TypeActions = styled.div`
-  display: flex;
-  gap: 1rem;
-`;
-
-const ActionButton = styled(Link)<{ variant: 'primary' | 'secondary' }>`
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-weight: 600;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex: 1;
-  justify-content: center;
-
-  ${({ variant, theme }) =>
-    variant === 'primary'
-      ? `
-    background: ${theme.primary};
-    color: white;
-    &:hover {
-      background: ${theme.primary}dd;
-      transform: translateY(-1px);
-    }
-  `
-      : `
-    background: ${theme.secondary};
-    color: ${theme.text};
-    border: 1px solid ${theme.border};
-    &:hover {
-      background: ${theme.border};
-      transform: translateY(-1px);
-    }
-  `}
-`;
-
-const RecentInterviews = styled.div`
-  background: ${({ theme }) => theme.secondary};
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 12px;
-  padding: 1.5rem;
-`;
-
-const RecentHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-`;
-
-const RecentTitle = styled.h3`
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: ${({ theme }) => theme.text};
-`;
-
-const ViewAllLink = styled(Link)`
-  color: ${({ theme }) => theme.primary};
-  text-decoration: none;
-  font-size: 0.9rem;
-  font-weight: 500;
-
-  &:hover {
-    text-decoration: underline;
-  }
-`;
+import {
+  FiTarget,
+  FiClock,
+  FiAward,
+  FiPlay,
+  FiBarChart2,
+  FiRefreshCw,
+} from 'react-icons/fi';
+import { useMockInterviewData } from '@/hooks/useMockInterviewData';
+import LoadingState from './LoadingState';
+import ErrorState from './ErrorState';
+import EmptyState from './EmptyState';
 
 export default function MockInterviewHub() {
-  const interviewTypes = [
-    {
-      id: 'dsa',
-      title: 'DSA Interview',
-      description: 'Practice data structures and algorithms problems with real-time evaluation.',
-      icon: FiTarget,
-      color: '#10b981',
-      duration: '45-60 min',
-      problems: 3,
-      features: [
-        'Algorithm optimization',
-        'Time complexity analysis',
-        'Real-time evaluation',
-        'Performance feedback'
-      ],
-      setupHref: '/mock-interviews/setup?type=dsa',
-      practiceHref: '/practice/dsa'
-    },
-    {
-      id: 'machine-coding',
-      title: 'Machine Coding',
-      description: 'Build real React components and applications with live feedback.',
-      icon: FiPlay,
-      color: '#3b82f6',
-      duration: '60-90 min',
-      problems: 2,
-      features: [
-        'Component building',
-        'State management',
-        'Code quality assessment',
-        'Best practices feedback'
-      ],
-      setupHref: '/mock-interviews/setup?type=machine-coding',
-      practiceHref: '/practice/machine-coding'
-    },
-    {
-      id: 'system-design',
-      title: 'System Design',
-      description: 'Design scalable frontend architectures and component systems.',
-      icon: FiBarChart2,
-      color: '#f59e0b',
-      duration: '60-90 min',
-      problems: 2,
-      features: [
-        'Architecture design',
-        'Scalability planning',
-        'Component modeling',
-        'System evaluation'
-      ],
-      setupHref: '/mock-interviews/setup?type=system-design',
-      practiceHref: '/practice/system-design'
-    },
-    {
-      id: 'theory',
-      title: 'Theory & Concepts',
-      description: 'Test your knowledge of JavaScript, React, and frontend concepts.',
-      icon: FiAward,
-      color: '#8b5cf6',
-      duration: '30-45 min',
-      problems: 5,
-      features: [
-        'Concept testing',
-        'Deep understanding',
-        'Real-world scenarios',
-        'Knowledge gaps'
-      ],
-      setupHref: '/mock-interviews/setup?type=theory',
-      practiceHref: '/practice/theory'
-    }
+  const [selectedCompany, setSelectedCompany] = useState('');
+  const [selectedLevel, setSelectedLevel] = useState('');
+  const { stats, recentActivity, loading, error, refresh } =
+    useMockInterviewData();
+
+  const companies = [
+    'Google',
+    'Microsoft',
+    'Amazon',
+    'Meta',
+    'Apple',
+    'Netflix',
+    'Twitter',
+    'Uber',
   ];
 
-  const stats = [
-    { value: '12', label: 'Interviews Completed' },
-    { value: '85%', label: 'Average Score' },
-    { value: '24h', label: 'Total Practice Time' },
-    { value: '3', label: 'Current Streak' }
+  const levels = [
+    'Junior (0-2 years)',
+    'Mid-level (3-5 years)',
+    'Senior (6-8 years)',
+    'Lead (9+ years)',
   ];
+
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = Math.floor(
+      (now.getTime() - date.getTime()) / (1000 * 60 * 60)
+    );
+
+    if (diffInHours < 1) return 'Just now';
+    if (diffInHours < 24)
+      return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7)
+      return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
+
+    const diffInWeeks = Math.floor(diffInDays / 7);
+    return `${diffInWeeks} week${diffInWeeks > 1 ? 's' : ''} ago`;
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return <FiAward className='text-green-500' />;
+      case 'in-progress':
+        return <FiBarChart2 className='text-blue-500' />;
+      case 'failed':
+        return <FiTarget className='text-red-500' />;
+      default:
+        return <FiClock className='text-yellow-500' />;
+    }
+  };
+
+  const getStatusBgColor = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return 'bg-green-500/20';
+      case 'in-progress':
+        return 'bg-blue-500/20';
+      case 'failed':
+        return 'bg-red-500/20';
+      default:
+        return 'bg-yellow-500/20';
+    }
+  };
+
+  if (loading) {
+    return <LoadingState />;
+  }
+
+  if (error) {
+    return <ErrorState error={error} onRetry={refresh} />;
+  }
 
   return (
-    <HubContainer>
-      <Header>
-        <Title>Mock Interviews</Title>
-        <Subtitle>
-          Practice real interview scenarios with AI-powered evaluation and feedback.
-          Choose your interview type and start practicing today.
-        </Subtitle>
-      </Header>
+    <>
+      {/* Header */}
+      <div className='text-center mb-12'>
+        <h1 className='text-4xl font-bold text-text mb-4'>
+          Mock Interview Hub
+        </h1>
+        <p className='text-lg text-text/80 max-w-2xl mx-auto'>
+          Practice with realistic interview scenarios tailored to top tech
+          companies. Get instant feedback and improve your skills.
+        </p>
+      </div>
 
-      <StatsContainer>
-        {stats.map((stat, index) => (
-          <StatCard key={index}>
-            <StatValue>{stat.value}</StatValue>
-            <StatLabel>{stat.label}</StatLabel>
-          </StatCard>
-        ))}
-      </StatsContainer>
+      {/* Stats Grid */}
+      <div className='flex items-center justify-between mb-6'>
+        <h2 className='text-2xl font-semibold text-text'>Your Statistics</h2>
+        <button
+          onClick={refresh}
+          disabled={loading}
+          className='flex items-center gap-2 px-3 py-2 text-sm text-primary hover:text-accent transition-colors disabled:opacity-50'
+        >
+          <FiRefreshCw className={`text-sm ${loading ? 'animate-spin' : ''}`} />
+          Refresh
+        </button>
+      </div>
 
-      <InterviewTypesGrid>
-        {interviewTypes.map((type) => (
-          <InterviewTypeCard key={type.id}>
-            <TypeHeader>
-              <TypeIcon color={type.color}>
-                <type.icon />
-              </TypeIcon>
-              <TypeTitle>{type.title}</TypeTitle>
-            </TypeHeader>
-            <TypeDescription>{type.description}</TypeDescription>
-            <TypeFeatures>
-              {type.features.map((feature, index) => (
-                <TypeFeature key={index}>{feature}</TypeFeature>
-              ))}
-            </TypeFeatures>
-            <TypeActions>
-              <ActionButton href={type.setupHref} variant="primary">
-                <FiPlay />
-                Start Interview
-              </ActionButton>
-              <ActionButton href={type.practiceHref} variant="secondary">
-                <FiClock />
-                Practice
-              </ActionButton>
-            </TypeActions>
-          </InterviewTypeCard>
-        ))}
-      </InterviewTypesGrid>
-
-      <RecentInterviews>
-        <RecentHeader>
-          <RecentTitle>Recent Interviews</RecentTitle>
-          <ViewAllLink href="/history">View All</ViewAllLink>
-        </RecentHeader>
-        <div style={{ color: '#6b7280', textAlign: 'center', padding: '2rem' }}>
-          No recent interviews. Start your first mock interview to see your history here.
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12'>
+        <div className='bg-secondary border border-border rounded-xl p-6 text-center'>
+          <div className='text-3xl font-bold text-primary mb-2'>
+            {stats.totalInterviews}
+          </div>
+          <div className='text-sm text-text/80 font-medium'>
+            Total Interviews
+          </div>
         </div>
-      </RecentInterviews>
-    </HubContainer>
+
+        <div className='bg-secondary border border-border rounded-xl p-6 text-center'>
+          <div className='text-3xl font-bold text-green-500 mb-2'>
+            {stats.averageScore}%
+          </div>
+          <div className='text-sm text-text/80 font-medium'>Average Score</div>
+        </div>
+
+        <div className='bg-secondary border border-border rounded-xl p-6 text-center'>
+          <div className='text-3xl font-bold text-blue-500 mb-2'>
+            {stats.completedRounds}
+          </div>
+          <div className='text-sm text-text/80 font-medium'>
+            Completed Rounds
+          </div>
+        </div>
+
+        <div className='bg-secondary border border-border rounded-xl p-6 text-center'>
+          <div className='text-3xl font-bold text-yellow-500 mb-2'>
+            {stats.totalTime}
+          </div>
+          <div className='text-sm text-text/80 font-medium'>Total Time</div>
+        </div>
+      </div>
+
+      {/* Quick Start Section */}
+      <div className='bg-secondary border border-border rounded-xl p-8 mb-12'>
+        <h2 className='text-2xl font-semibold text-text mb-6'>
+          Quick Start Interview
+        </h2>
+
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-6 mb-6'>
+          <div>
+            <label className='block text-sm font-medium text-text mb-2'>
+              Company
+            </label>
+            <select
+              value={selectedCompany}
+              onChange={e => setSelectedCompany(e.target.value)}
+              className='w-full px-4 py-2 border border-border rounded-lg bg-bodyBg text-text focus:outline-none focus:border-primary'
+            >
+              <option value=''>Select a company</option>
+              {companies.map(company => (
+                <option key={company} value={company}>
+                  {company}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className='block text-sm font-medium text-text mb-2'>
+              Experience Level
+            </label>
+            <select
+              value={selectedLevel}
+              onChange={e => setSelectedLevel(e.target.value)}
+              className='w-full px-4 py-2 border border-border rounded-lg bg-bodyBg text-text focus:outline-none focus:border-primary'
+            >
+              <option value=''>Select your level</option>
+              {levels.map(level => (
+                <option key={level} value={level}>
+                  {level}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <Link
+          href={`/mock-interview?company=${selectedCompany}&level=${selectedLevel}`}
+          className={`inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-200 ${
+            selectedCompany && selectedLevel
+              ? 'bg-primary text-white hover:bg-accent hover:-translate-y-0.5'
+              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+          }`}
+        >
+          <FiPlay />
+          Start Mock Interview
+        </Link>
+      </div>
+
+      {/* Interview Types */}
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12'>
+        <Link href='/mock-interviews/dsa' className='group'>
+          <div className='bg-secondary border border-border rounded-xl p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-primary'>
+            <div className='text-3xl mb-4 text-primary'>🧮</div>
+            <h3 className='text-lg font-semibold text-text mb-2'>
+              DSA Problems
+            </h3>
+            <p className='text-sm text-text/60'>Data Structures & Algorithms</p>
+          </div>
+        </Link>
+
+        <Link href='/mock-interviews/machine-coding' className='group'>
+          <div className='bg-secondary border border-border rounded-xl p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-primary'>
+            <div className='text-3xl mb-4 text-blue-500'>💻</div>
+            <h3 className='text-lg font-semibold text-text mb-2'>
+              Machine Coding
+            </h3>
+            <p className='text-sm text-text/60'>
+              Build functional applications
+            </p>
+          </div>
+        </Link>
+
+        <Link href='/mock-interviews/system-design' className='group'>
+          <div className='bg-secondary border border-border rounded-xl p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-primary'>
+            <div className='text-3xl mb-4 text-yellow-500'>🏗️</div>
+            <h3 className='text-lg font-semibold text-text mb-2'>
+              System Design
+            </h3>
+            <p className='text-sm text-text/60'>Architecture & scalability</p>
+          </div>
+        </Link>
+
+        <Link href='/mock-interviews/theory' className='group'>
+          <div className='bg-secondary border border-border rounded-xl p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-primary'>
+            <div className='text-3xl mb-4 text-purple-500'>📚</div>
+            <h3 className='text-lg font-semibold text-text mb-2'>Theory</h3>
+            <p className='text-sm text-text/60'>Frontend concepts & concepts</p>
+          </div>
+        </Link>
+      </div>
+
+      {/* Recent Activity */}
+      <div className='bg-secondary border border-border rounded-xl p-8'>
+        <h2 className='text-2xl font-semibold text-text mb-6'>
+          Recent Activity
+        </h2>
+
+        {recentActivity.length === 0 ? (
+          <EmptyState />
+        ) : (
+          <div className='space-y-4'>
+            {recentActivity.map(activity => (
+              <div
+                key={activity.id}
+                className='flex items-center justify-between p-4 bg-bodyBg rounded-lg'
+              >
+                <div className='flex items-center gap-4'>
+                  <div
+                    className={`w-10 h-10 ${getStatusBgColor(activity.status)} rounded-full flex items-center justify-center`}
+                  >
+                    {getStatusIcon(activity.status)}
+                  </div>
+                  <div>
+                    <h4 className='font-semibold text-text'>
+                      {activity.title}
+                    </h4>
+                    <p className='text-sm text-text/60'>
+                      {activity.status === 'completed' && activity.score
+                        ? `Completed • Score: ${activity.score}%`
+                        : activity.status === 'in-progress'
+                          ? `In Progress • ${activity.timeSpent || 'Time tracking...'}`
+                          : activity.status === 'failed'
+                            ? 'Failed • Try again'
+                            : 'Unknown status'}
+                    </p>
+                  </div>
+                </div>
+                <div className='text-sm text-text/60'>
+                  {activity.completedAt
+                    ? formatTimeAgo(activity.completedAt)
+                    : 'Recently'}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </>
   );
-} 
+}

@@ -1,9 +1,8 @@
-
-import { useEffect, useState } from "react";
-import Layout from "@/components/Layout";
-import FeatureSection from "./feature";
-import HeroSection from "./hero";
-import PricingSection from "./Pricing";
+import { useEffect, useState } from 'react';
+import Layout from '@/components/Layout';
+import FeatureSection from './feature';
+import HeroSection from './hero';
+import PricingSection from './Pricing';
 
 export default function HomePage() {
   const [mounted, setMounted] = useState(false);

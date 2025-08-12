@@ -1,12 +1,12 @@
-import { useState, useEffect } from "react";
-import { ParsedProblemData } from "../types/problem";
+import { useState, useEffect } from 'react';
+import { ParsedProblemData } from '../types/problem';
 
 export const useInterviewCode = (problem: ParsedProblemData | null) => {
-  const [code, setCode] = useState("");
+  const [code, setCode] = useState('');
 
   // Generate initial code template for DSA problems
   useEffect(() => {
-    if (problem && problem.interviewType === "dsa" && problem.dsaProblem) {
+    if (problem && problem.interviewType === 'dsa' && problem.dsaProblem) {
       const firstExample = problem.dsaProblem.examples?.[0];
       let template = `/**
  * @param {any} input
@@ -23,14 +23,14 @@ function solution(input) {
           const outputType = typeof JSON.parse(firstExample.output);
 
           template = `/**
- * @param {${inputType === "object" ? "any" : inputType}} input
- * @return {${outputType === "object" ? "any" : outputType}}
+ * @param {${inputType === 'object' ? 'any' : inputType}} input
+ * @return {${outputType === 'object' ? 'any' : outputType}}
  */
 function solution(input) {
     // Your solution here
     return 0;
 }`;
-        } catch (e) {
+        } catch {
           // Fallback to generic template
         }
       }
@@ -44,7 +44,7 @@ function solution(input) {
   };
 
   const clearCode = () => {
-    setCode("");
+    setCode('');
   };
 
   return {
@@ -52,4 +52,4 @@ function solution(input) {
     updateCode,
     clearCode,
   };
-}; 
+};

@@ -1,10 +1,10 @@
 export interface ErrorState {
-  type: "network" | "not_found" | "unauthorized" | "unknown";
+  type: 'network' | 'not_found' | 'unauthorized' | 'unknown';
   message: string;
 }
 
 // Base problem difficulty levels
-export type Difficulty = "easy" | "medium" | "hard";
+export type Difficulty = 'easy' | 'medium' | 'hard';
 
 // Machine Coding Problem Schema
 export interface IMachineCodingProblem {

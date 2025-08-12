@@ -57,4 +57,4 @@ export interface MockInterviewPackage {
   duration: string;
   features: string[];
   includes: string[];
-} 
+}

@@ -1,507 +1,197 @@
-import React, { useState } from "react";
-import styled, { keyframes } from "styled-components";
-import { useAuth } from "../hooks/useAuth";
+import React from 'react';
+import { useUserProfile } from '../hooks/useUserProfile';
 import {
   FaEdit,
   FaSave,
   FaTimes,
   FaUser,
   FaEnvelope,
-  FaPhone,
   FaCalendar,
   FaTrophy,
   FaChartLine,
   FaCog,
-} from "react-icons/fa";
-
-const fadeIn = keyframes`
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-`;
-
-const ProfileContainer = styled.div`
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem 0;
-  animation: ${fadeIn} 0.5s ease-out;
-`;
-
-const ProfileHeader = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-  margin-bottom: 3rem;
-  padding: 2rem;
-  background: ${({ theme }) => theme.secondary};
-  border-radius: 20px;
-  box-shadow: 0 4px 20px ${({ theme }) => theme.border}20;
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-    text-align: center;
-  }
-`;
-
-const Avatar = styled.div`
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  background: linear-gradient(
-    135deg,
-    ${({ theme }) => theme.primary},
-    ${({ theme }) => theme.accent}
-  );
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 3rem;
-  color: white;
-  overflow: hidden;
-  position: relative;
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-`;
-
-const ProfileInfo = styled.div`
-  flex: 1;
-`;
-
-const Name = styled.h1`
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: ${({ theme }) => theme.text};
-  margin-bottom: 0.5rem;
-`;
-
-const Email = styled.p`
-  font-size: 1.1rem;
-  color: ${({ theme }) => theme.text};
-  opacity: 0.8;
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-`;
-
-const MemberSince = styled.p`
-  font-size: 0.9rem;
-  color: ${({ theme }) => theme.text};
-  opacity: 0.6;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-`;
-
-const EditButton = styled.button`
-  background: linear-gradient(
-    135deg,
-    ${({ theme }) => theme.primary},
-    ${({ theme }) => theme.accent}
-  );
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 50px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px ${({ theme }) => theme.primary}40;
-  }
-`;
-
-const StatsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 3rem;
-`;
-
-const StatCard = styled.div`
-  background: ${({ theme }) => theme.secondary};
-  padding: 1.2rem;
-  border-radius: 15px;
-  text-align: center;
-  box-shadow: 0 4px 15px ${({ theme }) => theme.border}20;
-  transition: transform 0.3s ease;
-
-  &:hover {
-    transform: translateY(-5px);
-  }
-`;
-
-const StatIcon = styled.div`
-  font-size: 2rem;
-  color: ${({ theme }) => theme.primary};
-  margin-bottom: 1rem;
-`;
-
-const StatValue = styled.div`
-  font-size: 2rem;
-  font-weight: 700;
-  color: ${({ theme }) => theme.text};
-  margin-bottom: 0.5rem;
-`;
-
-const StatLabel = styled.div`
-  font-size: 0.9rem;
-  color: ${({ theme }) => theme.text};
-  opacity: 0.8;
-`;
-
-const Section = styled.div`
-  background: ${({ theme }) => theme.secondary};
-  padding: 2rem;
-  border-radius: 20px;
-  margin-bottom: 2rem;
-  box-shadow: 0 4px 20px ${({ theme }) => theme.border}20;
-`;
-
-const SectionTitle = styled.h2`
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: ${({ theme }) => theme.text};
-  margin-bottom: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-`;
-
-const Form = styled.form`
-  display: grid;
-  gap: 1.5rem;
-`;
-
-const FormGroup = styled.div`
-  display: grid;
-  gap: 0.5rem;
-`;
-
-const Label = styled.label`
-  font-weight: 600;
-  color: ${({ theme }) => theme.text};
-`;
-
-const Input = styled.input`
-  padding: 0.75rem 1rem;
-  border: 2px solid ${({ theme }) => theme.border};
-  border-radius: 10px;
-  background: ${({ theme }) => theme.bodyBg};
-  color: ${({ theme }) => theme.text};
-  font-size: 1rem;
-  transition: border-color 0.3s ease;
-
-  &:focus {
-    outline: none;
-    border-color: ${({ theme }) => theme.primary};
-  }
-`;
-
-const Select = styled.select`
-  padding: 0.75rem 1rem;
-  border: 2px solid ${({ theme }) => theme.border};
-  border-radius: 10px;
-  background: ${({ theme }) => theme.bodyBg};
-  color: ${({ theme }) => theme.text};
-  font-size: 1rem;
-  transition: border-color 0.3s ease;
-
-  &:focus {
-    outline: none;
-    border-color: ${({ theme }) => theme.primary};
-  }
-`;
-
-const ButtonGroup = styled.div`
-  display: flex;
-  gap: 1rem;
-  justify-content: flex-end;
-  margin-top: 1rem;
-`;
-
-const Button = styled.button<{ primary?: boolean; danger?: boolean }>`
-  padding: 0.75rem 1.5rem;
-  border-radius: 10px;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-
-  ${({ primary, danger, theme }) => {
-    if (danger) {
-      return `
-        background: #dc3545;
-        color: white;
-        
-        &:hover {
-          background: #c82333;
-          transform: translateY(-2px);
-        }
-      `;
-    }
-
-    if (primary) {
-      return `
-        background: linear-gradient(135deg, ${theme.primary}, ${theme.accent});
-        color: white;
-        
-        &:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 15px ${theme.primary}40;
-        }
-      `;
-    }
-
-    return `
-      background: transparent;
-      color: ${theme.text};
-      border: 2px solid ${theme.border};
-      
-      &:hover {
-        border-color: ${theme.primary};
-        color: ${theme.primary};
-      }
-    `;
-  }}
-`;
-
-const TagList = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-`;
-
-const Tag = styled.span`
-  background: ${({ theme }) => theme.primary}20;
-  color: ${({ theme }) => theme.primary};
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  font-weight: 500;
-`;
-
-const PreferencesGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-`;
-
-const PreferenceItem = styled.div`
-  padding: 1rem;
-  border: 2px solid ${({ theme }) => theme.border};
-  border-radius: 10px;
-  background: ${({ theme }) => theme.bodyBg};
-`;
-
-const PreferenceLabel = styled.div`
-  font-weight: 600;
-  color: ${({ theme }) => theme.text};
-  margin-bottom: 0.5rem;
-`;
-
-const PreferenceValue = styled.div`
-  color: ${({ theme }) => theme.text};
-  opacity: 0.8;
-`;
+} from 'react-icons/fa';
 
 const UserProfile: React.FC = () => {
-  const { userProfile, updateProfile, profileLoading } = useAuth();
-  const [isEditing, setIsEditing] = useState(false);
-  const [editData, setEditData] = useState({
-    displayName: userProfile?.displayName || "",
-    phoneNumber: userProfile?.phoneNumber || "",
-    preferences: {
-      theme: userProfile?.preferences.theme || "auto",
-      difficulty: userProfile?.preferences.difficulty || "intermediate",
-      dailyGoal: userProfile?.preferences.dailyGoal || 30,
-    },
-  });
+  const {
+    isEditing,
+    editData,
+    profileLoading,
+    userProfile,
+    handleSave,
+    handleCancel,
+    handleEdit,
+    updateEditData,
+    formatDate,
+  } = useUserProfile();
 
   if (!userProfile) {
     return (
-      <ProfileContainer>
-        <div style={{ textAlign: "center", padding: "4rem 0" }}>
+      <div className='max-w-6xl mx-auto p-8'>
+        <div className='text-center py-16'>
           <p>Loading profile...</p>
         </div>
-      </ProfileContainer>
+      </div>
     );
   }
 
-  const handleSave = async () => {
-    try {
-      await updateProfile({
-        displayName: editData.displayName,
-        phoneNumber: editData.phoneNumber,
-        preferences: editData.preferences,
-      });
-      setIsEditing(false);
-    } catch (error) {
-      console.error("Error updating profile:", error);
-    }
-  };
-
-  const handleCancel = () => {
-    setEditData({
-      displayName: userProfile.displayName,
-      phoneNumber: userProfile.phoneNumber || "",
-      preferences: {
-        theme: userProfile.preferences.theme,
-        difficulty: userProfile.preferences.difficulty,
-        dailyGoal: userProfile.preferences.dailyGoal,
-      },
-    });
-    setIsEditing(false);
-  };
-
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    }).format(date);
-  };
-
   return (
-    <ProfileContainer>
-      <ProfileHeader>
-        <Avatar>
+    <div className='max-w-6xl mx-auto p-4 sm:p-8 animate-fade-in'>
+      {/* Profile Header */}
+      <div className='flex flex-col sm:flex-row items-center gap-4 sm:gap-8 mb-8 sm:mb-12 p-4 sm:p-8 bg-secondary rounded-2xl shadow-lg text-center sm:text-left'>
+        <div className='w-20 h-20 sm:w-30 sm:h-30 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-2xl sm:text-3xl text-white overflow-hidden relative'>
           {userProfile.photoURL ? (
-            <img src={userProfile.photoURL} alt={userProfile.displayName} />
+            <img
+              src={userProfile.photoURL}
+              alt={userProfile.displayName}
+              className='w-full h-full object-cover'
+            />
           ) : (
             <FaUser />
           )}
-        </Avatar>
+        </div>
 
-        <ProfileInfo>
-          <Name>{userProfile.displayName}</Name>
-          <Email>
+        <div className='flex-1'>
+          <h1 className='text-2xl sm:text-3xl md:text-4xl font-bold text-text mb-2'>
+            {userProfile.displayName}
+          </h1>
+          <p className='text-sm sm:text-lg text-text opacity-80 mb-2 sm:mb-4 flex items-center justify-center sm:justify-start gap-2'>
             <FaEnvelope />
             {userProfile.email}
-          </Email>
-          <MemberSince>
+          </p>
+          <p className='text-xs sm:text-sm text-text opacity-60 flex items-center justify-center sm:justify-start gap-2'>
             <FaCalendar />
             Member since {formatDate(userProfile.createdAt)}
-          </MemberSince>
-        </ProfileInfo>
+          </p>
+        </div>
 
-        <EditButton onClick={() => setIsEditing(true)}>
+        <button
+          onClick={handleEdit}
+          className='bg-gradient-to-r from-primary to-accent text-white border-none px-4 sm:px-6 py-2 sm:py-3 rounded-full font-semibold cursor-pointer transition-all duration-300 flex items-center gap-2 hover:-translate-y-0.5 hover:shadow-lg text-sm sm:text-base'
+        >
           <FaEdit />
           Edit Profile
-        </EditButton>
-      </ProfileHeader>
+        </button>
+      </div>
 
-      <StatsGrid>
-        <StatCard>
-          <StatIcon>
+      {/* Stats Grid */}
+      <div className='grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 mb-8 sm:mb-12'>
+        <div className='bg-secondary p-4 sm:p-5 rounded-xl text-center shadow-lg transition-transform duration-300 hover:-translate-y-1'>
+          <div className='text-xl sm:text-2xl text-primary mb-3 sm:mb-4'>
             <FaTrophy />
-          </StatIcon>
-          <StatValue>{userProfile.stats.totalProblemsCompleted}</StatValue>
-          <StatLabel>Problems Completed</StatLabel>
-        </StatCard>
+          </div>
+          <div className='text-lg sm:text-xl md:text-2xl font-bold text-text mb-2'>
+            {userProfile.stats.totalProblemsCompleted}
+          </div>
+          <div className='text-xs sm:text-sm text-text opacity-80'>
+            Problems Completed
+          </div>
+        </div>
 
-        <StatCard>
-          <StatIcon>
+        <div className='bg-secondary p-4 sm:p-5 rounded-xl text-center shadow-lg transition-transform duration-300 hover:-translate-y-1'>
+          <div className='text-xl sm:text-2xl text-primary mb-3 sm:mb-4'>
             <FaChartLine />
-          </StatIcon>
-          <StatValue>{userProfile.stats.currentStreak}</StatValue>
-          <StatLabel>Day Streak</StatLabel>
-        </StatCard>
+          </div>
+          <div className='text-lg sm:text-xl md:text-2xl font-bold text-text mb-2'>
+            {userProfile.stats.currentStreak}
+          </div>
+          <div className='text-xs sm:text-sm text-text opacity-80'>
+            Day Streak
+          </div>
+        </div>
 
-        <StatCard>
-          <StatIcon>
+        <div className='bg-secondary p-4 sm:p-5 rounded-xl text-center shadow-lg transition-transform duration-300 hover:-translate-y-1'>
+          <div className='text-xl sm:text-2xl text-primary mb-3 sm:mb-4'>
             <FaCog />
-          </StatIcon>
-          <StatValue>{userProfile.stats.totalProblemsAttempted}</StatValue>
-          <StatLabel>Problems Attempted</StatLabel>
-        </StatCard>
+          </div>
+          <div className='text-lg sm:text-xl md:text-2xl font-bold text-text mb-2'>
+            {userProfile.stats.totalProblemsAttempted}
+          </div>
+          <div className='text-xs sm:text-sm text-text opacity-80'>
+            Problems Attempted
+          </div>
+        </div>
 
-        <StatCard>
-          <StatIcon>
+        <div className='bg-secondary p-4 sm:p-5 rounded-xl text-center shadow-lg transition-transform duration-300 hover:-translate-y-1'>
+          <div className='text-xl sm:text-2xl text-primary mb-3 sm:mb-4'>
             <FaUser />
-          </StatIcon>
-          <StatValue>{Math.round(userProfile.stats.averageScore)}%</StatValue>
-          <StatLabel>Average Score</StatLabel>
-        </StatCard>
-      </StatsGrid>
+          </div>
+          <div className='text-lg sm:text-xl md:text-2xl font-bold text-text mb-2'>
+            {Math.round(userProfile.stats.averageScore)}%
+          </div>
+          <div className='text-xs sm:text-sm text-text opacity-80'>
+            Average Score
+          </div>
+        </div>
+      </div>
 
-      <Section>
-        <SectionTitle>
+      {/* Personal Information Section */}
+      <div className='bg-secondary p-6 sm:p-8 rounded-2xl mb-6 sm:mb-8 shadow-lg'>
+        <h2 className='text-xl sm:text-2xl font-semibold text-text mb-4 sm:mb-6 flex items-center gap-2'>
           <FaUser />
           Personal Information
-        </SectionTitle>
+        </h2>
 
         {isEditing ? (
-          <Form
-            onSubmit={(e) => {
+          <form
+            onSubmit={e => {
               e.preventDefault();
               handleSave();
             }}
           >
-            <FormGroup>
-              <Label>Display Name</Label>
-              <Input
-                type="text"
-                value={editData.displayName}
-                onChange={(e) =>
-                  setEditData((prev) => ({
-                    ...prev,
-                    displayName: e.target.value,
-                  }))
-                }
-                required
-              />
-            </FormGroup>
+            <div className='space-y-4 sm:space-y-6'>
+              <div>
+                <label className='block font-semibold text-text mb-2'>
+                  Display Name
+                </label>
+                <input
+                  type='text'
+                  value={editData.displayName}
+                  onChange={e => updateEditData('displayName', e.target.value)}
+                  required
+                  className='w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-border rounded-lg bg-bodyBg text-text text-sm sm:text-base transition-colors duration-300 focus:outline-none focus:border-primary'
+                />
+              </div>
 
-            <FormGroup>
-              <Label>Phone Number</Label>
-              <Input
-                type="tel"
-                value={editData.phoneNumber}
-                onChange={(e) =>
-                  setEditData((prev) => ({
-                    ...prev,
-                    phoneNumber: e.target.value,
-                  }))
-                }
-              />
-            </FormGroup>
+              <div>
+                <label className='block font-semibold text-text mb-2'>
+                  Phone Number
+                </label>
+                <input
+                  type='tel'
+                  value={editData.phoneNumber}
+                  onChange={e => updateEditData('phoneNumber', e.target.value)}
+                  className='w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-border rounded-lg bg-bodyBg text-text text-sm sm:text-base transition-colors duration-300 focus:outline-none focus:border-primary'
+                />
+              </div>
 
-            <ButtonGroup>
-              <Button type="button" onClick={handleCancel}>
-                <FaTimes />
-                Cancel
-              </Button>
-              <Button type="submit" primary disabled={profileLoading}>
-                <FaSave />
-                {profileLoading ? "Saving..." : "Save Changes"}
-              </Button>
-            </ButtonGroup>
-          </Form>
+              <div className='flex flex-col sm:flex-row gap-3 sm:gap-4 justify-end mt-4 sm:mt-6'>
+                <button
+                  type='button'
+                  onClick={handleCancel}
+                  className='px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold border-2 border-border bg-transparent text-text cursor-pointer transition-all duration-300 flex items-center justify-center gap-2 hover:border-primary hover:text-primary text-sm sm:text-base'
+                >
+                  <FaTimes />
+                  Cancel
+                </button>
+                <button
+                  type='submit'
+                  disabled={profileLoading}
+                  className='px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold border-none cursor-pointer transition-all duration-300 flex items-center justify-center gap-2 bg-gradient-to-r from-primary to-accent text-white hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-60 text-sm sm:text-base'
+                >
+                  <FaSave />
+                  {profileLoading ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </div>
+          </form>
         ) : (
-          <div>
-            <div style={{ marginBottom: "1rem" }}>
+          <div className='space-y-4'>
+            <div>
               <strong>Display Name:</strong> {userProfile.displayName}
             </div>
             {userProfile.phoneNumber && (
-              <div style={{ marginBottom: "1rem" }}>
+              <div>
                 <strong>Phone:</strong> {userProfile.phoneNumber}
               </div>
             )}
@@ -510,67 +200,70 @@ const UserProfile: React.FC = () => {
             </div>
           </div>
         )}
-      </Section>
+      </div>
 
-      <Section>
-        <SectionTitle>
+      {/* Preferences Section */}
+      <div className='bg-secondary p-8 rounded-2xl mb-8 shadow-lg'>
+        <h2 className='text-2xl font-semibold text-text mb-6 flex items-center gap-2'>
           <FaCog />
           Preferences
-        </SectionTitle>
+        </h2>
 
-        <PreferencesGrid>
-          <PreferenceItem>
-            <PreferenceLabel>Theme</PreferenceLabel>
-            <PreferenceValue>{userProfile.preferences.theme}</PreferenceValue>
-          </PreferenceItem>
+        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
+          <div className='p-4 border-2 border-border rounded-lg bg-bodyBg'>
+            <div className='font-semibold text-text mb-2'>Theme</div>
+            <div className='text-text opacity-80'>
+              {userProfile.preferences.theme}
+            </div>
+          </div>
 
-          <PreferenceItem>
-            <PreferenceLabel>Difficulty Level</PreferenceLabel>
-            <PreferenceValue>
+          <div className='p-4 border-2 border-border rounded-lg bg-bodyBg'>
+            <div className='font-semibold text-text mb-2'>Difficulty Level</div>
+            <div className='text-text opacity-80'>
               {userProfile.preferences.difficulty}
-            </PreferenceValue>
-          </PreferenceItem>
+            </div>
+          </div>
 
-          <PreferenceItem>
-            <PreferenceLabel>Daily Goal</PreferenceLabel>
-            <PreferenceValue>
+          <div className='p-4 border-2 border-border rounded-lg bg-bodyBg'>
+            <div className='font-semibold text-text mb-2'>Daily Goal</div>
+            <div className='text-text opacity-80'>
               {userProfile.preferences.dailyGoal} minutes
-            </PreferenceValue>
-          </PreferenceItem>
+            </div>
+          </div>
 
-          <PreferenceItem>
-            <PreferenceLabel>Timezone</PreferenceLabel>
-            <PreferenceValue>
+          <div className='p-4 border-2 border-border rounded-lg bg-bodyBg'>
+            <div className='font-semibold text-text mb-2'>Timezone</div>
+            <div className='text-text opacity-80'>
               {userProfile.preferences.timezone}
-            </PreferenceValue>
-          </PreferenceItem>
-        </PreferencesGrid>
+            </div>
+          </div>
+        </div>
 
         {userProfile.preferences.focusAreas.length > 0 && (
-          <div style={{ marginTop: "1.5rem" }}>
-            <PreferenceLabel>Focus Areas</PreferenceLabel>
-            <TagList>
+          <div className='mt-6'>
+            <div className='font-semibold text-text mb-4'>Focus Areas</div>
+            <div className='flex flex-wrap gap-2'>
               {userProfile.preferences.focusAreas.map((area, index) => (
-                <Tag key={index}>{area}</Tag>
+                <span
+                  key={index}
+                  className='bg-primary bg-opacity-20 text-primary px-3 py-1 rounded-full text-sm font-medium'
+                >
+                  {area}
+                </span>
               ))}
-            </TagList>
+            </div>
           </div>
         )}
-      </Section>
+      </div>
 
-      <Section>
-        <SectionTitle>
+      {/* Statistics Section */}
+      <div className='bg-secondary p-8 rounded-2xl shadow-lg'>
+        <h2 className='text-2xl font-semibold text-text mb-6 flex items-center gap-2'>
           <FaChartLine />
           Statistics
-        </SectionTitle>
+        </h2>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-            gap: "1rem",
-          }}
-        >
+        <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
           <div>
             <strong>Problems by Type:</strong>
             <div>
@@ -596,8 +289,8 @@ const UserProfile: React.FC = () => {
             <div>{userProfile.stats.longestStreak} days</div>
           </div>
         </div>
-      </Section>
-    </ProfileContainer>
+      </div>
+    </div>
   );
 };
 

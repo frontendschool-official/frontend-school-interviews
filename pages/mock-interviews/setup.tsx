@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '@/hooks/useAuth';
 import Layout from '@/components/Layout';
-import { LoadingContainer, LoadingSpinner, LoadingText } from '@/styles/SharedUI';
+import Loader from '@/components/ui/Loader';
 
 export default function MockInterviewSetupPage() {
   const { user, loading } = useAuth();
@@ -26,8 +26,8 @@ export default function MockInterviewSetupPage() {
 
   if (loading) {
     return (
-      <Layout isLoading={true} loadingText="Loading setup...">
-        <div />
+      <Layout isLoading={false}>
+        <Loader text='Loading setup...' size='lg' fullScreen />
       </Layout>
     );
   }
@@ -38,10 +38,7 @@ export default function MockInterviewSetupPage() {
 
   return (
     <Layout>
-      <LoadingContainer>
-        <LoadingSpinner />
-        <LoadingText>Redirecting to interview setup...</LoadingText>
-      </LoadingContainer>
+      <Loader text='Redirecting to interview setup...' size='md' />
     </Layout>
   );
-} 
+}

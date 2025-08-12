@@ -1,306 +1,154 @@
 import React, { useState } from 'react';
-import styled from 'styled-components';
-import { FiCalendar, FiClock, FiTrendingUp, FiBarChart2, FiFilter } from 'react-icons/fi';
-import ProblemTypeFilter, { PROBLEM_TYPES } from '@/components/problems/ProblemTypeFilter';
+import { FiFilter } from 'react-icons/fi';
+import ProblemTypeFilter, {
+  PROBLEM_TYPES,
+} from '@/components/problems/ProblemTypeFilter';
 import ProblemCard, { Problem } from '@/components/problems/ProblemCard';
-
-const HistoryContainer = styled.div`
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
-`;
-
-const Header = styled.div`
-  margin-bottom: 2rem;
-`;
-
-const Title = styled.h1`
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: ${({ theme }) => theme.text};
-  margin-bottom: 0.5rem;
-`;
-
-const Subtitle = styled.p`
-  font-size: 1.1rem;
-  color: ${({ theme }) => theme.text}80;
-  margin-bottom: 1rem;
-`;
-
-const StatsContainer = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-`;
-
-const StatCard = styled.div`
-  background: ${({ theme }) => theme.secondary};
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 12px;
-  padding: 1.5rem;
-  text-align: center;
-  transition: all 0.3s ease;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px ${({ theme }) => theme.border}20;
-  }
-`;
-
-const StatValue = styled.div`
-  font-size: 2rem;
-  font-weight: 700;
-  color: ${({ theme }) => theme.primary};
-  margin-bottom: 0.5rem;
-`;
-
-const StatLabel = styled.div`
-  font-size: 0.9rem;
-  color: ${({ theme }) => theme.text}80;
-  font-weight: 500;
-`;
-
-const FilterSection = styled.div`
-  background: ${({ theme }) => theme.secondary};
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-`;
-
-const FilterHeader = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-  font-weight: 600;
-  color: ${({ theme }) => theme.text};
-`;
-
-const FilterRow = styled.div`
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  flex-wrap: wrap;
-`;
-
-const FilterSelect = styled.select`
-  padding: 0.5rem 1rem;
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 8px;
-  background: ${({ theme }) => theme.bodyBg};
-  color: ${({ theme }) => theme.text};
-  font-size: 0.9rem;
-  cursor: pointer;
-
-  &:focus {
-    outline: none;
-    border-color: ${({ theme }) => theme.primary};
-  }
-`;
-
-const FilterInput = styled.input`
-  padding: 0.5rem 1rem;
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 8px;
-  background: ${({ theme }) => theme.bodyBg};
-  color: ${({ theme }) => theme.text};
-  font-size: 0.9rem;
-
-  &:focus {
-    outline: none;
-    border-color: ${({ theme }) => theme.primary};
-  }
-`;
-
-const ProblemsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 1.5rem;
-`;
-
-const EmptyState = styled.div`
-  text-align: center;
-  padding: 4rem 2rem;
-  color: ${({ theme }) => theme.text}80;
-`;
-
-const EmptyIcon = styled.div`
-  font-size: 4rem;
-  margin-bottom: 1rem;
-  opacity: 0.5;
-`;
-
-const EmptyTitle = styled.h3`
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: ${({ theme }) => theme.text};
-`;
-
-const EmptyDescription = styled.p`
-  font-size: 1rem;
-  line-height: 1.5;
-`;
 
 export default function InterviewHistory() {
   const [activeType, setActiveType] = useState('all');
-  const [timeFilter, setTimeFilter] = useState('all');
-  const [difficultyFilter, setDifficultyFilter] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('date');
 
-  // Mock data - replace with real data from Firebase
-  const mockProblems: Problem[] = [
-    {
-      id: '1',
-      title: 'Implement a React Todo List Component',
-      description: 'Create a fully functional todo list component with add, delete, and toggle functionality.',
-      type: 'machine-coding',
-      difficulty: 'medium',
-      estimatedTime: '45-60 min',
-      status: 'completed',
-      score: 85,
-    },
-    {
-      id: '2',
-      title: 'Binary Tree Level Order Traversal',
-      description: 'Implement a function to perform level order traversal of a binary tree.',
-      type: 'dsa',
-      difficulty: 'medium',
-      estimatedTime: '30-45 min',
-      status: 'completed',
-      score: 92,
-    },
-    {
-      id: '3',
-      title: 'Design a URL Shortener System',
-      description: 'Design a system to shorten URLs with high availability and scalability.',
-      type: 'system-design',
-      difficulty: 'hard',
-      estimatedTime: '60-90 min',
-      status: 'completed',
-      score: 78,
-    },
-    {
-      id: '4',
-      title: 'JavaScript Event Loop Explained',
-      description: 'Explain how the JavaScript event loop works with examples.',
-      type: 'theory',
-      difficulty: 'easy',
-      estimatedTime: '15-20 min',
-      status: 'completed',
-      score: 95,
-    },
-    {
-      id: '5',
-      title: 'Implement a Custom Hook for API Calls',
-      description: 'Create a reusable custom hook for handling API calls with loading and error states.',
-      type: 'machine-coding',
-      difficulty: 'medium',
-      estimatedTime: '30-45 min',
-      status: 'in-progress',
-    },
-  ];
-
-  const stats = [
-    { value: '24', label: 'Problems Attempted' },
-    { value: '18', label: 'Problems Completed' },
-    { value: '82%', label: 'Average Score' },
-    { value: '12h', label: 'Total Time Spent' }
-  ];
+  // TODO: Replace with actual data from Firebase
+  const mockProblems: Problem[] = [];
 
   const filteredProblems = mockProblems.filter(problem => {
     const matchesType = activeType === 'all' || problem.type === activeType;
-    const matchesDifficulty = difficultyFilter === 'all' || problem.difficulty === difficultyFilter;
-    const matchesSearch = problem.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         problem.description.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    return matchesType && matchesDifficulty && matchesSearch;
+    const matchesSearch =
+      problem.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      problem.description.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesType && matchesSearch;
   });
 
-  const typeCounts = PROBLEM_TYPES.map(type => ({
-    ...type,
-    count: mockProblems.filter(p => type.id === 'all' || p.type === type.id).length
-  }));
+  const sortedProblems = [...filteredProblems].sort((a, b) => {
+    switch (sortBy) {
+      case 'date':
+        return new Date(b.id).getTime() - new Date(a.id).getTime();
+      case 'difficulty':
+        const difficultyOrder = { easy: 1, medium: 2, hard: 3 };
+        return difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty];
+      case 'score':
+        return (b.score || 0) - (a.score || 0);
+      default:
+        return 0;
+    }
+  });
+
+  const stats = {
+    total: mockProblems.length,
+    completed: mockProblems.filter(p => p.status === 'completed').length,
+    inProgress: mockProblems.filter(p => p.status === 'in-progress').length,
+    averageScore: Math.round(
+      mockProblems.reduce((sum, p) => sum + (p.score || 0), 0) /
+        mockProblems.length
+    ),
+  };
 
   return (
-    <HistoryContainer>
-      <Header>
-        <Title>Interview History</Title>
-        <Subtitle>Track your progress and review past interviews</Subtitle>
-      </Header>
+    <div className='max-w-6xl mx-auto p-8'>
+      {/* Header */}
+      <div className='mb-8'>
+        <h1 className='text-4xl font-bold text-text mb-2'>Interview History</h1>
+        <p className='text-lg text-text/80 mb-4'>
+          Track your progress and review past interviews
+        </p>
+      </div>
 
-      <StatsContainer>
-        {stats.map((stat, index) => (
-          <StatCard key={index}>
-            <StatValue>{stat.value}</StatValue>
-            <StatLabel>{stat.label}</StatLabel>
-          </StatCard>
-        ))}
-      </StatsContainer>
+      {/* Stats Grid */}
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8'>
+        <div className='bg-secondary border border-border rounded-xl p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-lg'>
+          <div className='text-3xl font-bold text-primary mb-2'>
+            {stats.total}
+          </div>
+          <div className='text-sm text-text/80 font-medium'>Total Problems</div>
+        </div>
 
-      <FilterSection>
-        <FilterHeader>
+        <div className='bg-secondary border border-border rounded-xl p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-lg'>
+          <div className='text-3xl font-bold text-green-500 mb-2'>
+            {stats.completed}
+          </div>
+          <div className='text-sm text-text/80 font-medium'>Completed</div>
+        </div>
+
+        <div className='bg-secondary border border-border rounded-xl p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-lg'>
+          <div className='text-3xl font-bold text-blue-500 mb-2'>
+            {stats.inProgress}
+          </div>
+          <div className='text-sm text-text/80 font-medium'>In Progress</div>
+        </div>
+
+        <div className='bg-secondary border border-border rounded-xl p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-lg'>
+          <div className='text-3xl font-bold text-yellow-500 mb-2'>
+            {stats.averageScore}%
+          </div>
+          <div className='text-sm text-text/80 font-medium'>Avg Score</div>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className='bg-secondary border border-border rounded-xl p-6 mb-8'>
+        <div className='flex items-center gap-2 mb-4 font-semibold text-text'>
           <FiFilter />
-          Filters
-        </FilterHeader>
-        <FilterRow>
-          <ProblemTypeFilter
-            types={typeCounts}
-            activeType={activeType}
-            onTypeChange={setActiveType}
-            showCount={true}
-          />
-        </FilterRow>
-        <FilterRow>
-          <FilterSelect
-            value={difficultyFilter}
-            onChange={(e) => setDifficultyFilter(e.target.value)}
-          >
-            <option value="all">All Difficulties</option>
-            <option value="easy">Easy</option>
-            <option value="medium">Medium</option>
-            <option value="hard">Hard</option>
-          </FilterSelect>
-          <FilterSelect
-            value={timeFilter}
-            onChange={(e) => setTimeFilter(e.target.value)}
-          >
-            <option value="all">All Time</option>
-            <option value="today">Today</option>
-            <option value="week">This Week</option>
-            <option value="month">This Month</option>
-          </FilterSelect>
-          <FilterInput
-            type="text"
-            placeholder="Search problems..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </FilterRow>
-      </FilterSection>
+          Filters & Search
+        </div>
 
-      {filteredProblems.length === 0 ? (
-        <EmptyState>
-          <EmptyIcon>📝</EmptyIcon>
-          <EmptyTitle>No problems found</EmptyTitle>
-          <EmptyDescription>
-            Try adjusting your filters or start solving your first problem.
-          </EmptyDescription>
-        </EmptyState>
-      ) : (
-        <ProblemsGrid>
-          {filteredProblems.map((problem) => (
-            <ProblemCard
-              key={problem.id}
-              problem={problem}
-              showScore={true}
-              showStatus={true}
-            />
-          ))}
-        </ProblemsGrid>
+        <div className='flex gap-4 items-center flex-wrap'>
+          <input
+            type='text'
+            placeholder='Search problems...'
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            className='px-4 py-2 border border-border rounded-lg bg-bodyBg text-text text-sm focus:outline-none focus:border-primary'
+          />
+
+          <select
+            value={sortBy}
+            onChange={e => setSortBy(e.target.value)}
+            className='px-4 py-2 border border-border rounded-lg bg-bodyBg text-text text-sm focus:outline-none focus:border-primary'
+          >
+            <option value='date'>Sort by Date</option>
+            <option value='difficulty'>Sort by Difficulty</option>
+            <option value='score'>Sort by Score</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Problem Type Filter */}
+      <ProblemTypeFilter
+        types={PROBLEM_TYPES.map(type => ({
+          ...type,
+          count: mockProblems.filter(
+            p => type.id === 'all' || p.type === type.id
+          ).length,
+        }))}
+        activeType={activeType}
+        onTypeChange={setActiveType}
+      />
+
+      {/* Problems Grid */}
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+        {sortedProblems.map(problem => (
+          <ProblemCard
+            key={problem.id}
+            problem={problem}
+            showScore={true}
+            showStatus={true}
+          />
+        ))}
+      </div>
+
+      {sortedProblems.length === 0 && (
+        <div className='text-center py-12'>
+          <div className='text-4xl mb-4'>📝</div>
+          <h3 className='text-xl font-semibold text-text mb-2'>
+            No problems found
+          </h3>
+          <p className='text-text/60'>
+            Try adjusting your filters or search terms
+          </p>
+        </div>
       )}
-    </HistoryContainer>
+    </div>
   );
-} 
+}

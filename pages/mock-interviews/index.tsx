@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/router';
-import styled from 'styled-components';
 import { useAuth } from '@/hooks/useAuth';
 import Layout from '@/components/Layout';
 import MockInterviewHub from '@/components/mock-interviews/MockInterviewHub';
@@ -17,7 +16,7 @@ export default function MockInterviewsPage() {
 
   if (loading) {
     return (
-      <Layout isLoading={true} loadingText="Loading mock interviews...">
+      <Layout isLoading={true} loadingText='Loading mock interviews...'>
         <div />
       </Layout>
     );
@@ -32,4 +31,4 @@ export default function MockInterviewsPage() {
       <MockInterviewHub />
     </Layout>
   );
-} 
+}

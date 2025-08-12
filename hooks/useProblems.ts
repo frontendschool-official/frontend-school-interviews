@@ -1,7 +1,12 @@
-import { useState, useEffect } from 'react';
-import { getAllProblems, getSubmissionsForUser } from '@/services/firebase';
+import { useEffect, useRef } from 'react';
 import { useAuth } from './useAuth';
-import { ProblemData, ParsedProblemData, PredefinedProblem } from '@/types/problem';
+import { apiClient } from '@/lib/api-client';
+import {
+  ProblemData,
+  ParsedProblemData,
+  PredefinedProblem,
+} from '@/types/problem';
+import { useAppStore } from '@/store';
 
 export type ProblemStatus = 'attempted' | 'solved' | 'unsolved';
 
@@ -16,93 +21,114 @@ export interface ProblemsState {
 
 export const useProblems = () => {
   const { user } = useAuth();
-  const [state, setState] = useState<ProblemsState>({
-    problems: [],
-    statuses: {},
-    loading: true,
-    error: null,
-  });
 
-  const fetchProblems = async () => {
-    setState(prev => ({ ...prev, loading: true, error: null }));
-    
-    try {
-      console.log('Fetching all problems');
-      const allProblems = await getAllProblems();
-      console.log('Fetched problems:', allProblems);
+  const problems = useAppStore(s => s.problems || []);
+  const statuses = useAppStore(s => s.statuses || {});
+  const loadingProblems = useAppStore(s => s.loadingProblems || false);
+  const problemsError = useAppStore(s => s.problemsError || null);
+  const setProblems = useAppStore(s => s.setProblems);
+  const setProblemsLoading = useAppStore(s => s.setProblemsLoading);
+  const setProblemsError = useAppStore(s => s.setProblemsError);
+  const addProblem = useAppStore(s => s.addProblem);
+  const updateProblemStatus = useAppStore(s => s.updateProblemStatus);
 
-      // Create status map - all problems show as unsolved for non-authenticated users
-      const statusMap: Record<string, ProblemStatus> = {};
-      allProblems.forEach((p: Problem) => {
-        statusMap[p.id || ''] = 'unsolved';
-      });
+  // Keep setter functions in refs to avoid re-running effects when their identity changes
+  const setProblemsRef = useRef(setProblems);
+  const setProblemsLoadingRef = useRef(setProblemsLoading);
+  const setProblemsErrorRef = useRef(setProblemsError);
 
-      // If user is authenticated, fetch their submissions to update status
-      if (user) {
-        try {
-          const submissionDocs = await getSubmissionsForUser(user.uid);
-          console.log('Fetched submissions:', submissionDocs);
-
-          allProblems.forEach((p: Problem) => {
-            const submission = submissionDocs.find(
-              (s: any) => s.problemId === p.id
-            );
-            if (submission) {
-              statusMap[p.id || ''] = 'attempted';
-            }
-          });
-        } catch (submissionError) {
-          console.error('Error fetching submissions:', submissionError);
-          // Continue with unsolved status for all problems
-        }
-      }
-
-      setState({
-        problems: allProblems,
-        statuses: statusMap,
-        loading: false,
-        error: null,
-      });
-    } catch (error) {
-      console.error('Error loading problems:', error);
-      
-      let errorMessage = 'Failed to load problems';
-      if (error instanceof Error && error.message.includes('Firebase is not properly initialized')) {
-        errorMessage = 'Firebase configuration is missing. Please check your environment variables.';
-      }
-
-      setState({
-        problems: [],
-        statuses: {},
-        loading: false,
-        error: errorMessage,
-      });
-    }
-  };
-
-  const addProblem = (problem: Problem) => {
-    setState(prev => ({
-      ...prev,
-      problems: [problem, ...prev.problems],
-      statuses: { ...prev.statuses, [problem.id || '']: 'unsolved' },
-    }));
-  };
-
-  const updateProblemStatus = (problemId: string, status: ProblemStatus) => {
-    setState(prev => ({
-      ...prev,
-      statuses: { ...prev.statuses, [problemId]: status },
-    }));
-  };
+  // Update refs when setters change (does not trigger re-renders)
+  setProblemsRef.current = setProblems;
+  setProblemsLoadingRef.current = setProblemsLoading;
+  setProblemsErrorRef.current = setProblemsError;
 
   useEffect(() => {
+    let isCancelled = false;
+
+    const fetchProblems = async () => {
+      try {
+        setProblemsLoadingRef.current?.(true);
+        setProblemsErrorRef.current?.(null);
+
+        const allProblemsResponse = await apiClient.getAllProblems();
+        if (allProblemsResponse.error) {
+          throw new Error(allProblemsResponse.error);
+        }
+        const allProblems = allProblemsResponse.data || [];
+        const problemsArray = Array.isArray(allProblems) ? allProblems : [];
+
+        const statusMap: Record<string, ProblemStatus> = {};
+        problemsArray.forEach((p: Problem) => {
+          const id = (p as any)?.id as string | undefined;
+          if (id) statusMap[id] = 'unsolved';
+        });
+
+        if (user) {
+          try {
+            const submissionResponse = await apiClient.getSubmissionsByUserId(
+              user.uid
+            );
+            if (submissionResponse.error) {
+              console.error(
+                'Error fetching submissions:',
+                submissionResponse.error
+              );
+            } else {
+              const submissionDocs = submissionResponse.data || [];
+              const submissionsArray = Array.isArray(submissionDocs)
+                ? submissionDocs
+                : [];
+
+              problemsArray.forEach((p: Problem) => {
+                const id = (p as any)?.id as string | undefined;
+                if (!id) return;
+                const submission = submissionsArray.find(
+                  (s: any) => s.problemId === id
+                );
+                if (submission) statusMap[id] = 'attempted';
+              });
+            }
+          } catch (submissionError) {
+            console.error('Error fetching submissions:', submissionError);
+          }
+        }
+
+        if (!isCancelled) {
+          setProblemsRef.current?.(problemsArray, statusMap);
+          setProblemsLoadingRef.current?.(false);
+          setProblemsErrorRef.current?.(null);
+        }
+      } catch (error) {
+        console.error('Error loading problems:', error);
+        if (!isCancelled) {
+          let errorMessage = 'Failed to load problems';
+          if (
+            error instanceof Error &&
+            error.message.includes('Firebase is not properly initialized')
+          ) {
+            errorMessage =
+              'Firebase configuration is missing. Please check your environment variables.';
+          }
+          setProblemsRef.current?.([], {});
+          setProblemsLoadingRef.current?.(false);
+          setProblemsErrorRef.current?.(errorMessage);
+        }
+      }
+    };
+
     fetchProblems();
+
+    return () => {
+      isCancelled = true;
+    };
   }, [user]);
 
   return {
-    ...state,
-    refetch: fetchProblems,
+    problems,
+    statuses,
+    loading: loadingProblems,
+    error: problemsError,
     addProblem,
     updateProblemStatus,
   };
-}; 
+};

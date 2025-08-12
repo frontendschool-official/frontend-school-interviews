@@ -1,0 +1,126 @@
+{
+  "version": "1.1.0",
+  "createdAt": "2025-08-10",
+  "description": "Markdown-first templates for all interview prompts. Models must return ONLY Markdown, no JSON.",
+  "prompts": {
+    "dsaProblemMarkdown": {
+      "template": "You are an expert interviewer for frontend developers. Create ONE DSA problem for a ${designation} candidate at ${companies}. This is round ${round}.\n\n**Interview Context**\n- Position: ${designation}\n- Company: ${companies}\n- Round: ${round}\n- Experience Level: ${experienceLevel}\n- Focus Areas: ${focusAreas}\n\n**IMPORTANT**: Respond ONLY in valid **Markdown** using the exact structure below. No extra commentary.\n\n# ${companies} — ${designation}\n\n## Round ${round}: DSA Problem\n\n### Title\nClear, concise title for the DSA problem\n\n### Description\nBrief description of the problem context and what is being tested.\n\n### Problem Statement\n```text\nDetailed problem statement explaining what needs to be solved.\nInclude precise requirements and edge cases.\n```\n\n### Input Format\n- Describe the input format precisely\n- Include units and data ranges if relevant\n\n### Output Format\n- Describe the expected output format precisely\n\n### Constraints\n- 1 <= n <= 10^5 (example)\n- 1 <= arr[i] <= 10^9 (example)\n\n### Examples\n**Example 1**\n```\nInput:\n<example input 1>\n\nOutput:\n<expected output 1>\n```\nExplanation: Brief reasoning.\n\n**Example 2**\n```\nInput:\n<example input 2>\n\nOutput:\n<expected output 2>\n```\nExplanation: Brief reasoning.\n\n### Difficulty\n${difficulty}\n\n### Estimated Time\n${estimatedTime}\n\n### Category\n${category}\n\n### Tags\n- ${primaryTag}\n- ${secondaryTag}\n- ${tertiaryTag}\n\n### Hints\n1. Contextual hint based on problem complexity\n2. Performance optimization hint\n\n### Follow-up Questions\n1. How would you optimize this solution for ${optimizationFocus}?\n2. What if the input constraints were different?",
+      "variables": [
+        "designation",
+        "companies",
+        "round",
+        "experienceLevel",
+        "focusAreas",
+        "difficulty",
+        "estimatedTime",
+        "category",
+        "primaryTag",
+        "secondaryTag",
+        "tertiaryTag",
+        "optimizationFocus"
+      ],
+      "description": "DSA problem as Markdown with full structure."
+    },
+    "theoryProblemMarkdown": {
+      "template": "You are an expert interviewer for frontend developers. Create ONE theory question for a ${designation} candidate at ${companies}. This is round ${round}.\n\n**Interview Context**\n- Position: ${designation}\n- Company: ${companies}\n- Round: ${round}\n- Experience Level: ${experienceLevel}\n- Technology Stack: ${technologyStack}\n- Focus Areas: ${focusAreas}\n\n**IMPORTANT**: Respond ONLY in **Markdown** using the structure below.\n\n# ${companies} — ${designation}\n\n## Round ${round}: Theory Question\n\n### Title\nClear, concise title for the theory question\n\n### Question\nExplain ${primaryTechnology}-related concept(s) in depth. Include real-world implications.\n\n### Expected Answer (for ${experienceLevel})\n- Key point 1 relevant to ${primaryTechnology}\n- Key point 2 about ${secondaryTechnology}\n- Key point 3 considering ${experienceLevel} expertise\n\n### Examples / Variants\n**Variant A**\n- Prompt: <ask-specific-aspect>\n- Strong Answer Outline: <bulleted-key-points>\n\n**Variant B**\n- Prompt: <ask-alternative-angle>\n- Strong Answer Outline: <bulleted-key-points>\n\n### Difficulty\n${difficulty}\n\n### Estimated Time\n${estimatedTime}\n\n### Category\n${category}\n\n### Tags\n- ${primaryTechnology}\n- ${secondaryTechnology}\n- frontend\n\n### Hints\n1. Consider ${primaryTechnology} best practices\n2. Think about performance implications\n\n### Follow-up Questions\n1. How would you implement this in ${primaryTechnology}?\n2. What are the trade-offs compared to ${alternativeTechnology}?",
+      "variables": [
+        "designation",
+        "companies",
+        "round",
+        "experienceLevel",
+        "technologyStack",
+        "focusAreas",
+        "primaryTechnology",
+        "secondaryTechnology",
+        "difficulty",
+        "estimatedTime",
+        "category",
+        "alternativeTechnology"
+      ],
+      "description": "Theory/concepts question with expected answer outline in Markdown."
+    },
+    "machineCodingProblemMarkdown": {
+      "template": "You are an expert interviewer for frontend developers. Create ONE machine coding problem for a ${designation} candidate at ${companies}. This is round ${round}.\n\n**Interview Context**\n- Position: ${designation}\n- Company: ${companies}\n- Round: ${round}\n- Experience Level: ${experienceLevel}\n- Technology Stack: ${technologyStack}\n- Focus Areas: ${focusAreas}\n\n**IMPORTANT**: Respond ONLY in **Markdown** using the structure below.\n\n# ${companies} — ${designation}\n\n## Round ${round}: Machine Coding Problem\n\n### Title\nClear, concise title for the coding challenge\n\n### Build Brief\nProvide a short narrative of the feature/product to build.\n\n### Requirements\n- Describe functional requirements (what the UI must do)\n- State management and data flow\n- API interactions (mock or real)\n\n### Acceptance Criteria\n- Observable behaviors that define success\n- Edge cases and error handling\n- Accessibility expectations (WCAG 2.1 AA)\n\n### Constraints\n- Use ${technologyStack}\n- Performance budget: ${estimatedTime} implementation window (guideline)\n- No heavy UI libraries unless justified\n\n### Example Scenarios\n**Scenario 1**\n- Input / Interaction: <user action>\n- Expected Behavior: <UI/system response>\n\n**Scenario 2**\n- Input / Interaction: <user action>\n- Expected Behavior: <UI/system response>\n\n### Difficulty\n${difficulty}\n\n### Estimated Time\n${estimatedTime}\n\n### Category\n${category}\n\n### Tags\n- ${primaryTag}\n- ${secondaryTag}\n- ${tertiaryTag}\n\n### Hints\n1. Contextual hint based on problem complexity\n2. Performance optimization hint\n\n### Follow-up Questions\n1. How would you optimize this solution for ${optimizationFocus}?\n2. What changes if the data size or latency increases significantly?",
+      "variables": [
+        "designation",
+        "companies",
+        "round",
+        "experienceLevel",
+        "technologyStack",
+        "focusAreas",
+        "difficulty",
+        "estimatedTime",
+        "category",
+        "primaryTag",
+        "secondaryTag",
+        "tertiaryTag",
+        "optimizationFocus"
+      ],
+      "description": "Frontend machine coding brief as Markdown (requirements + acceptance criteria)."
+    },
+    "systemDesignProblemMarkdown": {
+      "template": "You are an expert interviewer for frontend developers. Create ONE frontend system design problem for a ${designation} candidate at ${companies}. This is round ${round}.\n\n**Interview Context**\n- Position: ${designation}\n- Company: ${companies}\n- Round: ${round}\n- Experience Level: ${experienceLevel}\n- Technology Stack: ${technologyStack}\n- Focus Areas: ${focusAreas}\n\n**IMPORTANT**: Respond ONLY in **Markdown** using the structure below.\n\n# ${companies} — ${designation}\n\n## Round ${round}: Frontend System Design\n\n### Title\nClear, concise title for the system design problem\n\n### Design Brief\nShort description of the product surface and core purpose.\n\n### Goals\n- Primary goal(s) of the system\n- Secondary goal(s)\n\n### Functional Requirements\n- List core user flows and UI responsibilities\n- Data fetching and synchronization\n- Real-time or offline behavior (if any)\n\n### Non-Functional Requirements\n- Performance targets (TTI, FID, CLS budgets)\n- Accessibility standards\n- Observability (logging, metrics, tracing)\n\n### Constraints & Assumptions\n- Scale expectations (users, updates/sec, list sizes)\n- Security concerns (XSS/CSRF)\n- Platform/browser limitations\n\n### Edge Cases\n- Empty/error states\n- Slow network and retries\n- Feature toggles and versioning\n\n### Example Scenarios\n**Scenario A**\n- Traffic profile / user action\n- Expected UX/system behavior and trade-offs\n\n**Scenario B**\n- Failure/latency case\n- Degradation strategy and recovery\n\n### Difficulty\n${difficulty}\n\n### Estimated Time\n${estimatedTime}\n\n### Category\n${category}\n\n### Tags\n- ${primaryTag}\n- ${secondaryTag}\n- ${tertiaryTag}\n\n### Hints\n1. Consider caching, memoization, and virtualization\n2. Think about SSR/CSR/ISR trade-offs\n\n### Follow-up Questions\n1. How would you scale for ${companies}-level traffic?\n2. What monitoring and alerting would you add?",
+      "variables": [
+        "designation",
+        "companies",
+        "round",
+        "experienceLevel",
+        "technologyStack",
+        "focusAreas",
+        "difficulty",
+        "estimatedTime",
+        "category",
+        "primaryTag",
+        "secondaryTag",
+        "tertiaryTag"
+      ],
+      "description": "Frontend system design brief in Markdown."
+    },
+    "evaluateSubmissionMarkdown": {
+      "template": "You are an expert technical interviewer evaluating a submission for a ${designation} role at ${companies}.\n\n**Submission Context**\n- Problem Type: ${problemType}\n- Technology Used: ${technology}\n- Experience Level: ${experienceLevel}\n- Time Allocated: ${timeAllocated}\n- Time Taken: ${timeTaken}\n\n**Submission Details**\n${context}\n\n**IMPORTANT**: Respond ONLY in **Markdown** using the structure below.\n\n# Evaluation — ${companies} (${designation})\n\n## Summary\nShort overview of the solution and overall impression.\n\n## Scorecard (out of 10)\n- Overall: **X/10**\n\n### 1) Code Quality (30%)\n- Readability & maintainability\n- Structure & naming\n- Docs & comments\n- ${codeQualityFocus} standards\n**Rating:** x/10 — **Notes:** …\n\n### 2) Technical Implementation (40%)\n- Correctness & completeness\n- Complexity (time/space)\n- Data structures & patterns\n- Error handling & edge cases\n- ${technology} best practices\n- Security considerations\n**Rating:** x/10 — **Notes:** …\n\n### 3) Problem-Solving Approach (20%)\n- Requirement understanding\n- Strategy & reasoning\n- Debugging/troubleshooting\n- Alternatives considered\n**Rating:** x/10 — **Notes:** …\n\n### 4) Frontend Excellence (10%)\n- UX & UI polish\n- Performance & bundle size\n- Accessibility (WCAG 2.1)\n- Cross-browser & responsive\n- ${frontendFocus}\n**Rating:** x/10 — **Notes:** …\n\n## Time Efficiency\nCompleted in ${timeTaken} vs allocated ${timeAllocated}. Commentary on pace and prioritization.\n\n## Strengths\n- …\n- …\n\n## Areas for Improvement\n- …\n- …\n\n## Recommendation\n**[Strong Hire | Hire | No Hire | Strong No Hire]** — brief justification.\n\n## Next Steps & Preparation Plan\n1. Immediate focus areas\n2. Study topics & resources\n3. Practice problems\n4. Timeline & re-evaluation plan\n5. Tips aligned to ${companyTechStack}",
+      "variables": [
+        "designation",
+        "companies",
+        "problemType",
+        "technology",
+        "experienceLevel",
+        "timeAllocated",
+        "timeTaken",
+        "context",
+        "codeQualityFocus",
+        "frontendFocus",
+        "companyTechStack"
+      ],
+      "description": "Evaluation output as Markdown with weighted criteria and actionable feedback."
+    },
+    "mockInterviewProblemMarkdown": {
+      "template": "You are creating a realistic mock interview problem for a ${designation} applying to ${companies}. This is a ${interviewType} question designed for ${difficulty} level.\n\n**Setup**\n- Experience Level: ${experienceLevel}\n- Duration: ${duration}\n- Focus Areas: ${focusAreas}\n- Company Context: ${companyContext}\n- Additional Context: ${additionalContext}\n\n**IMPORTANT**: Respond ONLY in **Markdown** using the structure below.\n\n# Mock Interview — ${companies} (${designation})\n\n## Problem Title\nConcise title matching ${companies} style\n\n## Problem Statement\nContext, objectives, and user value.\n\n## Requirements\n- …\n- …\n\n## Constraints\n- …\n- …\n\n## Hints (Progressive)\n1. Subtle\n2. Moderate\n3. Direct\n\n## Expected Solution Approach\n- Outline of a strong approach\n\n## Common Pitfalls\n- …\n- …\n\n## Evaluation Criteria\n- Technical correctness\n- Code quality\n- Communication\n- Trade-off reasoning\n\n## Scoring Rubric\n- **9–10**: …\n- **7–8**: …\n- **5–6**: …\n- **3–4**: …\n- **1–2**: …\n\n## Follow-up Questions\n- Stronger candidate follow-up\n- Remediation question for weaker areas\n\n## Timeboxing\nRealistic for ${duration} within ${companies} expectations.",
+      "variables": [
+        "designation",
+        "companies",
+        "interviewType",
+        "difficulty",
+        "experienceLevel",
+        "duration",
+        "focusAreas",
+        "companyContext",
+        "additionalContext"
+      ],
+      "description": "Mock interview package as Markdown (problem + rubric + hints)."
+    },
+    "mockInterviewEvaluationMarkdown": {
+      "template": "You are evaluating a mock interview submission for ${designation} at ${companies}.\n\n**Session Details**\n- Problem: ${problemTitle}\n- Interview Type: ${interviewType}\n- Duration: ${duration}\n- Experience: ${experienceLevel}\n\n**Problem Statement**\n${problemStatement}\n\n**Candidate Response**\n${candidateResponse}\n\n**IMPORTANT**: Respond ONLY in **Markdown** using the structure below.\n\n# Mock Interview — Evaluation\n\n## Overall Rating\n**X/10** — short rationale\n\n## Technical Excellence\n- Correctness & completeness\n- Efficiency & optimization\n- Technology-specific expertise\n- Edge cases & error handling\n\n## Problem-Solving Skills\n- Requirement analysis\n- Strategy & exploration of alternatives\n- Debugging & adaptation\n\n## Communication & Collaboration\n- Clarity of explanation\n- Handling hints & feedback\n- Trade-off discussions\n\n## ${companies} Readiness\n- Culture & values alignment\n- Role understanding\n- Stack familiarity\n- Production/scalability considerations\n\n## Strengths\n- …\n- …\n\n## Areas for Improvement\n- …\n- …\n\n## Next Steps\n1. Immediate focus areas\n2. Recommended resources\n3. Practice suggestions\n4. Timeline for re-evaluation\n5. Company-specific preparation tips",
+      "variables": [
+        "designation",
+        "companies",
+        "problemTitle",
+        "interviewType",
+        "duration",
+        "experienceLevel",
+        "problemStatement",
+        "candidateResponse"
+      ],
+      "description": "Mock interview evaluation as Markdown with actionable guidance."
+    }
+  }
+}

@@ -1,222 +1,89 @@
-import { useState } from 'react';
-import styled from 'styled-components';
-import { evaluateSubmission } from '../services/geminiApi';
-import { saveSubmission, markProblemAsAttempted } from '../services/firebase';
-import { useAuth } from '../hooks/useAuth';
-import { exportToBlob } from '@excalidraw/excalidraw';
+import React, { useState } from 'react';
+import { FiPlay, FiRotateCcw } from 'react-icons/fi';
+import { useAuth } from '@/hooks/useAuth';
+import { useEvaluateSubmission } from '@/hooks/useApi';
+
+interface ExcalidrawRef {
+  getScene: () => unknown;
+  exportToCanvas: () => Promise<HTMLCanvasElement>;
+}
 
 interface EvaluateButtonProps {
   designation: string;
   code: string;
-  excalidrawRef: any;
+  excalidrawRef: React.RefObject<ExcalidrawRef | null>;
   problemId: string;
   onEvaluated: (feedback: string) => void;
-  interviewType?: 'coding' | 'design' | 'dsa';
-  problemStatement?: string;
-  problemTitle?: string;
+  interviewType: string;
+  problemStatement: string;
+  problemTitle: string;
 }
 
-const Button = styled.button`
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 4px;
-  color: ${({ theme }) => theme.bodyBg};
-  background-color: ${({ theme }) => theme.primary};
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  
-  &:hover {
-    background-color: ${({ theme }) => theme.accent};
-  }
-  
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-`;
-
-const ErrorMessage = styled.div`
-  margin-top: 1rem;
-  padding: 0.75rem;
-  background-color: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 4px;
-  color: #dc2626;
-  font-size: 0.9rem;
-`;
-
-const RetryButton = styled.button`
-  margin-top: 0.5rem;
-  padding: 0.5rem 1rem;
-  background-color: ${({ theme }) => theme.primary};
-  color: ${({ theme }) => theme.bodyBg};
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  
-  &:hover {
-    background-color: ${({ theme }) => theme.accent};
-  }
-`;
-
-export default function EvaluateButton({ 
-  designation, 
-  code, 
-  excalidrawRef, 
-  problemId, 
+export default function EvaluateButton({
+  designation,
+  code,
+  excalidrawRef,
   onEvaluated,
-  interviewType = 'coding',
-  problemStatement = '',
-  problemTitle = ''
+  interviewType,
 }: EvaluateButtonProps) {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
-  console.log(code, "code");
+  const { execute: evaluateSubmission } = useEvaluateSubmission();
+  const [isEvaluating, setIsEvaluating] = useState(false);
 
-  const handleClick = async () => {
+  const handleEvaluate = async () => {
     if (!user) {
-      setError('You must be logged in to evaluate your submission.');
+      alert('Please sign in to evaluate your solution');
       return;
     }
 
-    setLoading(true);
-    setError(null);
-
-    // Track problem attempt when user evaluates
-    try {
-      await markProblemAsAttempted(user.uid, problemId, {
-        title: designation,
-        type: interviewType,
-        designation,
-        companies: "",
-        round: ""
-      });
-    } catch (error) {
-      console.error('Error tracking problem attempt:', error);
-    }
+    setIsEvaluating(true);
 
     try {
-      let evaluationData = {
+      let drawingImage = '';
+
+      // For system design problems, capture the canvas
+      if (interviewType === 'design' && excalidrawRef.current) {
+        try {
+          const canvas = await excalidrawRef.current.exportToCanvas();
+          drawingImage = canvas.toDataURL('image/png').split(',')[1]; // Remove data URL prefix
+        } catch (error) {
+          console.error('Error capturing canvas:', error);
+        }
+      }
+
+      const evaluationData = {
         designation,
-        code: '',
-        drawingImage: ''
+        code,
+        drawingImage,
       };
 
-      // Build comprehensive context with problem statement
-      const contextWithProblem = problemStatement && problemTitle 
-        ? `Problem: ${problemTitle}\n\nProblem Statement:\n${problemStatement}\n\nCandidate's Solution:\n\`\`\`\n${code}\n\`\`\``
-        : code;
+      const result = await evaluateSubmission(evaluationData);
 
-      // Handle different evaluation strategies based on interview type
-      if (interviewType === 'design') {
-        // System Design: Generate image from canvas for evaluation
-        if (!excalidrawRef?.current) {
-          throw new Error('System design canvas is not available. Please refresh the page and try again.');
-        }
-
-        try {
-          const elements = excalidrawRef.current.getSceneElements() || [];
-          const appState = excalidrawRef.current.getAppState() || {};
-          const files = excalidrawRef.current.getFiles() || {};
-          
-          if (!elements || elements.length === 0) {
-            throw new Error('Please add some elements to your system design before evaluating.');
-          }
-
-          // Export canvas to blob and convert to base64
-          const blob = await exportToBlob({ 
-            elements, 
-            appState, 
-            files, 
-            mimeType: 'image/png' 
-          });
-
-          const base64Data = await new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-              const result = reader.result as string;
-              const base64 = result.split(',')[1];
-              resolve(base64);
-            };
-            reader.onerror = () => reject(new Error('Failed to process canvas image'));
-            reader.readAsDataURL(blob);
-          });
-
-          evaluationData.drawingImage = base64Data;
-        } catch (error) {
-          console.error('Error processing system design:', error);
-          throw new Error('Failed to process your system design. Please try again.');
-        }
+      if (result.error) {
+        onEvaluated(result.error || 'Evaluation failed');
       } else {
-        // DSA and Machine Coding: Send all code files for AI evaluation
-        if (!code.trim()) {
-          throw new Error('Please provide some code before evaluating.');
-        }
-
-        // For DSA and machine coding, we send the code with problem context for AI evaluation
-        evaluationData.code = contextWithProblem;
+        onEvaluated((result.data as any)?.feedback || 'Evaluation completed');
       }
-
-      // Evaluate submission using AI
-      const feedback = await evaluateSubmission(evaluationData);
-
-      // Save submission to database
-      await saveSubmission(user.uid, problemId, { 
-        designation, 
-        code: evaluationData.code, 
-        feedback,
-        drawingImage: evaluationData.drawingImage
-      });
-
-      onEvaluated(feedback);
-    } catch (err) {
-      console.error('Evaluation error:', err);
-      
-      let errorMessage = 'An unexpected error occurred during evaluation.';
-      
-      if (err instanceof Error) {
-        if (err.message.includes('network') || err.message.includes('fetch')) {
-          errorMessage = 'Network error. Please check your internet connection and try again.';
-        } else if (err.message.includes('API') || err.message.includes('key') || err.message.includes('AI service')) {
-          errorMessage = 'AI evaluation service is not configured. Please contact support to enable AI feedback.';
-        } else if (err.message.includes('permission') || err.message.includes('unauthorized')) {
-          errorMessage = 'You do not have permission to save this submission.';
-        } else if (err.message.includes('canvas') || err.message.includes('image')) {
-          errorMessage = 'Failed to process your system design. Please try again.';
-        } else {
-          errorMessage = err.message || errorMessage;
-        }
-      }
-      
-      setError(errorMessage);
+    } catch (error) {
+      console.error('Evaluation error:', error);
+      onEvaluated('Error during evaluation. Please try again.');
     } finally {
-      setLoading(false);
+      setIsEvaluating(false);
     }
-  };
-
-  const handleRetry = () => {
-    setError(null);
-    handleClick();
   };
 
   return (
-    <div>
-      <Button onClick={handleClick} disabled={loading}>
-        {loading ? 'Evaluating…' : 'Evaluate'}
-      </Button>
-      
-      {error && (
-        <ErrorMessage>
-          <div>{error}</div>
-          <RetryButton onClick={handleRetry}>
-            Try Again
-          </RetryButton>
-        </ErrorMessage>
+    <button
+      onClick={handleEvaluate}
+      disabled={isEvaluating || !user}
+      className='flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed'
+    >
+      {isEvaluating ? (
+        <FiRotateCcw className='text-sm animate-spin' />
+      ) : (
+        <FiPlay className='text-sm' />
       )}
-    </div>
+      {isEvaluating ? 'Evaluating...' : 'Evaluate'}
+    </button>
   );
 }
