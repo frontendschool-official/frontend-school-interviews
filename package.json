@@ -2,10 +2,15 @@
   "name": "frontend-school-interviews-ts",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=8.0.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "install": "npm install --legacy-peer-deps",
     "lint": "npx eslint . --ext .js,.jsx,.ts,.tsx",
     "lint:fix": "npx eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "format": "prettier --write .",
