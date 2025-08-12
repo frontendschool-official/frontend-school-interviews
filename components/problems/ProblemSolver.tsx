@@ -2,7 +2,9 @@ import React, { useRef } from 'react';
 import { useRouter } from 'next/router';
 import CodeEditor from '@/components/CodeEditor';
 import DSAEditor from '@/components/DSAEditor';
-import SystemDesignCanvas, { SystemDesignCanvasRef } from '@/components/SystemDesignCanvas';
+import SystemDesignCanvas, {
+  SystemDesignCanvasRef,
+} from '@/components/SystemDesignCanvas';
 import TheoryEditor from '@/components/TheoryEditor';
 import FeedbackModal from '@/components/FeedbackModal';
 import EvaluateButton from '@/components/EvaluateButton';
