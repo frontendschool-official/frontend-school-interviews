@@ -129,7 +129,12 @@ export interface ProblemData {
   companies: string;
   round: string;
   title: string;
-  interviewType: 'coding' | 'design' | 'theory_and_debugging' | 'dsa';
+  interviewType:
+    | 'coding'
+    | 'design'
+    | 'theory_and_debugging'
+    | 'dsa'
+    | 'machine_coding';
   description?: string;
   difficulty?: Difficulty;
   estimatedTime?: string;
