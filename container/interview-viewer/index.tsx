@@ -166,7 +166,7 @@ export default function InterviewViewerPage() {
                       onEvaluationComplete={handleEvaluated}
                     />
                   )}
-                {problem?.interviewType === 'coding' && (
+                {problem?.interviewType === 'machine_coding' && (
                   <CodeEditor code={code} onChange={handleCodeUpdate} />
                 )}
               </EditorContainer>
