@@ -1,4 +1,5 @@
 import React from 'react';
+import { getDifficultyBadgeColor, getButtonClasses } from '@/lib/utils';
 
 interface DifficultyBadgeProps {
   difficulty: string;
@@ -17,44 +18,6 @@ interface ButtonProps {
   size?: 'sm' | 'md' | 'lg';
   className?: string;
 }
-
-const getDifficultyBadgeColor = (difficulty: string) => {
-  switch (difficulty?.toLowerCase()) {
-    case 'easy':
-      return 'border-primary text-primary';
-    case 'medium':
-      return 'border-amber-500 text-amber-500';
-    case 'hard':
-      return 'border-red-500 text-red-500';
-    default:
-      return 'border-neutral text-neutral';
-  }
-};
-
-const getButtonClasses = (
-  variant: 'primary' | 'secondary' | 'success' = 'primary',
-  size: 'sm' | 'md' | 'lg' = 'md'
-) => {
-  const baseClasses =
-    'font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:shadow-focus';
-
-  const variantClasses = {
-    primary:
-      'bg-primary text-white hover:bg-accent shadow-card hover:shadow-lg',
-    secondary:
-      'bg-secondary text-text border border-border hover:bg-secondary/80',
-    success:
-      'bg-primary text-white hover:bg-accent shadow-card hover:shadow-lg',
-  };
-
-  const sizeClasses = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2 text-base',
-    lg: 'px-6 py-3 text-lg',
-  };
-
-  return `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]}`;
-};
 
 export const DifficultyBadge: React.FC<DifficultyBadgeProps> = ({
   difficulty,

@@ -30,32 +30,36 @@ export const Tabs: React.FC<TabsProps> = ({
             onClick={() => onTabChange(item.id)}
             className={`
               inline-flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg
-              text-sm font-medium transition-all duration-200 select-none
-              border border-border/50 backdrop-blur-sm min-w-0 border-border
+              text-sm font-medium transition-all duration-300 select-none
+              border backdrop-blur-sm min-w-0
               md:px-4
               ${
                 isActive
-                  ? 'text-white shadow-md shadow-primary/20 border-primary'
-                  : 'bg-secondary/80 text-text hover:bg-secondary hover:border-border hover:shadow-sm hover:-translate-y-0.5'
+                  ? 'text-bodyBg bg-primary border-primary shadow-md shadow-primary/20 hover:bg-accent hover:border-accent'
+                  : 'bg-secondary/80 text-text border-border/50 hover:bg-secondary hover:border-border hover:shadow-sm hover:-translate-y-0.5'
               }
             `}
           >
             {item.icon && (
               <span
-                className={`text-base ${isActive ? 'text-white' : 'text-text/70'} flex-shrink-0`}
+                className={`text-base flex-shrink-0 transition-colors duration-300 ${
+                  isActive ? 'text-bodyBg' : 'text-text/70'
+                }`}
               >
                 {item.icon}
               </span>
             )}
-            <span className='truncate'>{item.label}</span>
+            <span className='truncate transition-colors duration-300'>
+              {item?.label}
+            </span>
             {typeof item.count === 'number' && (
               <span
                 className={`
                   inline-flex items-center justify-center h-5 min-w-5 px-1.5 text-xs font-semibold rounded-full
-                  flex-shrink-0
+                  flex-shrink-0 transition-all duration-300
                   ${
                     isActive
-                      ? 'bg-white/20 text-white'
+                      ? 'bg-bodyBg/20 text-bodyBg'
                       : 'bg-primary/10 text-primary'
                   }
                 `}

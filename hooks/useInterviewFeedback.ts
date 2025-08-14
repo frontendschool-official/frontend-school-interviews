@@ -118,7 +118,6 @@ export const useInterviewFeedback = (problem: ParsedProblemData | null) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            userId: user.uid,
             problemId: problem.id || '',
             feedbackData: {
               ...parsedFeedback,

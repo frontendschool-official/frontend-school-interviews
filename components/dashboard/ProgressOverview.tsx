@@ -65,17 +65,17 @@ export default function ProgressOverview() {
   const totalProblems = progressData.reduce((sum, item) => sum + item.total, 0);
 
   return (
-    <div className='bg-secondary border border-border rounded-xl p-6'>
-      <div className='text-xl font-semibold text-text mb-4 flex items-center gap-2'>
-        <FiBarChart2 />
+    <div className='bg-secondary border border-border rounded-xl p-4 sm:p-6'>
+      <div className='text-lg sm:text-xl font-semibold text-neutralDark mb-4 flex items-center gap-2'>
+        <FiBarChart2 className='text-primary' />
         Learning Progress
       </div>
 
       {progressData.map((item, index) => (
-        <div key={index} className='mb-6 last:mb-0'>
+        <div key={index} className='mb-4 last:mb-0'>
           <div className='flex justify-between items-center mb-2'>
-            <span className='font-medium text-text text-sm'>{item.label}</span>
-            <span className='text-sm text-text/80'>
+            <span className='font-medium text-neutralDark text-xs sm:text-sm'>{item.label}</span>
+            <span className='text-xs sm:text-sm text-text/70'>
               {item.completed}/{item.total}
             </span>
           </div>
@@ -91,10 +91,10 @@ export default function ProgressOverview() {
         </div>
       ))}
 
-      <div className='mt-6 pt-6 border-t border-border'>
-        <div className='flex justify-between items-center mb-4'>
-          <span className='font-semibold text-text'>Overall Progress</span>
-          <span className='text-2xl font-bold text-primary'>
+      <div className='mt-4 pt-4 border-t border-border'>
+        <div className='flex justify-between items-center'>
+          <span className='font-semibold text-neutralDark text-sm sm:text-base'>Overall Progress</span>
+          <span className='text-xl sm:text-2xl font-bold text-primary'>
             {overallProgress}%
           </span>
         </div>

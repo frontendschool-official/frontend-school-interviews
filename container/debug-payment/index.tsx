@@ -29,7 +29,7 @@ const DebugPaymentContainer: NextPage = () => {
 
     try {
       const paymentDetails: PaymentDetails = {
-        amount: 100,
+        amount: 1, // 1 rupee = 100 paise
         currency: 'INR',
         orderId: `test_order_${Date.now()}`,
         customerName: 'Test User',
@@ -40,7 +40,7 @@ const DebugPaymentContainer: NextPage = () => {
             id: 'test-item',
             title: 'Test Item',
             description: 'Test description',
-            price: 100,
+            price: 1,
             type: 'premium_plan',
             quantity: 1,
           },
@@ -65,7 +65,7 @@ const DebugPaymentContainer: NextPage = () => {
     try {
       // Step 1: Create order
       const paymentDetails: PaymentDetails = {
-        amount: 100,
+        amount: 1, // 1 rupee = 100 paise
         currency: 'INR',
         orderId: `test_order_${Date.now()}`,
         customerName: 'Test User',
@@ -76,7 +76,7 @@ const DebugPaymentContainer: NextPage = () => {
             id: 'test-item',
             title: 'Test Item',
             description: 'Test description',
-            price: 100,
+            price: 1,
             type: 'premium_plan',
             quantity: 1,
           },
@@ -105,10 +105,10 @@ const DebugPaymentContainer: NextPage = () => {
 
       // Step 4: Save payment to Firebase
       addLog('Step 4: Saving payment to Firebase...');
-      const savedPayment = await savePaymentToFirebase('test_user_id', {
+      const savedPayment = await savePaymentToFirebase({
         orderId: order.id,
         paymentId: 'test_payment_id',
-        amount: 100,
+        amount: 1, // 1 rupee
         currency: 'INR',
         status: 'success',
         items: paymentDetails.items,

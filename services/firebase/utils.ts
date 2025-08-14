@@ -267,6 +267,16 @@ export class UserProfileUtils {
       subscriptionExpiresAt: data.subscriptionExpiresAt?.toDate
         ? data.subscriptionExpiresAt.toDate()
         : data.subscriptionExpiresAt,
+      subscription: data.subscription
+        ? {
+            planId: data.subscription.planId || '',
+            paymentId: data.subscription.paymentId || '',
+            amount: data.subscription.amount || 0,
+            activatedAt: data.subscription.activatedAt?.toDate
+              ? data.subscription.activatedAt.toDate()
+              : new Date(data.subscription.activatedAt || Date.now()),
+          }
+        : undefined,
       preferences: data.preferences || this.createDefaultPreferences(),
       stats: data.stats || this.createDefaultStats(),
       createdAt: data.createdAt?.toDate

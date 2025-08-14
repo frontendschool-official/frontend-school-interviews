@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '@/hooks/useAuth';
-import {
-  getUserProgress,
-  getDetailedFeedback,
-} from '@/services/firebase/user-progress';
+import { getDetailedFeedback } from '@/services/firebase/user-progress';
 import { getProblemById } from '@/services/firebase/problems';
+import { apiClient } from '@/lib/api-client';
 import {
   FiCheck,
   FiClock,
@@ -59,11 +57,14 @@ const SolvedContainer: React.FC = () => {
 
     try {
       setLoadingData(true);
-      const progress = await getUserProgress(user.uid);
+      const progressResponse = await apiClient.getProblemsByUserId();
+      const progress = Array.isArray(progressResponse.data)
+        ? progressResponse.data
+        : [];
 
       // Fetch additional problem details for each progress record
       const enrichedProgress = await Promise.all(
-        progress?.map(async (record: any) => {
+        progress.map(async (record: any) => {
           try {
             const problem = await getProblemById(record.problemId);
             return {

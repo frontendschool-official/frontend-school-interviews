@@ -4,6 +4,7 @@ export { useInterviewFeedback } from './useInterviewFeedback';
 export { useInterviewUI } from './useInterviewUI';
 export { useInterviewAttempt } from './useInterviewAttempt';
 export { useAuth } from './useAuth';
+export { useOptimizedAuth, OptimizedAuthProvider } from './useOptimizedAuth';
 export { useProblems } from './useProblems';
 export { useThemeContext } from './useTheme';
 export { useStyledTheme } from './useStyledTheme';

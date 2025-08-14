@@ -26,16 +26,17 @@ export default function RecentProblems({
 
   if (loading) {
     return (
-      <div className='bg-secondary border border-border rounded-xl p-6 opacity-70'>
-        <h3 className='text-xl font-semibold text-text mb-4'>
+      <div className='bg-secondary border border-border rounded-xl p-4 sm:p-6 opacity-70'>
+        <h3 className='text-lg sm:text-xl font-semibold text-neutralDark mb-4 flex items-center gap-2'>
+          <FiClock className='text-primary' />
           Recent Problems
         </h3>
         {[1, 2, 3].map(index => (
-          <div key={index} className='flex items-center gap-4 mb-4 last:mb-0'>
-            <div className='w-12 h-12 bg-border rounded animate-pulse'></div>
+          <div key={index} className='flex items-center gap-3 mb-3 last:mb-0'>
+            <div className='w-8 h-8 sm:w-10 sm:h-10 bg-border rounded animate-pulse'></div>
             <div className='flex-1'>
-              <div className='w-32 h-4 bg-border rounded mb-2 animate-pulse'></div>
-              <div className='w-24 h-3 bg-border rounded animate-pulse'></div>
+              <div className='w-24 h-3 bg-border rounded mb-1 animate-pulse'></div>
+              <div className='w-20 h-2 bg-border rounded animate-pulse'></div>
             </div>
           </div>
         ))}
@@ -45,15 +46,16 @@ export default function RecentProblems({
 
   if (!problemsToShow || problemsToShow.length === 0) {
     return (
-      <div className='bg-secondary border border-border rounded-xl p-6'>
-        <h3 className='text-xl font-semibold text-text mb-4'>
+      <div className='bg-secondary border border-border rounded-xl p-4 sm:p-6'>
+        <h3 className='text-lg sm:text-xl font-semibold text-neutralDark mb-4 flex items-center gap-2'>
+          <FiClock className='text-primary' />
           Recent Problems
         </h3>
-        <div className='text-center py-8 text-text/70'>
-          <p>No recent problems yet.</p>
+        <div className='text-center py-6 text-text/70'>
+          <p className='text-sm'>No recent problems yet.</p>
           <Link
             href='/problems'
-            className='text-primary hover:underline mt-2 inline-block'
+            className='text-primary hover:underline mt-2 inline-block text-sm'
           >
             Start solving problems
           </Link>
@@ -63,9 +65,12 @@ export default function RecentProblems({
   }
 
   return (
-    <div className='bg-secondary border border-border rounded-xl p-6'>
-      <h3 className='text-xl font-semibold text-text mb-4'>Recent Problems</h3>
-      <div className='space-y-4'>
+    <div className='bg-secondary border border-border rounded-xl p-4 sm:p-6'>
+      <h3 className='text-lg sm:text-xl font-semibold text-neutralDark mb-4 flex items-center gap-2'>
+        <FiClock className='text-primary' />
+        Recent Problems
+      </h3>
+      <div className='space-y-3'>
         {problemsToShow.map((problem, index) => {
           const formatDate = (timestamp: any): string => {
             if (!timestamp) return 'Unknown';
@@ -87,21 +92,21 @@ export default function RecentProblems({
           return (
             <div
               key={index}
-              className='flex items-center gap-4 p-3 bg-bodyBg border border-border rounded-lg'
+              className='flex items-center gap-3 p-3 bg-bodyBg border border-border rounded-lg'
             >
-              <div className='w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center'>
+              <div className='w-8 h-8 sm:w-10 sm:h-10 bg-primary/20 rounded-lg flex items-center justify-center flex-shrink-0'>
                 {problem.status === 'completed' ? (
-                  <FiCheckCircle className='text-green-500 text-xl' />
+                  <FiCheckCircle className='text-green-500 text-lg sm:text-xl' />
                 ) : problem.status === 'attempted' ? (
-                  <FiClock className='text-yellow-500 text-xl' />
+                  <FiClock className='text-yellow-500 text-lg sm:text-xl' />
                 ) : (
-                  <FiPlay className='text-primary text-xl' />
+                  <FiPlay className='text-primary text-lg sm:text-xl' />
                 )}
               </div>
-              <div className='flex-1'>
-                <h4 className='font-medium text-text mb-1'>{problem.title}</h4>
-                <div className='flex items-center gap-2 text-sm text-text/70'>
-                  <span>{problem.type}</span>
+              <div className='flex-1 min-w-0'>
+                <h4 className='font-medium text-neutralDark mb-1 text-sm sm:text-base truncate'>{problem.title}</h4>
+                <div className='flex items-center gap-2 text-xs sm:text-sm text-text/70'>
+                  <span className='capitalize'>{problem.type.replace(/([A-Z])/g, ' $1').trim()}</span>
                   <span>•</span>
                   <span>
                     {'lastAttemptedAt' in problem
@@ -121,7 +126,7 @@ export default function RecentProblems({
               </div>
               <Link
                 href={`/problems/${problem.id}`}
-                className='px-3 py-1 bg-primary text-white text-sm rounded hover:bg-accent transition-colors'
+                className='px-2 py-1 bg-primary text-white text-xs sm:text-sm rounded hover:bg-accent transition-colors flex-shrink-0'
               >
                 {problem.status === 'completed' ? 'Review' : 'Continue'}
               </Link>
@@ -129,10 +134,10 @@ export default function RecentProblems({
           );
         })}
       </div>
-      <div className='mt-6 text-center'>
+      <div className='mt-4 text-center'>
         <Link
           href='/problems'
-          className='text-primary hover:underline font-medium'
+          className='text-primary hover:underline font-medium text-sm'
         >
           View all problems
         </Link>

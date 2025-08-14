@@ -47,9 +47,7 @@ export const useDashboardData = (): DashboardData => {
         setError(null);
 
         // Fetch user progress data using API
-        const progressResponse = await fetch(
-          `/api/user-profile/progress?userId=${user.uid}`
-        );
+        const progressResponse = await fetch(`/api/user-profile/progress`);
         if (progressResponse.ok) {
           const progressData = await progressResponse.json();
           setUserProgress(progressData.progress || []);
@@ -74,7 +72,7 @@ export const useDashboardData = (): DashboardData => {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ userId: user.uid }),
+          body: JSON.stringify({}),
         });
 
         if (!streakResponse.ok) {

@@ -17,7 +17,6 @@ export const useInterviewAttempt = (problem: ParsedProblemData | null) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userId: user.uid,
           problemId: problem.id || '',
           attemptData: {
             title: problem.designation,

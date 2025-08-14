@@ -1,10 +1,27 @@
 // UI Components
 export { default as Button } from './Button';
 export { default as Card } from './Card';
-export { default as Modal } from './Modal';
+export { default as Modal, FeedbackModal, PromptModal } from './Modal';
 export { default as Tabs } from './Tabs';
+export type { TabItem } from './Tabs';
 export { default as Tag } from './Tag';
-export { default as Navbar } from './Navbar';
+export {
+  default as Badge,
+  StatusBadge,
+  DifficultyBadge,
+  CategoryBadge,
+} from './Badge';
+export { default as Input } from './Input';
+export { default as Select } from './Select';
+export { default as SearchableDropdown } from './SearchableDropdown';
+export type { SearchableDropdownOption } from './SearchableDropdown';
+export { default as ProblemCard } from './ProblemCard';
+export type { Problem } from './ProblemCard';
+export { default as CodeEditor } from './CodeEditor';
+export { default as InterviewForm } from './InterviewForm';
+export { Pagination } from './Pagination';
+export type { PaginationProps } from './Pagination';
+
 export { default as EditorShell } from './EditorShell';
 
 // Loading Components

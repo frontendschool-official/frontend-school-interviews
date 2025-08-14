@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { TheoryProblem } from '@/types/problem';
 import { evaluateSubmission } from '@/services/ai/evaluation';
 import { useAuth } from '@/hooks/useAuth';
-import { saveSubmission } from '@/services/firebase/problems';
+import { apiClient } from '@/lib/api-client';
 
 interface TheoryEditorProps {
   problem: TheoryProblem;
@@ -34,8 +34,8 @@ export default function TheoryEditor({
       const result = await evaluateSubmission(evaluationData);
       setFeedback(result);
 
-      // Save submission
-      await saveSubmission(user.uid, problemId, {
+      // Save submission using API client
+      await apiClient.saveSubmission(problemId, {
         designation: problem.title,
         code: answer,
         feedback: result,

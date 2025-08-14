@@ -7,34 +7,37 @@ import {
   FiPlay,
   FiBarChart2,
   FiRefreshCw,
+  FiHome,
+  FiUser,
 } from 'react-icons/fi';
 import { useMockInterviewData } from '@/hooks/useMockInterviewData';
-import LoadingState from './LoadingState';
+import { Loader, SearchableDropdown } from '@/components/ui';
+import type { SearchableDropdownOption } from '@/components/ui';
 import ErrorState from './ErrorState';
 import EmptyState from './EmptyState';
 
 export default function MockInterviewHub() {
-  const [selectedCompany, setSelectedCompany] = useState('');
-  const [selectedLevel, setSelectedLevel] = useState('');
+  const [selectedCompany, setSelectedCompany] = useState<SearchableDropdownOption | null>(null);
+  const [selectedLevel, setSelectedLevel] = useState<SearchableDropdownOption | null>(null);
   const { stats, recentActivity, loading, error, refresh } =
     useMockInterviewData();
 
-  const companies = [
-    'Google',
-    'Microsoft',
-    'Amazon',
-    'Meta',
-    'Apple',
-    'Netflix',
-    'Twitter',
-    'Uber',
+  const companies: SearchableDropdownOption[] = [
+    { id: 'google', label: 'Google', icon: <FiHome className='w-3 h-3 text-primary' /> },
+    { id: 'microsoft', label: 'Microsoft', icon: <FiHome className='w-3 h-3 text-primary' /> },
+    { id: 'amazon', label: 'Amazon', icon: <FiHome className='w-3 h-3 text-primary' /> },
+    { id: 'meta', label: 'Meta', icon: <FiHome className='w-3 h-3 text-primary' /> },
+    { id: 'apple', label: 'Apple', icon: <FiHome className='w-3 h-3 text-primary' /> },
+    { id: 'netflix', label: 'Netflix', icon: <FiHome className='w-3 h-3 text-primary' /> },
+    { id: 'twitter', label: 'Twitter', icon: <FiHome className='w-3 h-3 text-primary' /> },
+    { id: 'uber', label: 'Uber', icon: <FiHome className='w-3 h-3 text-primary' /> },
   ];
 
-  const levels = [
-    'Junior (0-2 years)',
-    'Mid-level (3-5 years)',
-    'Senior (6-8 years)',
-    'Lead (9+ years)',
+  const levels: SearchableDropdownOption[] = [
+    { id: 'junior', label: 'Junior (0-2 years)', icon: <FiUser className='w-3 h-3 text-primary' /> },
+    { id: 'mid', label: 'Mid-level (3-5 years)', icon: <FiUser className='w-3 h-3 text-primary' /> },
+    { id: 'senior', label: 'Senior (6-8 years)', icon: <FiUser className='w-3 h-3 text-primary' /> },
+    { id: 'lead', label: 'Lead (9+ years)', icon: <FiUser className='w-3 h-3 text-primary' /> },
   ];
 
   const formatTimeAgo = (dateString: string) => {
@@ -83,7 +86,7 @@ export default function MockInterviewHub() {
   };
 
   if (loading) {
-    return <LoadingState />;
+    return <Loader text='Loading mock interview data...' size='lg' variant='spinner' />;
   }
 
   if (error) {
@@ -161,41 +164,37 @@ export default function MockInterviewHub() {
             <label className='block text-sm font-medium text-text mb-2'>
               Company
             </label>
-            <select
+            <SearchableDropdown
+              options={companies}
               value={selectedCompany}
-              onChange={e => setSelectedCompany(e.target.value)}
-              className='w-full px-4 py-2 border border-border rounded-lg bg-bodyBg text-text focus:outline-none focus:border-primary'
-            >
-              <option value=''>Select a company</option>
-              {companies.map(company => (
-                <option key={company} value={company}>
-                  {company}
-                </option>
-              ))}
-            </select>
+              onValueChange={setSelectedCompany}
+              placeholder='Select a company'
+              searchPlaceholder='Search companies...'
+              icon={<FiHome className='w-3 h-3 text-primary' />}
+              emptyMessage='No companies available'
+              noResultsMessage='No companies found'
+            />
           </div>
 
           <div>
             <label className='block text-sm font-medium text-text mb-2'>
               Experience Level
             </label>
-            <select
+            <SearchableDropdown
+              options={levels}
               value={selectedLevel}
-              onChange={e => setSelectedLevel(e.target.value)}
-              className='w-full px-4 py-2 border border-border rounded-lg bg-bodyBg text-text focus:outline-none focus:border-primary'
-            >
-              <option value=''>Select your level</option>
-              {levels.map(level => (
-                <option key={level} value={level}>
-                  {level}
-                </option>
-              ))}
-            </select>
+              onValueChange={setSelectedLevel}
+              placeholder='Select your level'
+              searchPlaceholder='Search levels...'
+              icon={<FiUser className='w-3 h-3 text-primary' />}
+              emptyMessage='No levels available'
+              noResultsMessage='No levels found'
+            />
           </div>
         </div>
 
         <Link
-          href={`/mock-interview?company=${selectedCompany}&level=${selectedLevel}`}
+          href={`/mock-interview?company=${selectedCompany?.label || ''}&level=${selectedLevel?.label || ''}`}
           className={`inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-200 ${
             selectedCompany && selectedLevel
               ? 'bg-primary text-white hover:bg-accent hover:-translate-y-0.5'

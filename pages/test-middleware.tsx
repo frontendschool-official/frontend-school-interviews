@@ -3,7 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { authenticatedGet } from '@/lib/api';
 import Layout from '@/components/Layout';
 import Head from 'next/head';
-import Loader from '@/components/ui/Loader';
+import { Loader } from '@/components/ui';
 
 export default function TestMiddleware() {
   const { user, loading } = useAuth();

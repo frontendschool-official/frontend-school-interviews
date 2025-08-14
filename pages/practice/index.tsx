@@ -20,7 +20,9 @@ export default function PracticePage() {
 
   return (
     <Layout isLoading={loading}>
-      <PracticeHub />
+      <div className='max-w-7xl mx-auto p-4 min-h-screen bg-bodyBg'>
+        <PracticeHub />
+      </div>
     </Layout>
   );
 }

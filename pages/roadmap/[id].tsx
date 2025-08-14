@@ -2,12 +2,11 @@ import React, { useMemo, useState } from 'react';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
-import Card from '@/components/ui/Card';
+import { Card } from '@/components/ui';
 import ProgressBar from '@/components/ProgressBar';
 import { useRoadmapView } from '@/hooks/useRoadmapView';
 import { useRoadmapUI } from '@/hooks/useRoadmapUI';
-import Button from '@/components/ui/Button';
-import Tabs from '@/components/ui/Tabs';
+import { Button, Tabs } from '@/components/ui';
 import { RoadmapProblem } from '@/types/roadmap';
 
 // Skeleton Components

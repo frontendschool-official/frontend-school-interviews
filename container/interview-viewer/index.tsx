@@ -1,8 +1,8 @@
 import { useRef } from 'react';
 import { useRouter } from 'next/router';
-import CodeEditor from '@/components/CodeEditor';
-import DSAEditor from '@/components/DSAEditor';
-import FeedbackModal from '@/components/FeedbackModal';
+import { CodeEditor } from '@/components/ui';
+
+import { FeedbackModal } from '@/components/ui';
 import {
   useAuth,
   useInterviewProblem,
@@ -14,8 +14,8 @@ import {
 import SystemDesignCanvas from '@/components/SystemDesignCanvas';
 import EvaluateButton from '@/components/EvaluateButton';
 import DSAProblemRenderer from '@/container/interviews/dsa';
-import { Loader } from '@/components/ui/Loader';
-import { Button } from '@/components/ui/Button';
+import { Loader } from '@/components/ui';
+import { Button } from '@/components/ui';
 import { FiChevronLeft } from 'react-icons/fi';
 import {
   MainContent,
@@ -156,7 +156,11 @@ export default function InterviewViewerPage() {
                   />
                 )}
                 {problem?.interviewType === 'dsa' && (
-                  <DSAEditor code={code} onChange={handleCodeUpdate} />
+                  <CodeEditor
+                    code={code}
+                    onChange={handleCodeUpdate}
+                    mode='dsa'
+                  />
                 )}
                 {(problem?.interviewType as any) === 'theory_and_debugging' &&
                   problem.problem && (

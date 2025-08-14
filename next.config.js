@@ -1,27 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
-  compiler: {
-    styledComponents: true,
-  },
+  reactStrictMode: false,
   webpack: (config, { isServer }) => {
     if (!isServer) {
-      // Don't resolve 'fs' module on the client to prevent this error on build --> Error: Can't resolve 'fs'
+      // Only keep necessary fallbacks for client-side
       config.resolve.fallback = {
         ...config.resolve.fallback,
-        fs: false,
-        net: false,
-        tls: false,
-        crypto: false,
-        stream: false,
-        url: false,
-        zlib: false,
-        http: false,
-        https: false,
-        assert: false,
-        os: false,
-        path: false,
-        process: false,
+        crypto: false, // Used in server-side payment verification
       };
     }
     return config;

@@ -1,7 +1,7 @@
 import React from 'react';
 import NavBar from './NavBar';
 import Footer from './Footer';
-import Loader from '@/components/ui/Loader';
+import { Loader } from '@/components/ui';
 import { ErrorState } from '@/container/interviews/interviews.types';
 
 const Layout = ({

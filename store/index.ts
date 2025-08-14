@@ -21,9 +21,25 @@ interface ProblemsSlice {
   statuses: Record<string, ProblemStatus>;
   loadingProblems: boolean;
   problemsError: string | null;
+  pagination?: {
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    itemsPerPage: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
   setProblems: (
     problems: AppProblem[],
-    statuses: Record<string, ProblemStatus>
+    statuses: Record<string, ProblemStatus>,
+    pagination?: {
+      currentPage: number;
+      totalPages: number;
+      totalItems: number;
+      itemsPerPage: number;
+      hasNextPage: boolean;
+      hasPrevPage: boolean;
+    }
   ) => void;
   setProblemsLoading: (loading: boolean) => void;
   setProblemsError: (error: string | null) => void;
@@ -92,7 +108,7 @@ export const useAppStore = create<AppState>()(
         statuses: {},
         loadingProblems: false,
         problemsError: null,
-        setProblems: (problems, statuses) => set({ problems, statuses }),
+        setProblems: (problems, statuses, pagination) => set({ problems, statuses, pagination }),
         setProblemsLoading: loading => set({ loadingProblems: loading }),
         setProblemsError: error => set({ problemsError: error }),
         addProblem: problem =>

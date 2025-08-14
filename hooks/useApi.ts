@@ -83,12 +83,12 @@ export function useProblemById(id: string) {
   return useApi(() => apiClient.getProblemById(id));
 }
 
-export function useProblemsByUserId(userId: string) {
-  return useApi(() => apiClient.getProblemsByUserId(userId));
+export function useProblemsByUserId() {
+  return useApi(() => apiClient.getProblemsByUserId());
 }
 
-export function useUserProfile(uid: string) {
-  return useApi(() => apiClient.getUserProfile(uid));
+export function useUserProfile() {
+  return useApi(() => apiClient.getUserProfile());
 }
 
 // Hook for operations that don't return data (like POST/PUT operations)

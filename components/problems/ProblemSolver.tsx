@@ -1,12 +1,12 @@
 import React, { useRef } from 'react';
 import { useRouter } from 'next/router';
-import CodeEditor from '@/components/CodeEditor';
-import DSAEditor from '@/components/DSAEditor';
+import { CodeEditor } from '@/components/ui';
+
 import SystemDesignCanvas, {
   SystemDesignCanvasRef,
 } from '@/components/SystemDesignCanvas';
 import TheoryEditor from '@/components/TheoryEditor';
-import FeedbackModal from '@/components/FeedbackModal';
+import { FeedbackModal } from '@/components/ui';
 import EvaluateButton from '@/components/EvaluateButton';
 import {
   useInterviewProblem,
@@ -130,7 +130,9 @@ export default function ProblemSolver({ problemId }: ProblemSolverProps) {
           <CodeEditor code={code} onChange={handleCodeUpdate} theme='dark' />
         );
       case 'dsa':
-        return <DSAEditor code={code} onChange={handleCodeUpdate} />;
+        return (
+          <CodeEditor code={code} onChange={handleCodeUpdate} mode='dsa' />
+        );
       case 'system-design':
         return (
           <SystemDesignCanvas

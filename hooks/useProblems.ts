@@ -17,15 +17,24 @@ export interface ProblemsState {
   statuses: Record<string, ProblemStatus>;
   loading: boolean;
   error: string | null;
+  pagination?: {
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    itemsPerPage: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
 }
 
-export const useProblems = () => {
+export const useProblems = (page: number = 1, limit: number = 12) => {
   const { user } = useAuth();
 
   const problems = useAppStore(s => s.problems || []);
   const statuses = useAppStore(s => s.statuses || {});
   const loadingProblems = useAppStore(s => s.loadingProblems || false);
   const problemsError = useAppStore(s => s.problemsError || null);
+  const pagination = useAppStore(s => s.pagination);
   const setProblems = useAppStore(s => s.setProblems);
   const setProblemsLoading = useAppStore(s => s.setProblemsLoading);
   const setProblemsError = useAppStore(s => s.setProblemsError);
@@ -50,12 +59,14 @@ export const useProblems = () => {
         setProblemsLoadingRef.current?.(true);
         setProblemsErrorRef.current?.(null);
 
-        const allProblemsResponse = await apiClient.getAllProblems();
+        const allProblemsResponse = await apiClient.getAllProblems(page, limit);
         if (allProblemsResponse.error) {
           throw new Error(allProblemsResponse.error);
         }
-        const allProblems = allProblemsResponse.data || [];
-        const problemsArray = Array.isArray(allProblems) ? allProblems : [];
+        
+        const responseData = allProblemsResponse.data as any || {};
+        const problemsArray = responseData.problems || [];
+        const paginationData = responseData.pagination;
 
         const statusMap: Record<string, ProblemStatus> = {};
         problemsArray.forEach((p: Problem) => {
@@ -65,9 +76,7 @@ export const useProblems = () => {
 
         if (user) {
           try {
-            const submissionResponse = await apiClient.getSubmissionsByUserId(
-              user.uid
-            );
+            const submissionResponse = await apiClient.getSubmissionsByUserId();
             if (submissionResponse.error) {
               console.error(
                 'Error fetching submissions:',
@@ -94,7 +103,7 @@ export const useProblems = () => {
         }
 
         if (!isCancelled) {
-          setProblemsRef.current?.(problemsArray, statusMap);
+          setProblemsRef.current?.(problemsArray, statusMap, paginationData);
           setProblemsLoadingRef.current?.(false);
           setProblemsErrorRef.current?.(null);
         }
@@ -121,13 +130,14 @@ export const useProblems = () => {
     return () => {
       isCancelled = true;
     };
-  }, [user]);
+  }, [user, page, limit]);
 
   return {
     problems,
     statuses,
     loading: loadingProblems,
     error: problemsError,
+    pagination,
     addProblem,
     updateProblemStatus,
   };

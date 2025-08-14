@@ -17,6 +17,7 @@ import Layout from '@/components/Layout';
 import { InterviewSimulationData, Company } from '@/types/problem';
 import { getAllCompanies } from '@/lib/queryBuilder';
 import CreateInterview from '@/container/interview-simulation/create-interview';
+import { Badge, Skeleton } from '@/components/ui';
 
 export default function InterviewSimulation() {
   const router = useRouter();
@@ -50,9 +51,7 @@ export default function InterviewSimulation() {
     if (!user) return;
 
     try {
-      const response = await fetch(
-        `/api/interview-simulation/active?userId=${user.uid}`
-      );
+      const response = await fetch(`/api/interview-simulation/active`);
       if (response.ok) {
         const data = await response.json();
         setActiveSimulations(data);
@@ -113,8 +112,94 @@ export default function InterviewSimulation() {
     }
   };
 
+  // Skeleton Components
+  const HeaderSkeleton = () => (
+    <div className='mb-6 sm:mb-8'>
+      <div className='w-64 h-8 bg-border rounded-lg animate-pulse mb-4'></div>
+      <div className='w-96 h-6 bg-border rounded-lg animate-pulse'></div>
+    </div>
+  );
+
+  const StatsSkeleton = () => (
+    <div className='grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8'>
+      {[1, 2, 3].map(index => (
+        <div
+          key={index}
+          className='bg-secondary border border-border rounded-xl p-4 sm:p-6'
+        >
+          <div className='flex items-center gap-3'>
+            <div className='w-10 h-10 sm:w-12 sm:h-12 bg-border rounded-lg animate-pulse'></div>
+            <div className='flex-1'>
+              <div className='w-20 h-3 bg-border rounded animate-pulse mb-2'></div>
+              <div className='w-12 h-6 bg-border rounded animate-pulse'></div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
+  const ActionButtonsSkeleton = () => (
+    <div className='flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 sm:mb-8'>
+      <div className='w-40 h-10 bg-border rounded-lg animate-pulse'></div>
+      <div className='w-40 h-10 bg-border rounded-lg animate-pulse'></div>
+    </div>
+  );
+
+  const SimulationCardSkeleton = () => (
+    <div className='bg-secondary border border-border rounded-xl p-4 sm:p-6'>
+      <div className='flex items-start justify-between mb-3 sm:mb-4'>
+        <div className='flex-1'>
+          <div className='w-32 h-5 bg-border rounded animate-pulse mb-2'></div>
+          <div className='w-24 h-3 bg-border rounded animate-pulse'></div>
+        </div>
+        <div className='w-16 h-6 bg-border rounded-full animate-pulse'></div>
+      </div>
+
+      <div className='space-y-2 sm:space-y-3 mb-3 sm:mb-4'>
+        <div className='flex items-center gap-2'>
+          <div className='w-3 h-3 sm:w-4 sm:h-4 bg-border rounded animate-pulse'></div>
+          <div className='w-24 h-3 bg-border rounded animate-pulse'></div>
+        </div>
+        <div className='flex items-center gap-2'>
+          <div className='w-3 h-3 sm:w-4 sm:h-4 bg-border rounded animate-pulse'></div>
+          <div className='w-20 h-3 bg-border rounded animate-pulse'></div>
+        </div>
+        <div className='flex items-center gap-2'>
+          <div className='w-3 h-3 sm:w-4 sm:h-4 bg-border rounded animate-pulse'></div>
+          <div className='w-28 h-3 bg-border rounded animate-pulse'></div>
+        </div>
+      </div>
+
+      <div className='mb-3 sm:mb-4'>
+        <div className='w-24 h-3 bg-border rounded animate-pulse mb-2'></div>
+        <div className='flex flex-wrap gap-1 sm:gap-2'>
+          {[1, 2, 3].map(index => (
+            <div
+              key={index}
+              className='w-16 h-6 bg-border rounded-full animate-pulse'
+            ></div>
+          ))}
+        </div>
+      </div>
+
+      <div className='flex flex-col sm:flex-row gap-2'>
+        <div className='w-20 h-8 bg-border rounded-lg animate-pulse'></div>
+        <div className='w-24 h-8 bg-border rounded-lg animate-pulse'></div>
+      </div>
+    </div>
+  );
+
+  const SimulationsGridSkeleton = () => (
+    <div className='grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6'>
+      {[1, 2, 3, 4].map(index => (
+        <SimulationCardSkeleton key={index} />
+      ))}
+    </div>
+  );
+
   return (
-    <Layout isLoading={loading}>
+    <Layout>
       <Head>
         <title>{seoData.title}</title>
         <meta name='description' content={seoData.description} />
@@ -126,82 +211,106 @@ export default function InterviewSimulation() {
         <link rel='canonical' href={seoData.canonical} />
       </Head>
 
-      {/* Header */}
-      <div className='mb-6 sm:mb-8'>
-        <h1 className='text-2xl sm:text-3xl font-bold text-text mb-4'>
-          Interview Simulation Hub
-        </h1>
-        <p className='text-text/70 text-base sm:text-lg'>
-          Practice real tech interviews with company-specific problems and
-          AI-powered feedback
-        </p>
-      </div>
+      {loading ? (
+        <>
+          {/* Header Skeleton */}
+          <HeaderSkeleton />
 
-      {/* Stats Overview */}
-      <div className='grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8'>
-        <div className='bg-secondary border border-border rounded-xl p-4 sm:p-6'>
-          <div className='flex items-center gap-3'>
-            <div className='w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-lg flex items-center justify-center'>
-              <FiTarget className='w-5 h-5 sm:w-6 sm:h-6 text-blue-600' />
-            </div>
-            <div>
-              <p className='text-xs sm:text-sm text-text/60'>
-                Active Simulations
-              </p>
-              <p className='text-xl sm:text-2xl font-bold text-text'>
-                {activeSimulations?.filter(s => s?.status === 'active').length}
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className='bg-secondary border border-border rounded-xl p-4 sm:p-6'>
-          <div className='flex items-center gap-3'>
-            <div className='w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-lg flex items-center justify-center'>
-              <FiCheckCircle className='w-5 h-5 sm:w-6 sm:h-6 text-green-600' />
-            </div>
-            <div>
-              <p className='text-xs sm:text-sm text-text/60'>Completed</p>
-              <p className='text-xl sm:text-2xl font-bold text-text'>
-                {
-                  activeSimulations?.filter(s => s?.status === 'completed')
-                    .length
-                }
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className='bg-secondary border border-border rounded-xl p-4 sm:p-6'>
-          <div className='flex items-center gap-3'>
-            <div className='w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 rounded-lg flex items-center justify-center'>
-              <FiUsers className='w-5 h-5 sm:w-6 sm:h-6 text-purple-600' />
-            </div>
-            <div>
-              <p className='text-xs sm:text-sm text-text/60'>Companies</p>
-              <p className='text-xl sm:text-2xl font-bold text-text'>
-                {companies?.length}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+          {/* Stats Skeleton */}
+          <StatsSkeleton />
 
-      {/* Action Buttons */}
-      <div className='flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 sm:mb-8'>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className='flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-primary text-white rounded-lg hover:bg-accent transition-colors text-sm sm:text-base'
-        >
-          <FiPlus className='w-4 h-4 sm:w-5 sm:h-5' />
-          Start New Interview
-        </button>
-        <button
-          onClick={() => router.push('/problems')}
-          className='flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-3 border border-border text-text rounded-lg hover:bg-secondary transition-colors text-sm sm:text-base'
-        >
-          <FiPlay className='w-4 h-4 sm:w-5 sm:h-5' />
-          Practice Problems
-        </button>
-      </div>
+          {/* Action Buttons Skeleton */}
+          <ActionButtonsSkeleton />
+
+          {/* Simulations Section Skeleton */}
+          <div className='mb-6 sm:mb-8'>
+            <div className='w-48 h-6 bg-border rounded-lg animate-pulse mb-4 sm:mb-6'></div>
+            <SimulationsGridSkeleton />
+          </div>
+        </>
+      ) : (
+        <>
+          {/* Header */}
+          <div className='mb-6 sm:mb-8'>
+            <h1 className='text-2xl sm:text-3xl font-bold text-text mb-4'>
+              Interview Simulation Hub
+            </h1>
+            <p className='text-text/70 text-base sm:text-lg'>
+              Practice real tech interviews with company-specific problems and
+              AI-powered feedback
+            </p>
+          </div>
+
+          {/* Stats Overview */}
+          <div className='grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8'>
+            <div className='bg-secondary border border-border rounded-xl p-4 sm:p-6'>
+              <div className='flex items-center gap-3'>
+                <div className='w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-lg flex items-center justify-center'>
+                  <FiTarget className='w-5 h-5 sm:w-6 sm:h-6 text-blue-600' />
+                </div>
+                <div>
+                  <p className='text-xs sm:text-sm text-text/60'>
+                    Active Simulations
+                  </p>
+                  <p className='text-xl sm:text-2xl font-bold text-text'>
+                    {
+                      activeSimulations?.filter(s => s?.status === 'active')
+                        .length
+                    }
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className='bg-secondary border border-border rounded-xl p-4 sm:p-6'>
+              <div className='flex items-center gap-3'>
+                <div className='w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-lg flex items-center justify-center'>
+                  <FiCheckCircle className='w-5 h-5 sm:w-6 sm:h-6 text-green-600' />
+                </div>
+                <div>
+                  <p className='text-xs sm:text-sm text-text/60'>Completed</p>
+                  <p className='text-xl sm:text-2xl font-bold text-text'>
+                    {
+                      activeSimulations?.filter(s => s?.status === 'completed')
+                        .length
+                    }
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className='bg-secondary border border-border rounded-xl p-4 sm:p-6'>
+              <div className='flex items-center gap-3'>
+                <div className='w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 rounded-lg flex items-center justify-center'>
+                  <FiUsers className='w-5 h-5 sm:w-6 sm:h-6 text-purple-600' />
+                </div>
+                <div>
+                  <p className='text-xs sm:text-sm text-text/60'>Companies</p>
+                  <p className='text-xl sm:text-2xl font-bold text-text'>
+                    {companies?.length}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className='flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 sm:mb-8'>
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className='flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-primary text-white rounded-lg hover:bg-accent transition-colors text-sm sm:text-base'
+            >
+              <FiPlus className='w-4 h-4 sm:w-5 sm:h-5' />
+              Start New Interview
+            </button>
+            <button
+              onClick={() => router.push('/problems')}
+              className='flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-3 border border-border text-text rounded-lg hover:bg-secondary transition-colors text-sm sm:text-base'
+            >
+              <FiPlay className='w-4 h-4 sm:w-5 sm:h-5' />
+              Practice Problems
+            </button>
+          </div>
+        </>
+      )}
 
       {/* Active Simulations */}
       <div className='mb-6 sm:mb-8'>
@@ -257,16 +366,16 @@ export default function InterviewSimulation() {
                 <div className='space-y-2 sm:space-y-3 mb-3 sm:mb-4'>
                   <div className='flex items-center gap-2 text-xs sm:text-sm text-text/60'>
                     <FiCalendar className='w-3 h-3 sm:w-4 sm:h-4' />
-                    <span>Created: {formatDate(simulation.createdAt)}</span>
+                    <span>Created: {formatDate(simulation?.createdAt)}</span>
                   </div>
                   <div className='flex items-center gap-2 text-xs sm:text-sm text-text/60'>
                     <FiClock className='w-3 h-3 sm:w-4 sm:h-4' />
                     <span>
-                      Round {simulation.currentRound + 1} of{' '}
-                      {simulation.rounds.length}
+                      Round {simulation?.currentRound + 1} of{' '}
+                      {simulation?.rounds?.length}
                     </span>
                   </div>
-                  {simulation.simulationConfig && (
+                  {simulation?.simulationConfig && (
                     <div className='flex items-center gap-2 text-xs sm:text-sm text-text/60'>
                       <FiBriefcase className='w-3 h-3 sm:w-4 sm:h-4' />
                       <span>
@@ -282,13 +391,14 @@ export default function InterviewSimulation() {
                   </p>
                   <div className='flex flex-wrap gap-1 sm:gap-2'>
                     {simulation?.rounds?.slice(0, 3)?.map((round, index) => (
-                      <div
+                      <Badge
                         key={index}
+                        variant='default'
+                        category={round?.name}
                         className='flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-primary/10 border border-primary/20 rounded-full text-xs'
                       >
-                        <span>{getRoundTypeIcon('unknown')}</span>
-                        <span className='text-text'>{round.name}</span>
-                      </div>
+                        {round?.name}
+                      </Badge>
                     ))}
                     {simulation?.rounds?.length > 3 && (
                       <span className='text-xs text-text/50'>

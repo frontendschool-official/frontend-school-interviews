@@ -1,5 +1,14 @@
-import Modal from '@/components/ui/Modal';
-import { FiAlertCircle, FiChevronDown } from 'react-icons/fi';
+import { Modal, Button, Card, SearchableDropdown } from '@/components/ui';
+import type { SearchableDropdownOption } from '@/components/ui';
+import {
+  FiAlertCircle,
+  FiHome,
+  FiUser,
+  FiClock,
+  FiStar,
+  FiPlay,
+  FiX,
+} from 'react-icons/fi';
 import React, { useState, useEffect } from 'react';
 import { Company } from '@/types/problem';
 import { useAuth } from '@/hooks/useAuth';
@@ -12,29 +21,49 @@ interface Role {
   level: 'junior' | 'mid' | 'senior';
   description: string;
   estimatedTime: string;
+  difficulty: string;
+  focusAreas: string[];
 }
 
 const roles: Role[] = [
   {
-    id: 'sde1',
-    title: 'SDE-1 (Software Developer I)',
+    id: 'sde1/L3',
+    title: 'SDE-1/L3',
     level: 'junior',
     description: 'Entry-level software development position',
     estimatedTime: '90 minutes',
+    difficulty: 'Easy to Medium',
+    focusAreas: [
+      'Basic Algorithms',
+      'Data Structures',
+      'System Design Fundamentals',
+    ],
   },
   {
-    id: 'sde2',
-    title: 'SDE-2 (Software Developer II)',
+    id: 'sde2/L4',
+    title: 'SDE-2/L4',
     level: 'mid',
     description: 'Mid-level software development with 2-4 years experience',
     estimatedTime: '120 minutes',
+    difficulty: 'Medium to Hard',
+    focusAreas: [
+      'Advanced Algorithms',
+      'System Design',
+      'Architecture Patterns',
+    ],
   },
   {
-    id: 'sde3',
-    title: 'SDE-3 (Senior Software Developer)',
+    id: 'sde3/L5',
+    title: 'SDE-3/L5',
     level: 'senior',
     description: 'Senior software development with 5+ years experience',
     estimatedTime: '150 minutes',
+    difficulty: 'Hard',
+    focusAreas: [
+      'Complex System Design',
+      'Leadership',
+      'Technical Architecture',
+    ],
   },
   {
     id: 'frontend',
@@ -42,6 +71,12 @@ const roles: Role[] = [
     level: 'mid',
     description: 'Specialized in frontend technologies and user interfaces',
     estimatedTime: '105 minutes',
+    difficulty: 'Medium',
+    focusAreas: [
+      'React/Next.js',
+      'CSS/Design Systems',
+      'Performance Optimization',
+    ],
   },
   {
     id: 'fullstack',
@@ -49,13 +84,21 @@ const roles: Role[] = [
     level: 'senior',
     description: 'End-to-end application development',
     estimatedTime: '135 minutes',
+    difficulty: 'Hard',
+    focusAreas: ['Full Stack Architecture', 'Database Design', 'API Design'],
   },
   {
-    id: 'staff',
-    title: 'Staff Engineer',
+    id: 'staff/L6',
+    title: 'Staff Engineer/L6',
     level: 'senior',
     description: 'Technical leadership and complex system design',
     estimatedTime: '180 minutes',
+    difficulty: 'Expert',
+    focusAreas: [
+      'Technical Leadership',
+      'System Architecture',
+      'Cross-team Collaboration',
+    ],
   },
 ];
 
@@ -73,10 +116,25 @@ export default function CreateInterview({
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [creating, setCreating] = useState(false);
   const [companies, setCompanies] = useState<Company[]>([]);
-  const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+
+  // Convert companies to dropdown options
+  const companyOptions: SearchableDropdownOption[] = companies.map(company => ({
+    id: company.id,
+    label: company.name,
+    icon: <FiHome className='w-3 h-3 text-primary' />,
+  }));
+
+  // Convert selected company to dropdown option
+  const selectedCompanyOption: SearchableDropdownOption | null = selectedCompany
+    ? {
+        id: selectedCompany.id,
+        label: selectedCompany.name,
+        icon: <FiHome className='w-3 h-3 text-primary' />,
+      }
+    : null;
 
   // Fetch all companies on component mount
   useEffect(() => {
@@ -140,128 +198,199 @@ export default function CreateInterview({
     }
   };
 
+  const getLevelColor = (level: string) => {
+    switch (level) {
+      case 'junior':
+        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
+      case 'mid':
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
+      case 'senior':
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400';
+    }
+  };
+
+  const getDifficultyColor = (difficulty: string) => {
+    if (difficulty.includes('Easy'))
+      return 'text-green-600 dark:text-green-400';
+    if (difficulty.includes('Medium'))
+      return 'text-yellow-600 dark:text-yellow-400';
+    if (difficulty.includes('Hard'))
+      return 'text-orange-600 dark:text-orange-400';
+    if (difficulty.includes('Expert')) return 'text-red-600 dark:text-red-400';
+    return 'text-gray-600 dark:text-gray-400';
+  };
+
   return (
     <Modal
       isOpen={showCreateModal}
       onClose={() => setShowCreateModal(false)}
       title='Start New Interview Simulation'
+      size='xl'
+      headerClassName='border-b border-border/50 pb-3'
     >
-      <div className='p-6 w-full max-w-2xl'>
+      <div className='space-y-4'>
+        {/* Error Display */}
         {error && (
-          <div className='flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg mb-4'>
-            <FiAlertCircle className='w-5 h-5 text-red-600' />
-            <span className='text-red-700'>{error}</span>
+          <div className='flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg'>
+            <FiAlertCircle className='w-4 h-4 text-red-600 dark:text-red-400 flex-shrink-0' />
+            <span className='text-red-700 dark:text-red-300 text-sm'>
+              {error}
+            </span>
           </div>
         )}
 
-        <div className='space-y-6'>
-          {/* Company Dropdown */}
-          <div>
-            <h3 className='text-lg font-semibold text-text mb-3'>
+        {/* Company Selection */}
+        <div className='space-y-2'>
+          <div className='flex items-center gap-2'>
+            <FiHome className='w-4 h-4 text-primary' />
+            <h3 className='text-base font-semibold text-text'>
               Select Company
             </h3>
-            <div className='relative'>
-              <button
-                type='button'
-                onClick={() => setShowCompanyDropdown(!showCompanyDropdown)}
-                className='w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md bg-white text-left focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary'
+          </div>
+
+          <SearchableDropdown
+            options={companyOptions}
+            value={selectedCompanyOption}
+            onValueChange={option => {
+              const company = companies.find(c => c.id === option?.id) || null;
+              setSelectedCompany(company);
+            }}
+            placeholder='Choose a company'
+            searchPlaceholder='Search companies...'
+            loading={loading}
+            icon={<FiHome className='w-3 h-3 text-primary' />}
+            emptyMessage='No companies available'
+            noResultsMessage='No companies found'
+          />
+        </div>
+
+        {/* Role Selection */}
+        <div className='space-y-2'>
+          <div className='flex items-center gap-2'>
+            <FiUser className='w-4 h-4 text-primary' />
+            <h3 className='text-base font-semibold text-text'>Select Role</h3>
+          </div>
+
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
+            {roles.map(role => (
+              <Card
+                key={role.id}
+                className={`cursor-pointer transition-all duration-200 hover:shadow-md p-3 ${
+                  selectedRole?.id === role.id
+                    ? 'ring-2 ring-primary border-primary bg-primary/5'
+                    : 'hover:border-primary/50 hover:bg-secondary/50'
+                }`}
+                onClick={() => setSelectedRole(role)}
               >
-                {selectedCompany ? (
-                  <div className='flex items-center gap-3'>
+                <div className='space-y-2'>
+                  {/* Header */}
+                  <div className='flex items-start justify-between'>
+                    <div className='flex-1'>
+                      <h4 className='font-semibold text-text text-sm'>
+                        {role.title}
+                      </h4>
+                    </div>
+                    <div
+                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${getLevelColor(role.level)}`}
+                    >
+                      {role.level}
+                    </div>
+                  </div>
+
+                  {/* Details */}
+                  <div className='flex items-center gap-4 text-xs'>
+                    <div className='flex items-center gap-1'>
+                      <FiClock className='w-3 h-3 text-neutral' />
+                      <span className='text-text'>{role.estimatedTime}</span>
+                    </div>
+                    <div className='flex items-center gap-1'>
+                      <FiStar className='w-3 h-3 text-neutral' />
+                      <span
+                        className={`font-medium ${getDifficultyColor(role.difficulty)}`}
+                      >
+                        {role.difficulty}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+
+        {/* Summary */}
+        {(selectedCompany || selectedRole) && (
+          <Card className='bg-secondary/50 border-primary/20 p-3'>
+            <div className='space-y-2'>
+              <h4 className='font-semibold text-text text-sm'>
+                Interview Summary
+              </h4>
+              <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
+                {selectedCompany && (
+                  <div className='flex items-center gap-2'>
+                    <div className='w-6 h-6 bg-primary/10 rounded-md flex items-center justify-center'>
+                      <FiHome className='w-3 h-3 text-primary' />
+                    </div>
+                    <div>
+                      <div className='text-xs text-neutral'>Company</div>
+                      <div className='font-medium text-text text-sm'>
+                        {selectedCompany.name}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {selectedRole && (
+                  <div className='flex items-center gap-2'>
+                    <div className='w-6 h-6 bg-primary/10 rounded-md flex items-center justify-center'>
+                      <FiUser className='w-3 h-3 text-primary' />
+                    </div>
+                    <div>
+                      <div className='text-xs text-neutral'>Role</div>
+                      <div className='font-medium text-text text-sm'>
+                        {selectedRole.title}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              {selectedRole && (
+                <div className='pt-2 border-t border-border/50'>
+                  <div className='flex items-center justify-between text-xs'>
+                    <span className='text-neutral'>Duration:</span>
                     <span className='font-medium text-text'>
-                      {selectedCompany.name}
+                      {selectedRole.estimatedTime}
                     </span>
                   </div>
-                ) : (
-                  <span className='text-gray-500'>Choose a company...</span>
-                )}
-                <FiChevronDown
-                  className={`h-5 w-5 text-gray-400 transition-transform ${
-                    showCompanyDropdown ? 'rotate-180' : ''
-                  }`}
-                />
-              </button>
-
-              {showCompanyDropdown && (
-                <div className='absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto'>
-                  {loading ? (
-                    <div className='px-3 py-2 text-gray-500'>
-                      Loading companies...
-                    </div>
-                  ) : companies?.length > 0 ? (
-                    companies?.map(company => (
-                      <button
-                        key={company.id}
-                        type='button'
-                        onClick={() => {
-                          setSelectedCompany(company);
-                          setShowCompanyDropdown(false);
-                        }}
-                        className='w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none'
-                      >
-                        <div className='flex-1'>
-                          <div className='font-medium text-text'>
-                            {company.name}
-                          </div>
-                        </div>
-                      </button>
-                    ))
-                  ) : (
-                    <div className='px-3 py-2 text-gray-500'>
-                      No companies available
-                    </div>
-                  )}
                 </div>
               )}
             </div>
-          </div>
+          </Card>
+        )}
+      </div>
 
-          {/* Role Selection */}
-          <div>
-            <h3 className='text-lg font-semibold text-text mb-3'>
-              Select Role
-            </h3>
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
-              {roles.map(role => (
-                <div
-                  key={role.id}
-                  onClick={() => setSelectedRole(role)}
-                  className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                    selectedRole?.id === role.id
-                      ? 'border-primary bg-primary/10'
-                      : 'border-border hover:border-primary/50'
-                  }`}
-                >
-                  <h4 className='font-medium text-text mb-1'>{role.title}</h4>
-                  <p className='text-text/70 text-sm mb-2'>
-                    {role.description}
-                  </p>
-                  <div className='flex items-center gap-2 text-xs text-text/60'>
-                    <span className='capitalize'>{role.level} level</span>
-                    <span>•</span>
-                    <span>{role.estimatedTime}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className='flex gap-3 mt-6'>
-          <button
-            onClick={() => setShowCreateModal(false)}
-            className='flex-1 px-4 py-2 border border-border text-text rounded-lg hover:bg-secondary transition-colors'
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleCreateSimulation}
-            disabled={!selectedCompany || !selectedRole || creating}
-            className='flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
-          >
-            {creating ? 'Creating...' : 'Start Interview'}
-          </button>
-        </div>
+      {/* Footer Actions */}
+      <div className='flex flex-col sm:flex-row gap-2 mt-4 pt-4 border-t border-border/50'>
+        <Button
+          variant='secondary'
+          onClick={() => setShowCreateModal(false)}
+          className='flex-1'
+          size='sm'
+          leftIcon={<FiX />}
+        >
+          Cancel
+        </Button>
+        <Button
+          onClick={handleCreateSimulation}
+          disabled={!selectedCompany || !selectedRole || creating}
+          className='flex-1'
+          size='sm'
+          isLoading={creating}
+          leftIcon={<FiPlay />}
+        >
+          {creating ? 'Creating...' : 'Start Interview'}
+        </Button>
       </div>
     </Modal>
   );

@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useThemeContext } from '@/hooks/useTheme';
-import CodeEditor from '@/components/CodeEditor';
-import DSAEditor from '@/components/DSAEditor';
-import FeedbackModal from '@/components/FeedbackModal';
+import { CodeEditor } from '@/components/ui';
+import { FeedbackModal } from '@/components/ui';
 import SystemDesignCanvas from '@/components/SystemDesignCanvas';
 import TheoryEditor from '@/components/TheoryEditor';
 import EvaluateButton from '@/components/EvaluateButton';
@@ -235,7 +234,9 @@ export default function InterviewSimulationViewer({
           />
         );
       case 'dsa':
-        return <DSAEditor code={code} onChange={handleCodeUpdate} />;
+        return (
+          <CodeEditor code={code} onChange={handleCodeUpdate} mode='dsa' />
+        );
       case 'system-design':
         return <SystemDesignCanvas ref={excalidrawRef} onReady={() => {}} />;
       case 'theory':
@@ -390,25 +391,29 @@ export default function InterviewSimulationViewer({
         </div>
 
         {/* Problem Tabs */}
-        <div className='bg-secondary border-b border-border px-4 py-2'>
+        <div className='bg-secondary border-b border-border px-4 py-2 transition-colors duration-300'>
           <div className='flex gap-2 overflow-x-auto'>
             {session?.problems?.map((problem, index) => (
               <button
                 key={index}
                 onClick={() => handleTabClick(index)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-300 ${
                   index === currentProblemIndex
-                    ? 'bg-primary text-white'
+                    ? 'bg-primary text-bodyBg shadow-md shadow-primary/20'
                     : completedProblems.has(index)
-                      ? 'bg-green-100 text-green-700 border border-green-200'
-                      : 'bg-white dark:bg-gray-800 text-text hover:bg-gray-50 dark:hover:bg-gray-700 border border-border'
+                      ? 'bg-success/10 text-success border border-success/20'
+                      : 'bg-secondary/80 text-text hover:bg-secondary hover:shadow-sm border border-border/50'
                 }`}
               >
-                <span>Q{index + 1}</span>
+                <span className='transition-colors duration-300'>
+                  Q{index + 1}
+                </span>
                 {completedProblems.has(index) && (
-                  <FiCheck className='w-3 h-3' />
+                  <FiCheck className='w-3 h-3 transition-colors duration-300' />
                 )}
-                <span className='text-xs opacity-75'>{problem.difficulty}</span>
+                <span className='text-xs opacity-75 transition-colors duration-300'>
+                  {problem.difficulty}
+                </span>
               </button>
             ))}
           </div>

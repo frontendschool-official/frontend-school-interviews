@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '@/hooks/useAuth';
 import Layout from '@/components/Layout';
-import Loader from '@/components/ui/Loader';
+import { Loader } from '@/components/ui';
 
 export default function MockInterviewSetupPage() {
   const { user, loading } = useAuth();

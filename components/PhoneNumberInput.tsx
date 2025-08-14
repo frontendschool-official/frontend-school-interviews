@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Input } from '@/components/ui';
 
 interface PhoneNumberInputProps {
   value: string;
@@ -72,7 +73,7 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
 
   return (
     <div className={className}>
-      <input
+      <Input
         type='tel'
         value={value}
         onChange={handleChange}
@@ -80,25 +81,17 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
         placeholder={placeholder}
         required={required}
         disabled={disabled}
-        style={{
-          width: '100%',
-          padding: '12px',
-          border: `1px solid ${!isValid && touched ? '#dc3545' : '#ddd'}`,
-          borderRadius: '4px',
-          fontSize: '16px',
-          backgroundColor: disabled ? '#f8f9fa' : 'white',
-        }}
+        error={
+          showValidation && touched && !isValid
+            ? 'Please enter a valid 10-digit phone number'
+            : undefined
+        }
+        helperText={
+          showValidation && touched && isValid && value
+            ? '✓ Valid phone number'
+            : undefined
+        }
       />
-      {showValidation && touched && !isValid && (
-        <small style={{ color: '#dc3545', display: 'block', marginTop: '4px' }}>
-          Please enter a valid 10-digit phone number
-        </small>
-      )}
-      {showValidation && touched && isValid && value && (
-        <small style={{ color: '#28a745', display: 'block', marginTop: '4px' }}>
-          ✓ Valid phone number
-        </small>
-      )}
     </div>
   );
 };

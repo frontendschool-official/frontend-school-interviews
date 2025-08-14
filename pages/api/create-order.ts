@@ -117,14 +117,30 @@ export default async function handler(
       return res.status(500).json({ error: 'Payment gateway not configured' });
     }
 
-    // Convert amount to paise (Razorpay expects amount in smallest currency unit)
-    const amountInPaise = Math.round(paymentDetails.amount * 100);
+    // Check if amount is already in paise (if it's a large number) or in rupees
+    let amountInPaise: number;
+    if (paymentDetails.amount >= 100) {
+      // If amount is >= 100, assume it's already in paise
+      amountInPaise = Math.round(paymentDetails.amount);
+    } else {
+      // If amount is < 100, assume it's in rupees and convert to paise
+      amountInPaise = Math.round(paymentDetails.amount * 100);
+    }
+
     console.log('Amount in paise:', amountInPaise);
 
     // Validate minimum amount (Razorpay minimum is 100 paise = 1 INR)
     if (amountInPaise < 100) {
       console.error('Amount too small:', amountInPaise);
       return res.status(400).json({ error: 'Minimum amount is ₹1' });
+    }
+
+    // Validate maximum amount (Razorpay maximum is typically 10,00,000 paise = ₹10,000)
+    if (amountInPaise > 1000000) {
+      console.error('Amount too large:', amountInPaise);
+      return res
+        .status(400)
+        .json({ error: 'Maximum amount allowed is ₹10,000' });
     }
 
     // Create order data for Razorpay

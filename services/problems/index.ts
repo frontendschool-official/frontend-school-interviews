@@ -18,19 +18,41 @@ import { COLLECTIONS } from '../../enums/collections';
 import { GEMINI_ENDPOINT, getGeminiApiKey } from '../ai/gemini-config';
 
 // Fetch all problems from the interview_problems collection
-export const getAllProblems = async () => {
+export const getAllProblems = async (page: number = 1, limit: number = 12) => {
   try {
     const ref = collection(db, COLLECTIONS.INTERVIEW_PROBLEMS);
     const q = query(ref, orderBy('createdAt', 'desc'));
     const querySnapshot = await getDocs(q);
 
-    const problems: ParsedProblemData[] = [];
+    const allProblems: ParsedProblemData[] = [];
     querySnapshot?.forEach(doc => {
       const data = doc.data();
       const parsedData = parseProblemData({ ...data, id: doc.id });
-      problems.push(parsedData);
+      allProblems.push(parsedData);
     });
-    return problems;
+
+    // Calculate pagination
+    const totalItems = allProblems.length;
+    const totalPages = Math.ceil(totalItems / limit);
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const problems = allProblems.slice(startIndex, endIndex);
+
+    const result = {
+      problems,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalItems,
+        itemsPerPage: limit,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      },
+    };
+
+
+
+    return result;
   } catch (error) {
     console.error('Error getting all problems:', error);
     throw new Error('Failed to get problems');

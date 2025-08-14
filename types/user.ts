@@ -1,3 +1,10 @@
+export interface Subscription {
+  planId: string;
+  paymentId: string;
+  amount: number;
+  activatedAt: Date;
+}
+
 export interface UserProfile {
   uid: string;
   email: string;
@@ -8,8 +15,9 @@ export interface UserProfile {
   updatedAt: Date;
   lastLoginAt: Date;
   isPremium: boolean;
-  subscriptionStatus: 'free' | 'premium' | 'expired';
+  subscriptionStatus: 'free' | 'premium' | 'expired' | 'lifetime';
   subscriptionExpiresAt?: Date;
+  subscription?: Subscription;
   preferences: UserPreferences;
   stats: UserStats;
   onboardingCompleted: boolean;

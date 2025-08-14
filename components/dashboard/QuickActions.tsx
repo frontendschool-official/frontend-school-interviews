@@ -35,20 +35,23 @@ export default function QuickActions() {
   ];
 
   return (
-    <div className='bg-secondary border border-border rounded-xl p-6'>
-      <h3 className='text-xl font-semibold text-text mb-4'>Quick Actions</h3>
-      <div className='grid grid-cols-2 gap-4'>
+    <div className='bg-secondary border border-border rounded-xl p-3 sm:p-4'>
+      <h3 className='text-base sm:text-lg font-semibold text-neutralDark mb-3 flex items-center gap-2'>
+        <FiZap className='text-primary text-sm' />
+        Quick Actions
+      </h3>
+      <div className='grid grid-cols-2 gap-2'>
         {actions.map((action, index) => (
           <Link key={index} href={action.href} className='block'>
-            <div className='bg-bodyBg border border-border rounded-lg p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-border/30'>
+            <div className='bg-bodyBg border border-border rounded-lg p-2 sm:p-3 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-primary/20 text-center'>
               <div
-                className='w-12 h-12 rounded-lg flex items-center justify-center text-white mb-3'
+                className='w-6 h-6 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-white mx-auto mb-2'
                 style={{ backgroundColor: action.color }}
               >
-                <action.icon className='text-xl' />
+                <action.icon className='text-sm sm:text-base' />
               </div>
-              <h4 className='font-semibold text-text mb-1'>{action.title}</h4>
-              <p className='text-sm text-text/70'>{action.description}</p>
+              <h4 className='font-semibold text-neutralDark text-xs sm:text-sm mb-1'>{action.title}</h4>
+              <p className='text-xs text-text/70 leading-tight'>{action.description}</p>
             </div>
           </Link>
         ))}

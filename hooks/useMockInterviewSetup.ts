@@ -233,7 +233,6 @@ export const useMockInterviewSetup = () => {
     try {
       // Create interview session using API
       const sessionData = {
-        userId: user.uid,
         companyName: selectedCompany.name,
         roleLevel: selectedRole.name,
         roundName: selectedRound.name,
@@ -263,6 +262,7 @@ export const useMockInterviewSetup = () => {
       const result = await response.json();
       const newSession: MockInterviewSession = {
         ...sessionData,
+        userId: user.uid, // Add user ID for local state
         id: result.sessionId,
       };
 

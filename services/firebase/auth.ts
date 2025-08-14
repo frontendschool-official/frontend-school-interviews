@@ -45,7 +45,8 @@ export const createSessionCookie = async (idToken: string) => {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to create session cookie');
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to create session cookie');
     }
 
     const data = await response.json();

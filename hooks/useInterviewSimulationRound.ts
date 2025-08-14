@@ -112,7 +112,7 @@ export const useInterviewSimulationRound = () => {
       }
 
       const sessionResponse = await fetch(
-        `/api/interview-simulation/session/get-by-simulation?simulationId=${id}&userId=${user.uid}&roundName=${simulationData.rounds[roundIndex].name}`
+        `/api/interview-simulation/session/get-by-simulation?simulationId=${id}&roundName=${simulationData.rounds[roundIndex].name}`
       );
 
       if (sessionResponse.ok) {
@@ -142,7 +142,7 @@ export const useInterviewSimulationRound = () => {
 
       // First, generate problems for this round
       const response = await fetch(
-        `/api/interview-simulation/start-interview?userId=${user?.uid}&simulationId=${id}`
+        `/api/interview-simulation/start-interview?simulationId=${id}`
       );
 
       if (!response.ok) {
@@ -151,7 +151,7 @@ export const useInterviewSimulationRound = () => {
 
       // Fetch problems from interview_problems collection
       const problemsResponse = await fetch(
-        `/api/interview-simulation/get-round-problems?interviewId=${id}&roundNumber=${roundIndex + 1}&userId=${user?.uid}`
+        `/api/interview-simulation/get-round-problems?interviewId=${id}&roundNumber=${roundIndex + 1}`
       );
 
       if (!problemsResponse.ok) {
@@ -165,8 +165,7 @@ export const useInterviewSimulationRound = () => {
       }
 
       // Create session with problems
-      const sessionData: MockInterviewSession = {
-        userId: user!.uid,
+      const sessionData: Omit<MockInterviewSession, 'userId'> = {
         simulationId: id as string,
         companyName: simulation!.companyName,
         roleLevel: simulation!.roleLevel,
@@ -195,9 +194,15 @@ export const useInterviewSimulationRound = () => {
       }
 
       const sessionResult = await sessionResponse.json();
-      sessionData.id = sessionResult.sessionId;
 
-      setSession(sessionData);
+      // Create complete session object with user ID for local state
+      const completeSessionData: MockInterviewSession = {
+        ...sessionData,
+        userId: user!.uid, // Add user ID for local state only
+        id: sessionResult.sessionId,
+      };
+
+      setSession(completeSessionData);
       setShowInterview(true);
       setHasExistingSession(true);
     } catch (error) {
@@ -280,7 +285,7 @@ export const useInterviewSimulationRound = () => {
       if (!session.problems || session.problems.length === 0) {
         try {
           const problemsResponse = await fetch(
-            `/api/interview-simulation/get-round-problems?interviewId=${id}&roundNumber=${roundIndex + 1}&userId=${user?.uid}`
+            `/api/interview-simulation/get-round-problems?interviewId=${id}&roundNumber=${roundIndex + 1}`
           );
 
           if (problemsResponse.ok) {

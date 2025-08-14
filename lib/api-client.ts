@@ -14,11 +14,20 @@ export interface ApiError {
   message?: string;
 }
 
+export interface SessionResponse {
+  authenticated: boolean;
+  userId?: string;
+  userProfile?: any;
+  message?: string;
+  error?: string;
+}
+
 class ApiClient {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+    // For client-side requests, we don't need a base URL as we're calling relative endpoints
+    this.baseUrl = '';
   }
 
   private async request<T>(
@@ -55,59 +64,52 @@ class ApiClient {
   }
 
   // Problem-related API calls
-  async getAllProblems() {
-    return this.request('/api/problems/get-all');
+  async getAllProblems(page: number = 1, limit: number = 12) {
+    return this.request(`/api/problems/get-all?page=${page}&limit=${limit}`);
   }
 
   async getProblemStats() {
     return this.request('/api/problems/get-stats');
   }
 
-  async getUserStats(userId: string) {
-    return this.request(`/api/dashboard/user-stats?userId=${userId}`);
+  async getUserStats() {
+    return this.request('/api/dashboard/user-stats');
   }
 
   async getProblemById(id: string) {
     return this.request(`/api/problems/get-by-id?id=${id}`);
   }
 
-  async getProblemsByUserId(userId: string) {
-    return this.request(`/api/problems/get-by-user-id?userId=${userId}`);
+  async getProblemsByUserId() {
+    return this.request('/api/problems/get-by-user-id');
   }
 
-  async getSubmissionsByUserId(userId: string) {
-    return this.request(
-      `/api/problems/get-submissions-by-user?userId=${userId}`
-    );
+  async getSubmissionsByUserId() {
+    return this.request('/api/problems/get-submissions-by-user');
   }
 
-  async markProblemAsAttempted(
-    userId: string,
-    problemId: string,
-    problemData: any
-  ) {
+  async markProblemAsAttempted(problemId: string, problemData: any) {
     return this.request('/api/problems/mark-attempted', {
       method: 'POST',
-      body: JSON.stringify({ userId, problemId, problemData }),
+      body: JSON.stringify({ problemId, problemData }),
     });
   }
 
   async markProblemAsCompleted(
-    userId: string,
     problemId: string,
     score: number,
     timeSpent: number
   ) {
     return this.request('/api/problems/mark-completed', {
       method: 'POST',
-      body: JSON.stringify({ userId, problemId, score, timeSpent }),
+      body: JSON.stringify({ problemId, score, timeSpent }),
     });
   }
 
-  async saveSubmission(userId: string, problemId: string, submissionData: any) {
+  async saveSubmission(problemId: string, submissionData: any) {
     return this.request('/api/problems/save-submission', {
       method: 'POST',
-      body: JSON.stringify({ userId, problemId, submissionData }),
+      body: JSON.stringify({ problemId, submissionData }),
     });
   }
 
@@ -118,10 +120,10 @@ class ApiClient {
     });
   }
 
-  async saveFeedback(userId: string, problemId: string, feedbackData: any) {
+  async saveFeedback(problemId: string, feedbackData: any) {
     return this.request('/api/problems/save-feedback', {
       method: 'POST',
-      body: JSON.stringify({ userId, problemId, feedbackData }),
+      body: JSON.stringify({ problemId, feedbackData }),
     });
   }
 
@@ -137,22 +139,39 @@ class ApiClient {
     });
   }
 
-  // User profile-related API calls
-  async getUserProfile(uid: string) {
-    return this.request(`/api/user-profile/get?uid=${uid}`);
+  // Session-related API calls
+  async checkSession(): Promise<SessionResponse> {
+    const response = await this.request('/api/auth/session', {
+      method: 'GET',
+    });
+
+    if (response.error) {
+      return {
+        authenticated: false,
+        error: response.error,
+        message: response.message,
+      };
+    }
+
+    return response.data as SessionResponse;
   }
 
-  async updateUserProfile(uid: string, updates: any) {
+  // User profile-related API calls
+  async getUserProfile() {
+    return this.request('/api/user-profile/get');
+  }
+
+  async updateUserProfile(updates: any) {
     return this.request('/api/user-profile/update', {
       method: 'PUT',
-      body: JSON.stringify({ uid, updates }),
+      body: JSON.stringify({ updates }),
     });
   }
 
-  async completeOnboarding(uid: string, onboardingData: any) {
+  async completeOnboarding(onboardingData: any) {
     return this.request('/api/user-profile/complete-onboarding', {
       method: 'POST',
-      body: JSON.stringify({ uid, onboardingData }),
+      body: JSON.stringify({ onboardingData }),
     });
   }
 
@@ -197,6 +216,19 @@ class ApiClient {
       body: JSON.stringify(paymentData),
     });
   }
+
+  async getSubscriptionStatus() {
+    return this.request('/api/subscription/status', {
+      method: 'GET',
+    });
+  }
+
+  async activateSubscription(subscriptionData: any) {
+    return this.request('/api/subscription/activate', {
+      method: 'POST',
+      body: JSON.stringify(subscriptionData),
+    });
+  }
 }
 
 // Export a singleton instance
@@ -214,6 +246,7 @@ export const {
   saveInterviewProblem,
   saveFeedback,
   evaluateSubmission,
+  checkSession,
   getUserProfile,
   updateUserProfile,
   completeOnboarding,

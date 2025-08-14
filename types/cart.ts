@@ -11,9 +11,9 @@ export interface PaymentItem {
 }
 
 export interface PaymentDetails {
-  amount: number;
+  amount: number; // Amount in rupees (will be converted to paise by the API)
   currency: string;
-  orderId: string;
+  orderId?: string; // Optional, Razorpay will generate if not provided
   customerName: string;
   customerEmail: string;
   customerPhone?: string;
@@ -22,7 +22,7 @@ export interface PaymentDetails {
 
 export interface RazorpayOrder {
   id: string;
-  amount: number;
+  amount: number; // Amount in paise (as returned by Razorpay)
   currency: string;
   receipt: string;
   status: string;

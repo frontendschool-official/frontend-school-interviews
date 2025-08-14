@@ -1,17 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { auth } from 'firebase-admin';
-import { initializeApp, getApps, cert } from 'firebase-admin/app';
-
-// Initialize Firebase Admin if not already initialized
-if (!getApps().length) {
-  initializeApp({
-    credential: cert({
-      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-    }),
-  });
-}
+import { verifySessionCookie } from '@/lib/firebase-admin';
 
 export interface AuthenticatedRequest extends NextApiRequest {
   userId?: string;
@@ -22,117 +10,26 @@ export type ApiHandler = (
   res: NextApiResponse
 ) => Promise<void> | void;
 
-export function withAuth(handler: ApiHandler) {
-  return async (req: AuthenticatedRequest, res: NextApiResponse) => {
-    try {
-      // Get the authorization header
-      const authHeader = req.headers.authorization;
-      console.log(authHeader, 'authHeader');
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        // If no auth header, try to get user ID from cookies (for SSR)
-        const sessionCookie = req.cookies?.session;
-
-        if (sessionCookie) {
-          try {
-            const decodedClaims = await auth().verifySessionCookie(
-              sessionCookie,
-              true
-            );
-            console.log(decodedClaims, 'decodedClaims');
-            req.userId = decodedClaims.uid;
-          } catch (error) {
-            console.error('Error verifying session cookie:', error);
-          }
-        }
-      } else {
-        // Extract the token from the Authorization header
-        const token = authHeader.split('Bearer ')[1];
-        console.log(token, 'token');
-        if (token) {
-          try {
-            // Verify the Firebase ID token
-            const decodedToken = await auth().verifyIdToken(token);
-            console.log(decodedToken, 'decodedToken');
-            req.userId = decodedToken.uid;
-          } catch (error) {
-            console.error('Error verifying ID token:', error);
-          }
-        }
-      }
-
-      // Call the original handler
-      return handler(req, res);
-    } catch (error) {
-      console.error('withAuth error:', error);
-
-      // If there's an error with authentication, continue without user ID
-      // This allows the API route to handle authentication errors appropriately
-      return handler(req, res);
-    }
-  };
+// Helper functions to extract user ID from headers (set by middleware)
+export function getUserIdFromHeader(req: NextApiRequest): string | null {
+  return (req.headers['x-user-id'] as string) || null;
 }
 
-// Optional: Create a version that requires authentication
-export function withRequiredAuth(handler: ApiHandler) {
-  return async (req: AuthenticatedRequest, res: NextApiResponse) => {
-    try {
-      // Get the authorization header
-      const authHeader = req.headers.authorization;
-      console.log(
-        'Auth headers:',
-        req.headers.authorization ? 'Bearer token present' : 'No Bearer token'
-      );
-      console.log(
-        'Session cookie:',
-        req.cookies?.session ? 'Present' : 'Not present'
-      );
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        // If no auth header, try to get user ID from cookies (for SSR)
-        const sessionCookie = req.cookies?.session;
-
-        if (sessionCookie) {
-          try {
-            const decodedClaims = await auth().verifySessionCookie(
-              sessionCookie,
-              true
-            );
-            req.userId = decodedClaims.uid;
-          } catch (error) {
-            console.error('Error verifying session cookie:', error);
-          }
-        }
-      } else {
-        // Extract the token from the Authorization header
-        const token = authHeader.split('Bearer ')[1];
-
-        if (token) {
-          try {
-            // Verify the Firebase ID token
-            const decodedToken = await auth().verifyIdToken(token);
-            req.userId = decodedToken.uid;
-          } catch (error) {
-            console.error('Error verifying ID token:', error);
-          }
-        }
-      }
-      console.log('req.userId', req.userId);
-      // Check if user is authenticated
-      if (!req.userId) {
-        return res.status(401).json({ error: 'Authentication required' });
-      }
-
-      // Call the original handler
-      return handler(req, res);
-    } catch (error) {
-      console.error('withRequiredAuth error:', error);
-      return res.status(500).json({ error: 'Internal server error' });
-    }
-  };
+export function requireUserIdFromHeader(req: NextApiRequest): string {
+  const userId = getUserIdFromHeader(req);
+  if (!userId) {
+    throw new Error('User ID not found in request headers');
+  }
+  return userId;
 }
 
-// Helper functions to extract user ID from request
+export function hasUserIdInHeader(req: NextApiRequest): boolean {
+  return !!req.headers['x-user-id'];
+}
+
+// Legacy helper functions for backward compatibility
 export function getUserIdFromRequest(req: AuthenticatedRequest): string | null {
-  return req.userId || null;
+  return req.userId || getUserIdFromHeader(req);
 }
 
 export function requireUserIdFromRequest(req: AuthenticatedRequest): string {
@@ -144,5 +41,54 @@ export function requireUserIdFromRequest(req: AuthenticatedRequest): string {
 }
 
 export function hasUserIdInRequest(req: AuthenticatedRequest): boolean {
-  return !!req.userId;
+  return !!req.userId || hasUserIdInHeader(req);
+}
+
+// Middleware wrapper that extracts user ID from headers (set by Next.js middleware)
+export function withAuth(handler: ApiHandler) {
+  return async (req: AuthenticatedRequest, res: NextApiResponse) => {
+    try {
+      // Get user ID from headers (set by middleware)
+      const userId = getUserIdFromHeader(req);
+      if (userId) {
+        req.userId = userId;
+      }
+
+      // Call the original handler
+      return handler(req, res);
+    } catch (error) {
+      console.error('withAuth error:', error);
+      return handler(req, res);
+    }
+  };
+}
+
+// Middleware wrapper that requires authentication
+export function withRequiredAuth(handler: ApiHandler) {
+  return async (req: AuthenticatedRequest, res: NextApiResponse) => {
+    try {
+      // First try to get user ID from headers (set by middleware)
+      let userId = getUserIdFromHeader(req);
+
+      // If not in headers, try to verify session cookie directly
+      if (!userId) {
+        const sessionCookie = req.cookies?.session;
+        if (sessionCookie) {
+          userId = await verifySessionCookie(sessionCookie);
+        }
+      }
+
+      if (!userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      req.userId = userId;
+
+      // Call the original handler
+      return handler(req, res);
+    } catch (error) {
+      console.error('withRequiredAuth error:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  };
 }

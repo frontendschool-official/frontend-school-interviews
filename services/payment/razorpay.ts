@@ -13,15 +13,34 @@ declare global {
 // Load Razorpay script
 export const loadRazorpayScript = (): Promise<void> => {
   return new Promise((resolve, reject) => {
+    console.log('🔄 Loading Razorpay script...');
+
     if (window.Razorpay) {
+      console.log('✅ Razorpay script already loaded');
       resolve();
       return;
     }
 
     const script = document.createElement('script');
     script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error('Failed to load Razorpay script'));
+
+    script.onload = () => {
+      console.log('✅ Razorpay script loaded successfully');
+      if (window.Razorpay) {
+        console.log('✅ window.Razorpay is now available');
+        resolve();
+      } else {
+        console.error('❌ window.Razorpay not available after script load');
+        reject(new Error('Razorpay object not available after script load'));
+      }
+    };
+
+    script.onerror = error => {
+      console.error('❌ Failed to load Razorpay script:', error);
+      reject(new Error('Failed to load Razorpay script'));
+    };
+
+    console.log('📜 Appending script to document head...');
     document.head.appendChild(script);
   });
 };
@@ -192,20 +211,29 @@ export const initializePayment = async (
       cancel_url: `${window.location.origin}/premium`,
     };
 
-    console.log('Razorpay options prepared:', options);
-    console.log('Phone number formatting:', {
+    console.log('🔧 Razorpay options prepared:', options);
+    console.log('📱 Phone number formatting:', {
       original: paymentDetails.customerPhone,
       formatted: formattedPhone,
       isValid: formattedPhone.length === 10,
     });
 
     if (!window.Razorpay) {
+      console.error('❌ window.Razorpay is not available');
       throw new Error('Razorpay script not loaded');
     }
 
+    console.log('✅ window.Razorpay is available, creating instance...');
     const razorpay = new window.Razorpay(options);
-    console.log('Razorpay instance created, opening modal...');
-    razorpay.open();
+    console.log('✅ Razorpay instance created, opening modal...');
+
+    try {
+      razorpay.open();
+      console.log('✅ razorpay.open() called successfully');
+    } catch (error) {
+      console.error('❌ Error calling razorpay.open():', error);
+      throw error;
+    }
   } catch (error) {
     console.error('Error initializing payment:', error);
     onFailure(error);
@@ -248,27 +276,21 @@ export const verifyPayment = async (
 };
 
 // Save payment to Firebase
-export const savePaymentToFirebase = async (
-  userId: string,
-  paymentData: {
-    orderId: string;
-    paymentId: string;
-    amount: number;
-    currency: string;
-    status: string;
-    items: any[];
-  }
-) => {
+export const savePaymentToFirebase = async (paymentData: {
+  orderId: string;
+  paymentId: string;
+  amount: number;
+  currency: string;
+  status: string;
+  items: any[];
+}) => {
   try {
     const response = await fetch('/api/save-payment', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        userId,
-        ...paymentData,
-      }),
+      body: JSON.stringify(paymentData),
     });
 
     if (!response.ok) {

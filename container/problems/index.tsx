@@ -1,23 +1,49 @@
 import React from 'react';
-import ProblemCard from '@/components/ProblemCard';
-import PromptModal from '@/components/PromptModal';
+import { PromptModal } from '@/components/ui/Modal';
 import { useAuth } from '@/hooks/useAuth';
 import { useProblems } from '@/hooks/useProblems';
 import { useInterviewGeneration } from '@/container/problems/hooks/useInterviewGeneration';
 import { useProblemFilters } from '@/container/problems/hooks/useProblemFilters';
-import Tabs, { TabItem } from '@/components/ui/Tabs';
 import Layout from '@/components/Layout';
 import { ProblemCardLoadingState } from '@/components/ui/LoadingState';
-import { FiSearch, FiX, FiChevronDown, FiGrid, FiList } from 'react-icons/fi';
+import { FiSearch, FiX, FiGrid, FiList, FiArrowUp } from 'react-icons/fi';
+import {
+  Button,
+  ProblemCard,
+  SearchableDropdown,
+  Pagination,
+} from '@/components/ui';
+import type { SearchableDropdownOption } from '@/components/ui';
+
+interface TabItem {
+  id: string;
+  label: string;
+  count: number;
+  icon: string;
+}
 
 const ProblemsPage: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const itemsPerPage = 12;
+
   const {
     problems,
     statuses,
     loading: problemsLoading,
     error: problemsError,
-  } = useProblems();
+    pagination,
+  } = useProblems(currentPage, itemsPerPage);
+
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    // Scroll to top when page changes
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const { loading: generationLoading, startInterviewAndNavigate } =
     useInterviewGeneration();
 
@@ -29,6 +55,11 @@ const ProblemsPage: React.FC = () => {
       user,
     });
 
+  // Reset page when filter changes
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [activeFilter]);
+
   // Local modal state (avoid global store loops)
   const [modalOpen, setModalOpen] = React.useState(false);
   const openModal = React.useCallback(() => setModalOpen(true), []);
@@ -36,19 +67,38 @@ const ProblemsPage: React.FC = () => {
 
   // Search and sort state
   const [searchQuery, setSearchQuery] = React.useState('');
-  const [sortBy, setSortBy] = React.useState<'title' | 'difficulty' | 'type'>(
-    'title'
-  );
+  const [sortBy, setSortBy] = React.useState<SearchableDropdownOption | null>({
+    id: 'title',
+    label: 'Title',
+    icon: <FiArrowUp className='w-3 h-3 text-primary' />,
+  });
+
+  // View state
+  const [viewMode, setViewMode] = React.useState<'grid' | 'list'>('grid');
+
+  const sortOptions: SearchableDropdownOption[] = [
+    {
+      id: 'title',
+      label: 'Title',
+      icon: <FiArrowUp className='w-3 h-3 text-primary' />,
+    },
+    {
+      id: 'difficulty',
+      label: 'Difficulty',
+      icon: <FiArrowUp className='w-3 h-3 text-primary' />,
+    },
+    {
+      id: 'type',
+      label: 'Type',
+      icon: <FiArrowUp className='w-3 h-3 text-primary' />,
+    },
+  ];
 
   // Search input ref for keyboard shortcuts
   const searchInputRef = React.useRef<HTMLInputElement>(null);
-  const [isMac, setIsMac] = React.useState(false);
 
   // Add keyboard shortcut for search focus (Ctrl/Cmd + K)
   React.useEffect(() => {
-    // Check if running on Mac for keyboard shortcut display
-    setIsMac(navigator.platform.toUpperCase().indexOf('MAC') >= 0);
-
     const handleKeyDown = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
         event.preventDefault();
@@ -140,7 +190,7 @@ const ProblemsPage: React.FC = () => {
       if (!a || !b) return 0;
 
       try {
-        switch (sortBy) {
+        switch (sortBy?.id) {
           case 'title':
             const titleA = a.title || '';
             const titleB = b.title || '';
@@ -220,23 +270,31 @@ const ProblemsPage: React.FC = () => {
         ) : (
           <>
             {/* Header Section */}
-            <div className='mb-6 sm:mb-8'>
+            <header className='mb-6 sm:mb-8'>
               <div className='flex justify-between items-start mb-4 sm:mb-6 p-4 sm:p-6 bg-secondary rounded-2xl border border-border shadow-lg md:flex-row flex-col gap-4 text-center md:text-left'>
                 <div className='flex-1'>
                   <h1 className='text-2xl sm:text-3xl font-bold text-neutralDark mb-2'>
                     Interview Problems
                   </h1>
-                  <p className='text-text opacity-80 text-xs sm:text-sm'>
-                    Practice coding problems across different categories to ace
-                    your interviews
+                  <p className='text-text opacity-80 text-sm sm:text-base leading-relaxed'>
+                    Master coding problems across different categories to ace
+                    your technical interviews. Practice DSA, machine coding,
+                    system design, and theory questions.
                   </p>
+                  {pagination && (
+                    <div className='mt-3 text-sm text-text/60'>
+                      {pagination.totalItems} problems available - Page{' '}
+                      {pagination.currentPage} of {pagination.totalPages}
+                    </div>
+                  )}
                 </div>
-                <div>
+                <div className='flex-shrink-0'>
                   {user ? (
                     <button
                       onClick={openModal}
                       disabled={generationLoading}
-                      className='w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 border-none rounded-lg bg-primary text-bodyBg font-semibold text-xs sm:text-sm cursor-pointer transition-all duration-300 shadow-md hover:enabled:-translate-y-1 hover:enabled:shadow-lg hover:enabled:bg-accent disabled:opacity-60 disabled:cursor-not-allowed'
+                      className='w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 border-none rounded-lg bg-primary text-bodyBg font-semibold text-sm cursor-pointer transition-all duration-300 shadow-md hover:enabled:-translate-y-1 hover:enabled:shadow-lg hover:enabled:bg-accent disabled:opacity-60 disabled:cursor-not-allowed'
+                      aria-label='Create new interview problem'
                     >
                       {generationLoading
                         ? 'Creating...'
@@ -249,17 +307,7 @@ const ProblemsPage: React.FC = () => {
                   )}
                 </div>
               </div>
-
-              {/* Tabs Section */}
-              <div className='mb-6'>
-                <Tabs
-                  items={tabItems}
-                  activeTab={activeFilter}
-                  onTabChange={tabId => setFilter(tabId as any)}
-                  className='mb-4 justify-center md:justify-start'
-                />
-              </div>
-            </div>
+            </header>
 
             {problemsError && (
               <div className='flex flex-col items-center gap-4 p-8 bg-secondary rounded-xl border border-border mb-6'>
@@ -278,212 +326,289 @@ const ProblemsPage: React.FC = () => {
             {!problemsError && (
               <>
                 {problems?.length > 0 ? (
-                  <>
-                    {/* Search and Sort Controls */}
-                    <div className='bg-secondary/50 rounded-xl p-3 sm:p-4 mb-4 sm:mb-6 border border-border/30 border-border shadow-sm'>
-                      <div className='flex flex-col lg:flex-row gap-3 sm:gap-4 lg:items-center'>
-                        {/* Search Input */}
-                        <div className='flex-1'>
-                          <div className='relative'>
-                            <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none border-border'>
-                              <FiSearch className='h-5 w-5 text-text/40' />
-                            </div>
-                            <input
-                              ref={searchInputRef}
-                              type='text'
-                              placeholder='Search problems by title, description, or technologies...'
-                              value={searchQuery || ''}
-                              onChange={(
-                                e: React.ChangeEvent<HTMLInputElement>
-                              ) => {
-                                const value = e?.target?.value;
-                                setSearchQuery(value || '');
-                              }}
-                              className='w-full pl-10 pr-20 py-2 sm:py-3 border border-border border-border/50 rounded-lg bg-secondary text-text text-sm placeholder:text-text/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200'
-                            />
-                            <div className='absolute inset-y-0 right-0 flex items-center'>
-                              {searchQuery ? (
-                                <button
-                                  onClick={() => setSearchQuery('')}
-                                  className='mr-3 text-text/40 hover:text-text transition-colors p-1 rounded-md hover:bg-secondary/50'
-                                  type='button'
-                                  title='Clear search'
-                                >
-                                  <FiX className='h-4 w-4' />
-                                </button>
-                              ) : (
-                                <div className='mr-3 hidden lg:flex items-center gap-1 text-text/30 text-xs'>
-                                  <kbd className='px-1.5 py-0.5 bg-border/20 rounded border text-[10px]'>
-                                    {isMac ? '⌘' : 'Ctrl'}
-                                  </kbd>
-                                  <kbd className='px-1.5 py-0.5 bg-border/20 rounded border text-[10px]'>
-                                    K
-                                  </kbd>
+                  <div className='flex flex-col lg:flex-row gap-6'>
+                    {/* Left Sidebar - Filters */}
+                    <aside className='lg:w-80 flex-shrink-0'>
+                      <div className='sticky top-6 space-y-6'>
+                        {/* Category Filters */}
+                        <section className='bg-secondary/50 rounded-xl p-4 border border-border/30 shadow-sm'>
+                          <h3 className='text-lg font-semibold text-neutralDark mb-4'>
+                            Categories
+                          </h3>
+                          <nav
+                            className='space-y-2'
+                            aria-label='Problem categories'
+                          >
+                            {tabItems.map(tab => (
+                              <button
+                                key={tab.id}
+                                onClick={() => setFilter(tab.id as any)}
+                                className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                                  activeFilter === tab.id
+                                    ? 'bg-primary text-bodyBg'
+                                    : 'text-text/70 hover:bg-secondary hover:text-text'
+                                }`}
+                                aria-pressed={activeFilter === tab.id}
+                                aria-label={`${tab.label} problems (${tab.count})`}
+                              >
+                                <div className='flex items-center justify-between'>
+                                  <span className='flex items-center gap-2'>
+                                    <span aria-hidden='true'>{tab.icon}</span>
+                                    {tab.label}
+                                  </span>
+                                  <span
+                                    className='text-xs opacity-70'
+                                    aria-label={`${tab.count} problems`}
+                                  >
+                                    {tab.count}
+                                  </span>
                                 </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
+                              </button>
+                            ))}
+                          </nav>
+                        </section>
 
                         {/* Sort Controls */}
-                        <div className='flex items-center gap-2 sm:gap-3 lg:min-w-0 lg:flex-shrink-0'>
-                          <label
-                            htmlFor='sort-select'
-                            className='text-xs sm:text-sm text-text/70 font-medium whitespace-nowrap'
-                          >
-                            Sort by:
-                          </label>
-                          <div className='relative'>
-                            <select
-                              id='sort-select'
-                              value={sortBy || 'title'}
-                              onChange={(
-                                e: React.ChangeEvent<HTMLSelectElement>
-                              ) => {
-                                const value = e?.target?.value;
-                                if (
-                                  value === 'title' ||
-                                  value === 'difficulty' ||
-                                  value === 'type'
-                                ) {
-                                  setSortBy(value);
-                                }
-                              }}
-                              className='appearance-none border-border bg-secondary border border-border/50 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 pr-8 text-text text-xs sm:text-sm cursor-pointer focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 min-w-[100px] sm:min-w-[120px]'
-                            >
-                              <option value='title'>Title</option>
-                              <option value='difficulty'>Difficulty</option>
-                              <option value='type'>Type</option>
-                            </select>
-                            <div className='absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none'>
-                              <FiChevronDown className='h-4 w-4 text-text/40' />
+                        <section className='bg-secondary/50 rounded-xl p-4 border border-border/30 shadow-sm'>
+                          <h3 className='text-lg font-semibold text-neutralDark mb-4'>
+                            Sort Options
+                          </h3>
+                          <SearchableDropdown
+                            options={sortOptions}
+                            value={sortBy}
+                            onValueChange={setSortBy}
+                            placeholder='Sort by...'
+                            searchPlaceholder='Search sort options...'
+                            size='sm'
+                            icon={
+                              <FiArrowUp className='w-3 h-3 text-primary' />
+                            }
+                            emptyMessage='No sort options available'
+                            noResultsMessage='No sort options found'
+                            className='w-full'
+                            aria-label='Sort problems by'
+                          />
+                        </section>
+                      </div>
+                    </aside>
+
+                    {/* Main Content Area */}
+                    <div className='flex-1 min-w-0'>
+                      {/* Search Bar - Always at Top */}
+                      <section className='bg-secondary/50 rounded-xl p-4 mb-6 border border-border/30 shadow-sm'>
+                        <div className='flex flex-col lg:flex-row gap-4 lg:items-center'>
+                          {/* Search Input */}
+                          <div className='flex-1'>
+                            <label htmlFor='problem-search' className='sr-only'>
+                              Search problems
+                            </label>
+                            <div className='relative'>
+                              <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none border-border'>
+                                <FiSearch className='h-5 w-5 text-text/40' />
+                              </div>
+                              <input
+                                id='problem-search'
+                                ref={searchInputRef}
+                                type='text'
+                                placeholder='Search problems by title, description, or technologies...'
+                                value={searchQuery || ''}
+                                onChange={(
+                                  e: React.ChangeEvent<HTMLInputElement>
+                                ) => {
+                                  const value = e?.target?.value;
+                                  setSearchQuery(value || '');
+                                }}
+                                className='w-full pl-10 pr-20 py-3 border border-border border-border/50 rounded-lg bg-secondary text-text text-sm placeholder:text-text/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200'
+                                aria-describedby='search-help'
+                              />
+                              <div className='absolute inset-y-0 right-0 flex items-center'>
+                                {searchQuery ? (
+                                  <button
+                                    onClick={() => setSearchQuery('')}
+                                    className='mr-3 text-text/40 hover:text-text transition-colors p-1 rounded-md hover:bg-secondary/50'
+                                    type='button'
+                                    title='Clear search'
+                                    aria-label='Clear search'
+                                  >
+                                    <FiX className='h-4 w-4' />
+                                  </button>
+                                ) : (
+                                  <div className='mr-3 hidden lg:flex items-center gap-1 text-text/30 text-xs'>
+                                    <kbd className='px-1.5 py-0.5 bg-border/20 rounded border text-[10px]'>
+                                      {navigator.platform
+                                        .toUpperCase()
+                                        .indexOf('MAC') >= 0
+                                        ? '⌘'
+                                        : 'Ctrl'}
+                                    </kbd>
+                                    <kbd className='px-1.5 py-0.5 bg-border/20 rounded border text-[10px]'>
+                                      K
+                                    </kbd>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            <div id='search-help' className='sr-only'>
+                              Use Ctrl+K or Cmd+K to quickly focus the search
+                              box
                             </div>
                           </div>
-                        </div>
-                      </div>
 
-                      {/* Quick Filter Chips (Optional Enhancement) */}
-                      {searchQuery && (
-                        <div className='mt-3 pt-3 border-t border-border/20'>
+                          {/* Quick Filter Chips */}
+                          {searchQuery && (
+                            <div className='flex items-center gap-2 lg:flex-shrink-0'>
+                              <span className='text-xs text-text/60'>
+                                Active search:
+                              </span>
+                              <span className='inline-flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary text-xs rounded-md'>
+                                "{searchQuery}"
+                                <button
+                                  onClick={() => setSearchQuery('')}
+                                  className='hover:bg-primary/20 rounded-sm p-0.5 transition-colors'
+                                  aria-label='Clear search'
+                                >
+                                  <FiX className='h-3 w-3' />
+                                </button>
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </section>
+
+                      {/* Results Summary and View Toggle */}
+                      {filteredProblems.length > 0 && (
+                        <div className='mb-6 flex items-center justify-between'>
+                          <div className='flex items-center gap-2 text-sm text-text/70'>
+                            <span className='font-medium text-text'>
+                              {processedProblems.length}
+                            </span>
+                            <span>
+                              {processedProblems.length === 1
+                                ? ' problem'
+                                : ' problems'}
+                              {searchQuery && searchQuery.trim() && (
+                                <span className='text-primary'>
+                                  {' '}
+                                  matching "{searchQuery}"
+                                </span>
+                              )}
+                            </span>
+                          </div>
+
+                          {/* View Toggle */}
                           <div className='flex items-center gap-2'>
-                            <span className='text-xs text-text/60'>
-                              Active search:
+                            <span className='text-xs text-text/60 font-medium'>
+                              View:
                             </span>
-                            <span className='inline-flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary text-xs rounded-md'>
-                              "{searchQuery}"
-                              <button
-                                onClick={() => setSearchQuery('')}
-                                className='hover:bg-primary/20 rounded-sm p-0.5 transition-colors'
-                              >
-                                <FiX className='h-3 w-3' />
-                              </button>
-                            </span>
+                            <div className='flex items-center gap-1 bg-secondary/50 rounded-lg p-1 border border-border/30 border-border'>
+                              <Button
+                                variant='icon'
+                                size='sm'
+                                className={
+                                  viewMode === 'grid'
+                                    ? 'bg-primary'
+                                    : 'bg-transparent hover:bg-secondary'
+                                }
+                                leftIcon={<FiGrid className='h-4 w-4' />}
+                                onClick={() => setViewMode('grid')}
+                                aria-label='Grid view'
+                                title='Grid view'
+                              />
+                              <Button
+                                variant='icon'
+                                size='sm'
+                                className={
+                                  viewMode === 'list'
+                                    ? 'bg-primary'
+                                    : 'bg-transparent hover:bg-secondary'
+                                }
+                                leftIcon={<FiList className='h-4 w-4' />}
+                                onClick={() => setViewMode('list')}
+                                aria-label='List view'
+                                title='List view'
+                              />
+                            </div>
                           </div>
                         </div>
                       )}
+
+                      {/* Problems Grid/List */}
+                      {processedProblems.length > 0 ? (
+                        <section
+                          className={`transition-all duration-300 ease-in-out ${
+                            viewMode === 'grid'
+                              ? 'grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6'
+                              : 'flex flex-col gap-3'
+                          }`}
+                          aria-label={`${processedProblems.length} problems in ${viewMode} view`}
+                        >
+                          {processedProblems
+                            ?.map(problem => {
+                              // Validate problem object
+                              if (
+                                !problem ||
+                                typeof problem !== 'object' ||
+                                !problem?.id
+                              ) {
+                                console.warn(
+                                  'Invalid problem object:',
+                                  problem
+                                );
+                                return null;
+                              }
+
+                              // Safely get status with fallback
+                              const problemStatus =
+                                statuses[problem?.id] || 'unsolved';
+
+                              return (
+                                <ProblemCard
+                                  key={problem?.id}
+                                  problem={problem}
+                                  status={problemStatus}
+                                  variant={
+                                    viewMode === 'list' ? 'list' : 'default'
+                                  }
+                                />
+                              );
+                            })
+                            .filter(Boolean)}
+                        </section>
+                      ) : (
+                        <div className='text-center py-12 px-4'>
+                          <div className='text-4xl mb-4 opacity-60'>
+                            {activeFilter === 'all'
+                              ? '📚'
+                              : activeFilter === 'dsa'
+                                ? '🧮'
+                                : activeFilter === 'machine_coding'
+                                  ? '💻'
+                                  : activeFilter === 'system_design'
+                                    ? '🏗️'
+                                    : activeFilter === 'theory'
+                                      ? '📖'
+                                      : '✅'}
+                          </div>
+                          <h3 className='text-xl font-semibold text-neutralDark mb-2'>
+                            {searchQuery && searchQuery.trim()
+                              ? `No problems found matching "${searchQuery}"`
+                              : `No ${
+                                  activeFilter === 'all'
+                                    ? ''
+                                    : activeFilter.replace('_', ' ')
+                                } problems available`}
+                          </h3>
+                          <p className='text-text opacity-70 text-sm'>
+                            {searchQuery
+                              ? 'Try adjusting your search terms or filters.'
+                              : user
+                                ? 'Create your first problem to get started.'
+                                : 'Sign in to create and track problems.'}
+                          </p>
+                        </div>
+                      )}
                     </div>
-
-                    {/* Results Summary */}
-                    {filteredProblems.length > 0 && (
-                      <div className='mb-6 flex items-center justify-between'>
-                        <div className='flex items-center gap-2 text-sm text-text/70'>
-                          <span className='font-medium text-text'>
-                            {processedProblems.length}
-                          </span>
-                          <span>
-                            {processedProblems.length === 1
-                              ? 'problem'
-                              : 'problems'}
-                            {searchQuery && searchQuery.trim() && (
-                              <span className='text-primary'>
-                                {' '}
-                                matching your search
-                              </span>
-                            )}
-                          </span>
-                        </div>
-
-                        {/* View Toggle (for future enhancement) */}
-                        <div className='flex items-center gap-1 bg-secondary/50 rounded-lg p-1 border border-border/30 border-border'>
-                          <button
-                            className='p-1.5 rounded-md bg-primary text-white transition-colors'
-                            title='Grid view'
-                          >
-                            <FiGrid className='h-4 w-4' />
-                          </button>
-                          <button
-                            className='p-1.5 rounded-md text-text/40 hover:text-text hover:bg-secondary/50 transition-colors'
-                            title='List view'
-                          >
-                            <FiList className='h-4 w-4' />
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Problems Grid */}
-                    {processedProblems.length > 0 ? (
-                      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6'>
-                        {processedProblems
-                          ?.map(problem => {
-                            // Validate problem object
-                            if (
-                              !problem ||
-                              typeof problem !== 'object' ||
-                              !problem?.id
-                            ) {
-                              console.warn('Invalid problem object:', problem);
-                              return null;
-                            }
-
-                            // Safely get status with fallback
-                            const problemStatus =
-                              statuses[problem?.id] || 'unsolved';
-
-                            return (
-                              <ProblemCard
-                                key={problem?.id}
-                                problem={problem}
-                                status={problemStatus}
-                              />
-                            );
-                          })
-                          .filter(Boolean)}
-                      </div>
-                    ) : (
-                      <div className='text-center py-12 px-4'>
-                        <div className='text-4xl mb-4 opacity-60'>
-                          {activeFilter === 'all'
-                            ? '📚'
-                            : activeFilter === 'dsa'
-                              ? '🧮'
-                              : activeFilter === 'machine_coding'
-                                ? '💻'
-                                : activeFilter === 'system_design'
-                                  ? '🏗️'
-                                  : activeFilter === 'theory'
-                                    ? '📖'
-                                    : '✅'}
-                        </div>
-                        <h3 className='text-xl font-semibold text-neutralDark mb-2'>
-                          {searchQuery && searchQuery.trim()
-                            ? `No problems found matching "${searchQuery}"`
-                            : `No ${
-                                activeFilter === 'all'
-                                  ? ''
-                                  : activeFilter.replace('_', ' ')
-                              } problems available`}
-                        </h3>
-                        <p className='text-text opacity-70 text-sm'>
-                          {searchQuery
-                            ? 'Try adjusting your search terms or filters.'
-                            : user
-                              ? 'Create your first problem to get started.'
-                              : 'Sign in to create and track problems.'}
-                        </p>
-                      </div>
-                    )}
-                  </>
+                  </div>
                 ) : (
                   <div className='flex flex-col items-center justify-center min-h-96 py-12 px-4 text-center bg-secondary rounded-2xl border border-border/20 my-8'>
                     <div className='text-6xl mb-6 opacity-60'>📚</div>
@@ -509,8 +634,21 @@ const ProblemsPage: React.FC = () => {
                 )}
               </>
             )}
-
+            {/* Pagination */}
+            {pagination && pagination.totalPages > 1 && (
+              <nav className='mt-8' aria-label='Problems pagination'>
+                <Pagination
+                  currentPage={pagination.currentPage}
+                  totalPages={pagination.totalPages}
+                  totalItems={pagination.totalItems}
+                  itemsPerPage={pagination.itemsPerPage}
+                  onPageChange={handlePageChange}
+                />
+              </nav>
+            )}
             <PromptModal
+              title='Start New Interview'
+              children={<div>Hello</div>}
               visible={modalOpen}
               onClose={closeModal}
               onSubmit={handleStartInterview}

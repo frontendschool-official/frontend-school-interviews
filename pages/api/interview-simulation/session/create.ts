@@ -1,36 +1,37 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+import { NextApiResponse } from 'next';
 import { addDoc, collection } from 'firebase/firestore';
 import { db } from '@/services/firebase/config';
 import { COLLECTIONS } from '@/enums/collections';
 import { MockInterviewSession } from '@/types/problem';
+import { withRequiredAuth, AuthenticatedRequest } from '@/lib/auth';
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const sessionData: MockInterviewSession = req.body;
+    const sessionData: Omit<MockInterviewSession, 'userId'> = req.body;
 
-    // Validate required fields
+    // Validate required fields (userId will be added from server-side session)
     if (
-      !sessionData.userId ||
       !sessionData.companyName ||
       !sessionData.roleLevel ||
       !sessionData.roundName
     ) {
       return res.status(400).json({
         error:
-          'Missing required fields: userId, companyName, roleLevel, and roundName are required',
+          'Missing required fields: companyName, roleLevel, and roundName are required',
       });
     }
 
-    // Add timestamp
+    // Get user ID from authenticated session (verified server-side)
+    const userId = req.userId!;
+
+    // Add timestamp and user ID
     const sessionWithTimestamp = {
       ...sessionData,
+      userId, // Add user ID from server-side session
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -55,3 +56,5 @@ export default async function handler(
     });
   }
 }
+
+export default withRequiredAuth(handler);

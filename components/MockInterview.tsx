@@ -174,14 +174,14 @@ export default function MockInterview({
         <div className='w-1/3 bg-gray-800 border-r border-gray-700 p-6 overflow-y-auto'>
           <div className='mb-6'>
             <h2 className='text-xl font-bold text-white mb-2'>
-              {currentProblemData.title}
+              {currentProblemData?.title}
             </h2>
             <div className='text-sm text-gray-400 mb-4'>
-              {currentProblemData.type.toUpperCase()} •{' '}
-              {currentProblemData.difficulty}
+              {currentProblemData?.type.toUpperCase()} •{' '}
+              {currentProblemData?.difficulty}
             </div>
             <p className='text-gray-300 leading-relaxed'>
-              {currentProblemData.description}
+              {currentProblemData?.description}
             </p>
           </div>
 

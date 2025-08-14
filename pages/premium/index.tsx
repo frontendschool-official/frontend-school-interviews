@@ -10,7 +10,12 @@ import {
   FiClock,
 } from 'react-icons/fi';
 import { apiClient } from '@/lib/api-client';
-import { initializePayment } from '@/services/payment/razorpay';
+import {
+  initializePayment,
+  verifyPayment,
+  savePaymentToFirebase,
+} from '@/services/payment/razorpay';
+import { useSubscription } from '@/hooks/useSubscription';
 
 const plans = [
   {
@@ -68,6 +73,7 @@ const plans = [
 
 const PremiumPage: NextPage = () => {
   const { user } = useAuth();
+  const { hasPremiumAccess, activateSubscription } = useSubscription();
   const [loading, setLoading] = useState<string | null>(null);
 
   const handlePurchase = async (plan: (typeof plans)[0]) => {
@@ -77,15 +83,21 @@ const PremiumPage: NextPage = () => {
       return;
     }
 
+    // Check if user already has premium access
+    if (hasPremiumAccess()) {
+      alert('You already have premium access!');
+      return;
+    }
+
     setLoading(plan.id);
     try {
       // Create order
       const orderResponse = await apiClient.createOrder({
-        amount: plan.price * 100, // Convert to paise
+        amount: plan.price, // Send amount in rupees
         currency: 'INR',
-        orderId: `premium_${plan.id}_${Date.now()}`,
         customerName: user.displayName || 'Unknown',
         customerEmail: user.email || '',
+        customerPhone: user.phoneNumber || '',
         items: [
           {
             id: plan.id,
@@ -104,15 +116,30 @@ const PremiumPage: NextPage = () => {
         throw new Error(orderResponse.error);
       }
 
-      const order = orderResponse.data as any;
+      // The API returns {success: true, order: {...}}
+      const responseData = orderResponse.data as any;
+      console.log('📋 Full API response:', orderResponse);
+      console.log('📋 Response data:', responseData);
+
+      const order = responseData?.order || responseData;
+      console.log('📋 Extracted order:', order);
+
+      // Validate order structure
+      if (!order || !order.id || !order.amount) {
+        console.error('❌ Invalid order structure:', order);
+        console.error('📋 Full response:', orderResponse);
+        throw new Error('Invalid order received from payment gateway');
+      }
+
+      console.log('✅ Order validation passed');
 
       // Initialize payment
       const paymentDetails = {
-        amount: plan.price * 100,
+        amount: plan.price, // Send amount in rupees
         currency: 'INR',
-        orderId: order.id,
         customerName: user.displayName || 'Unknown',
         customerEmail: user.email || '',
+        customerPhone: user.phoneNumber || '',
         items: [
           {
             id: plan.id,
@@ -131,8 +158,75 @@ const PremiumPage: NextPage = () => {
         order,
         paymentDetails,
         async (response: any) => {
-          console.log('Payment successful:', response);
-          // Handle payment success (moved from below)
+          console.log('🎉 Payment successful:', response);
+          console.log('👤 Current user:', user);
+          console.log('🔐 User authenticated:', !!user);
+
+          if (!user) {
+            console.error('❌ No user found in payment success callback');
+            alert('Authentication error. Please try again.');
+            return;
+          }
+
+          try {
+            // Get the user's ID token for API calls
+            const idToken = await user.getIdToken();
+            console.log('🔑 ID token obtained:', idToken ? 'Yes' : 'No');
+            console.log('🔍 Step 1: Verifying payment...');
+            // Verify payment
+            const verificationResult = await verifyPayment(
+              order.id,
+              response.razorpay_payment_id,
+              response.razorpay_signature
+            );
+
+            console.log('📋 Verification result:', verificationResult);
+
+            if (!verificationResult.success) {
+              throw new Error('Payment verification failed');
+            }
+
+            console.log('✅ Payment verification successful');
+
+            console.log('💾 Step 2: Saving payment to Firebase...');
+            // Save payment to Firebase
+            await savePaymentToFirebase({
+              orderId: order.id,
+              paymentId: response.razorpay_payment_id,
+              amount: plan.price,
+              currency: 'INR',
+              status: 'success',
+              items: paymentDetails.items,
+            });
+
+            console.log('✅ Payment saved to Firebase');
+
+            console.log('🔓 Step 3: Activating subscription...');
+            // Activate subscription
+            await activateSubscription({
+              planId: plan.id,
+              paymentId: response.razorpay_payment_id,
+              amount: plan.price,
+            });
+
+            console.log('✅ Subscription activated successfully');
+
+            // Redirect to success page
+            console.log('🔄 Redirecting to success page...');
+            window.location.href = '/payment-success';
+          } catch (error) {
+            console.error('❌ Error processing payment success:', error);
+            console.error('❌ Error details:', {
+              message: error instanceof Error ? error.message : 'Unknown error',
+              stack: error instanceof Error ? error.stack : 'No stack trace',
+              name: error instanceof Error ? error.name : 'Unknown',
+            });
+            alert(
+              'Payment successful but there was an error activating your subscription. Please contact support.'
+            );
+          } finally {
+            setLoading(null);
+          }
         },
         (error: any) => {
           console.error('Payment failed:', error);

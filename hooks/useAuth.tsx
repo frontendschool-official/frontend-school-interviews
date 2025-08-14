@@ -70,6 +70,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   useEffect(() => {
     console.log('🔥 Setting up auth state listener...');
+
     const unsubscribe = onUserStateChange(async firebaseUser => {
       console.log(
         '🔥 Auth state changed:',
@@ -100,8 +101,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     });
 
     console.log('🔥 Auth listener setup complete');
+
+    // Fallback: ensure loading is set to false after 2 seconds
+    const fallbackTimer = setTimeout(() => {
+      setLoading(false);
+    }, 2000);
+
     return () => {
       console.log('🔥 Cleaning up auth listener');
+      clearTimeout(fallbackTimer);
       unsubscribe();
     };
   }, []);

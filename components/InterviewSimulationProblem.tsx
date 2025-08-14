@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FiClock, FiCheck, FiArrowRight, FiArrowLeft } from 'react-icons/fi';
 import { useThemeContext } from '../hooks/useTheme';
-import DSAEditor from './DSAEditor';
-import CodeEditor from './CodeEditor';
+import { CodeEditor } from './ui';
 import SystemDesignCanvas from './SystemDesignCanvas';
 import { SimulationProblem } from '../types/problem';
 
@@ -89,7 +88,7 @@ export default function InterviewSimulationProblem({
   const renderProblemContent = () => {
     switch (problem.type) {
       case 'dsa':
-        return <DSAEditor code={solution} onChange={setSolution} />;
+        return <CodeEditor code={solution} onChange={setSolution} mode='dsa' />;
 
       case 'machine_coding':
         return (

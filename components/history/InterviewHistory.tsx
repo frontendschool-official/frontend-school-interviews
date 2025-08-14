@@ -1,17 +1,28 @@
 import React, { useState } from 'react';
-import { FiFilter } from 'react-icons/fi';
+import { FiFilter, FiArrowUp } from 'react-icons/fi';
 import ProblemTypeFilter, {
   PROBLEM_TYPES,
 } from '@/components/problems/ProblemTypeFilter';
-import ProblemCard, { Problem } from '@/components/problems/ProblemCard';
+import { ProblemCard, Problem, Input, SearchableDropdown } from '@/components/ui';
+import type { SearchableDropdownOption } from '@/components/ui';
 
 export default function InterviewHistory() {
   const [activeType, setActiveType] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState('date');
+  const [sortBy, setSortBy] = useState<SearchableDropdownOption | null>({
+    id: 'date',
+    label: 'Sort by Date',
+    icon: <FiArrowUp className='w-3 h-3 text-primary' />,
+  });
 
   // TODO: Replace with actual data from Firebase
   const mockProblems: Problem[] = [];
+
+  const sortOptions: SearchableDropdownOption[] = [
+    { id: 'date', label: 'Sort by Date', icon: <FiArrowUp className='w-3 h-3 text-primary' /> },
+    { id: 'difficulty', label: 'Sort by Difficulty', icon: <FiArrowUp className='w-3 h-3 text-primary' /> },
+    { id: 'score', label: 'Sort by Score', icon: <FiArrowUp className='w-3 h-3 text-primary' /> },
+  ];
 
   const filteredProblems = mockProblems.filter(problem => {
     const matchesType = activeType === 'all' || problem.type === activeType;
@@ -22,7 +33,7 @@ export default function InterviewHistory() {
   });
 
   const sortedProblems = [...filteredProblems].sort((a, b) => {
-    switch (sortBy) {
+    switch (sortBy?.id) {
       case 'date':
         return new Date(b.id).getTime() - new Date(a.id).getTime();
       case 'difficulty':
@@ -94,23 +105,25 @@ export default function InterviewHistory() {
         </div>
 
         <div className='flex gap-4 items-center flex-wrap'>
-          <input
+          <Input
             type='text'
             placeholder='Search problems...'
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className='px-4 py-2 border border-border rounded-lg bg-bodyBg text-text text-sm focus:outline-none focus:border-primary'
+            size='sm'
           />
 
-          <select
+          <SearchableDropdown
+            options={sortOptions}
             value={sortBy}
-            onChange={e => setSortBy(e.target.value)}
-            className='px-4 py-2 border border-border rounded-lg bg-bodyBg text-text text-sm focus:outline-none focus:border-primary'
-          >
-            <option value='date'>Sort by Date</option>
-            <option value='difficulty'>Sort by Difficulty</option>
-            <option value='score'>Sort by Score</option>
-          </select>
+            onValueChange={setSortBy}
+            placeholder='Sort by...'
+            searchPlaceholder='Search sort options...'
+            icon={<FiArrowUp className='w-3 h-3 text-primary' />}
+            size='sm'
+            emptyMessage='No sort options available'
+            noResultsMessage='No sort options found'
+          />
         </div>
       </div>
 

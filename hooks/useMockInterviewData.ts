@@ -50,9 +50,7 @@ export const useMockInterviewData = (): MockInterviewData => {
       setError(null);
 
       // Fetch mock interview statistics from dedicated API
-      const response = await fetch(
-        `/api/mock-interviews/stats?userId=${user.uid}`
-      );
+      const response = await fetch(`/api/mock-interviews/stats`);
       if (!response.ok) {
         throw new Error('Failed to fetch mock interview statistics');
       }

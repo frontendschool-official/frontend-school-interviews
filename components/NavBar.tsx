@@ -2,52 +2,55 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useAuth } from '@/hooks/useAuth';
+import { useSubscription } from '@/hooks/useSubscription';
 import { useThemeContext } from '@/hooks/useTheme';
 import {
-  FiMenu,
-  FiX,
-  FiSun,
-  FiMoon,
+  FiBarChart2,
+  FiCode,
+  FiBookOpen,
+  FiMap,
+  FiUsers,
   FiUser,
   FiLogOut,
-  FiBarChart2,
+  FiSun,
+  FiMoon,
 } from 'react-icons/fi';
 
 export default function NavBar() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, loading } = useAuth();
+  const { hasPremiumAccess, loading: subscriptionLoading } = useSubscription();
   const { theme, toggleTheme } = useThemeContext();
   const router = useRouter();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const profileDropdownRef = React.useRef<HTMLDivElement>(null);
-  const mobileDrawerRef = React.useRef<HTMLDivElement>(null);
 
-  // TODO: Implement premium user check from Firebase
-  // For now, assume all users are non-premium
-  const isPremiumUser = false;
+  const isPremiumUser = hasPremiumAccess();
+  const isLoading = loading || (user && subscriptionLoading);
 
   const menuLinks = [
-    { href: '/dashboard', label: 'Dashboard', auth: true },
-    { href: '/problems', label: 'Problems', auth: true },
-    { href: '/practice', label: 'Practice', auth: true },
-    { href: '/roadmap', label: 'Roadmap', auth: true },
-    // { href: "/mock-interviews", label: "Mock Interviews", auth: true },
+    { href: '/dashboard', label: 'Dashboard', icon: FiBarChart2, auth: true },
+    { href: '/problems', label: 'Problems', icon: FiCode, auth: true },
+    { href: '/practice', label: 'Practice', icon: FiBookOpen, auth: true },
+    { href: '/roadmap', label: 'Roadmap', icon: FiMap, auth: true },
     {
       href: '/interview-simulation',
-      label: 'Interview Simulation',
+      label: 'Interviews',
+      icon: FiUsers,
       auth: true,
     },
-    // { href: "/api-docs", label: "API Docs", auth: false },
-    // { href: "/premium", label: "Premium", auth: false },
   ];
 
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
-
-  const closeMobileMenu = () => {
-    setIsMobileMenuOpen(false);
-  };
+  const mobileNavItems = [
+    { href: '/dashboard', label: 'Dashboard', icon: FiBarChart2, auth: true },
+    { href: '/problems', label: 'Problems', icon: FiCode, auth: true },
+    { href: '/practice', label: 'Practice', icon: FiBookOpen, auth: true },
+    {
+      href: '/interview-simulation',
+      label: 'Interviews',
+      icon: FiUsers,
+      auth: true,
+    },
+  ];
 
   const toggleProfileDropdown = () => {
     setIsProfileDropdownOpen(!isProfileDropdownOpen);
@@ -57,7 +60,7 @@ export default function NavBar() {
     setIsProfileDropdownOpen(false);
   };
 
-  // Close dropdowns when clicking outside
+  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -66,25 +69,13 @@ export default function NavBar() {
       ) {
         setIsProfileDropdownOpen(false);
       }
-      if (
-        mobileDrawerRef.current &&
-        !mobileDrawerRef.current.contains(event.target as Node) &&
-        isMobileMenuOpen
-      ) {
-        const hamburgerButton = document.querySelector(
-          '[aria-label="Toggle navigation menu"]'
-        );
-        if (!hamburgerButton?.contains(event.target as Node)) {
-          setIsMobileMenuOpen(false);
-        }
-      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isMobileMenuOpen]);
+  }, []);
 
   const handleNavClick = (href: string, auth: boolean, e: React.MouseEvent) => {
     if (auth && !user) {
@@ -99,12 +90,10 @@ export default function NavBar() {
       const result = await signOut();
       console.log('🚀 SignOut result:', result);
       closeCallback?.();
-      // Navigate to home page after sign out
       router.push('/');
     } catch (error) {
       console.error('🚀 SignOut error:', error);
       closeCallback?.();
-      // Still navigate even on error
       router.push('/');
     }
   };
@@ -112,39 +101,69 @@ export default function NavBar() {
   const NavLink = ({
     href,
     label,
+    icon: Icon,
     active,
     auth,
     onClick,
+    isMobile = false,
   }: {
     href: string;
     label: string;
+    icon: React.ComponentType<{ className?: string }>;
     active: boolean;
     auth: boolean;
     onClick?: () => void;
-  }) => (
-    <Link href={href} passHref legacyBehavior>
-      <a
-        className={`relative inline-flex items-center justify-center font-medium text-text no-underline px-4 py-2 rounded-lg transition-all duration-200 hover:bg-neutral/10 hover:text-neutralDark ${
-          active ? 'font-semibold text-primary bg-primary/10' : ''
-        } ${auth && !user ? 'opacity-75' : ''}`}
-        onClick={e => {
-          handleNavClick(href, auth, e);
-          onClick?.();
-        }}
-        aria-current={active ? 'page' : undefined}
-        title={auth && !user ? 'Login required' : undefined}
-      >
-        {label}
-        {active && (
-          <div className='absolute bottom-1 left-1/2 transform -translate-x-1/2 w-4/5 h-0.5 bg-primary rounded-full'></div>
-        )}
-      </a>
-    </Link>
-  );
+    isMobile?: boolean;
+  }) => {
+    if (auth && !user && !isLoading) return null;
+
+    if (isMobile) {
+      return (
+        <Link href={href} passHref legacyBehavior>
+          <a
+            className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-all duration-200 ${
+              active
+                ? 'text-primary bg-primary/10'
+                : 'text-neutral hover:text-text hover:bg-neutral/10'
+            }`}
+            onClick={e => {
+              handleNavClick(href, auth, e);
+              onClick?.();
+            }}
+            aria-current={active ? 'page' : undefined}
+          >
+            <Icon className='w-5 h-5 mb-1' />
+            <span className='text-xs font-medium'>{label}</span>
+          </a>
+        </Link>
+      );
+    }
+
+    return (
+      <Link href={href} passHref legacyBehavior>
+        <a
+          className={`relative inline-flex items-center justify-center font-medium text-text no-underline px-4 py-2 rounded-lg transition-all duration-200 hover:bg-neutral/10 hover:text-neutralDark ${
+            active ? 'font-semibold text-primary bg-primary/10' : ''
+          }`}
+          onClick={e => {
+            handleNavClick(href, auth, e);
+            onClick?.();
+          }}
+          aria-current={active ? 'page' : undefined}
+        >
+          {label}
+          {active && (
+            <div className='absolute bottom-1 left-1/2 transform -translate-x-1/2 w-4/5 h-0.5 bg-primary rounded-full'></div>
+          )}
+        </a>
+      </Link>
+    );
+  };
 
   return (
     <>
-      <header className='w-full bg-secondary/80 backdrop-blur-md border-b border-border sticky top-0 z-50 shadow-sm'>
+      {/* Desktop Header */}
+      <header className='hidden md:block w-full bg-secondary/80 backdrop-blur-md border-b border-border sticky top-0 z-50 shadow-sm'>
         <div className='w-full px-4 sm:px-6 lg:px-8'>
           <div className='flex items-center justify-between h-16'>
             {/* Logo */}
@@ -153,32 +172,24 @@ export default function NavBar() {
                 className='no-underline transition-all duration-200 hover:scale-105'
                 aria-label='Frontend School Homepage'
               >
-                <div className='hidden sm:block'>
-                  {/* Logo component was removed, so this will be empty or a placeholder */}
-                  <h1 className='text-xl font-bold text-text'>
-                    Frontend School
-                  </h1>
-                </div>
-                <div className='block sm:hidden'>
-                  {/* Logo component was removed, so this will be empty or a placeholder */}
-                  <h1 className='text-lg font-bold text-text'>FS</h1>
-                </div>
+                <h1 className='text-xl font-bold text-text'>Frontend School</h1>
               </a>
             </Link>
 
             {/* Desktop Navigation */}
             <nav
-              className='hidden md:flex items-center space-x-2'
+              className='flex items-center space-x-2'
               role='navigation'
               aria-label='Main navigation'
             >
-              {menuLinks.map(({ href, label, auth }) => {
+              {menuLinks.map(({ href, label, icon, auth }) => {
                 const active = router.pathname === href;
                 return (
                   <NavLink
                     key={href}
                     href={href}
                     label={label}
+                    icon={icon}
                     active={active}
                     auth={auth}
                   />
@@ -187,8 +198,8 @@ export default function NavBar() {
             </nav>
 
             {/* Desktop Right Side */}
-            <div className='hidden md:flex items-center space-x-3'>
-              {user && !isPremiumUser && (
+            <div className='flex items-center space-x-3'>
+              {!isLoading && user && !isPremiumUser && (
                 <Link href='/premium' passHref legacyBehavior>
                   <a className='bg-gradient-to-r from-amber-500 to-orange-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold no-underline transition-all duration-200 hover:from-amber-600 hover:to-orange-600 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-1 flex items-center space-x-1'>
                     <FiBarChart2 className='w-3 h-3' />
@@ -196,6 +207,7 @@ export default function NavBar() {
                   </a>
                 </Link>
               )}
+
               <button
                 onClick={toggleTheme}
                 className='p-2 rounded-lg text-text hover:bg-neutral/10 focus:outline-none focus:ring-2 focus:ring-primary transition-colors duration-200'
@@ -212,7 +224,9 @@ export default function NavBar() {
                 )}
               </button>
 
-              {user ? (
+              {isLoading ? (
+                <div className='w-8 h-8 rounded-full bg-neutral/20 animate-pulse'></div>
+              ) : user ? (
                 <div className='relative' ref={profileDropdownRef}>
                   <button
                     onClick={toggleProfileDropdown}
@@ -264,209 +278,125 @@ export default function NavBar() {
                 </Link>
               )}
             </div>
-
-            {/* Mobile Right Side */}
-            <div className='md:hidden flex items-center space-x-3'>
-              <button
-                onClick={toggleTheme}
-                className='p-2 rounded-lg text-text hover:bg-neutral/10 focus:outline-none focus:ring-2 focus:ring-primary transition-colors duration-200'
-                aria-label={
-                  theme === 'dark'
-                    ? 'Switch to light mode'
-                    : 'Switch to dark mode'
-                }
-              >
-                {theme === 'dark' ? (
-                  <FiSun className='w-5 h-5' />
-                ) : (
-                  <FiMoon className='w-5 h-5' />
-                )}
-              </button>
-              {user && (
-                <div className='relative' ref={profileDropdownRef}>
-                  <button
-                    onClick={toggleProfileDropdown}
-                    className='w-8 h-8 rounded-full border-2 border-neutral/20 transition-all duration-200 flex items-center justify-center bg-gradient-to-br from-primary to-accent text-white hover:border-primary hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2'
-                    aria-label='User menu'
-                    aria-expanded={isProfileDropdownOpen}
-                  >
-                    {user.photoURL ? (
-                      <img
-                        src={user.photoURL}
-                        alt='User avatar'
-                        className='w-full h-full rounded-full object-cover'
-                      />
-                    ) : (
-                      <FiUser className='w-3 h-3' />
-                    )}
-                  </button>
-
-                  {/* Mobile Profile Dropdown */}
-                  {isProfileDropdownOpen && (
-                    <div className='absolute right-0 mt-3 w-48 bg-secondary border border-border rounded-lg shadow-lg z-50 overflow-hidden'>
-                      <div className='py-1'>
-                        <Link href='/profile' passHref legacyBehavior>
-                          <a
-                            className='flex items-center px-4 py-3 text-sm text-text hover:bg-neutral/10 transition-colors duration-200 no-underline'
-                            onClick={closeProfileDropdown}
-                          >
-                            <FiUser className='w-4 h-4 mr-3 text-neutral' />
-                            <span className='font-medium'>Profile</span>
-                          </a>
-                        </Link>
-                        <hr className='border-border my-1' />
-                        <button
-                          onClick={() => handleSignOut(closeProfileDropdown)}
-                          className='w-full flex items-center px-4 py-3 text-sm text-text hover:bg-neutral/10 transition-colors duration-200 text-left'
-                        >
-                          <FiLogOut className='w-4 h-4 mr-3 text-neutral' />
-                          <span className='font-medium'>Sign Out</span>
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-              <button
-                onClick={toggleMobileMenu}
-                className='p-2 rounded-lg text-text hover:bg-neutral/10 focus:outline-none focus:ring-2 focus:ring-primary transition-colors duration-200'
-                aria-expanded={isMobileMenuOpen}
-                aria-controls='mobile-menu'
-                aria-label='Toggle navigation menu'
-              >
-                <FiMenu className='w-5 h-5' />
-              </button>
-            </div>
           </div>
         </div>
       </header>
 
-      {/* Mobile Drawer Overlay */}
-      {isMobileMenuOpen && (
-        <div
-          className='fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden'
-          onClick={closeMobileMenu}
-        />
-      )}
+      {/* Mobile Header */}
+      <header className='md:hidden w-full bg-secondary/80 backdrop-blur-md border-b border-border sticky top-0 z-50 shadow-sm'>
+        <div className='flex items-center justify-between px-4 py-3'>
+          <Link href='/' passHref legacyBehavior>
+            <a className='no-underline'>
+              <h1 className='text-lg font-bold text-text'>Frontend School</h1>
+            </a>
+          </Link>
 
-      {/* Mobile Left Drawer */}
-      <div
-        ref={mobileDrawerRef}
-        id='mobile-menu'
-        className={`fixed top-0 left-0 h-full w-80 bg-secondary border-r border-border z-50 md:hidden transform transition-transform duration-300 ease-in-out ${
-          isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-      >
-        <div className='flex flex-col h-full'>
-          {/* Drawer Header */}
-          <div className='flex items-center justify-between p-4 border-b border-border'>
-            {/* Logo component was removed, so this will be empty or a placeholder */}
-            <h1 className='text-lg font-bold text-text'>Frontend School</h1>
+          <div className='flex items-center space-x-2'>
+            {!isLoading && user && !isPremiumUser && (
+              <Link href='/premium' passHref legacyBehavior>
+                <a className='bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2 py-1 rounded-full text-xs font-semibold no-underline'>
+                  <FiBarChart2 className='w-3 h-3' />
+                </a>
+              </Link>
+            )}
+
             <button
-              onClick={closeMobileMenu}
+              onClick={toggleTheme}
               className='p-2 rounded-lg text-text hover:bg-neutral/10 focus:outline-none focus:ring-2 focus:ring-primary transition-colors duration-200'
-              aria-label='Close navigation menu'
+              aria-label={
+                theme === 'dark'
+                  ? 'Switch to light mode'
+                  : 'Switch to dark mode'
+              }
             >
-              <FiX className='w-5 h-5' />
+              {theme === 'dark' ? (
+                <FiSun className='w-4 h-4' />
+              ) : (
+                <FiMoon className='w-4 h-4' />
+              )}
             </button>
-          </div>
 
-          {/* Navigation Links */}
-          <nav
-            className='flex-1 px-4 py-6 space-y-1'
-            role='navigation'
-            aria-label='Mobile navigation'
-          >
-            {menuLinks.map(({ href, label, auth }) => {
+            {isLoading ? (
+              <div className='w-8 h-8 rounded-full bg-neutral/20 animate-pulse'></div>
+            ) : user ? (
+              <div className='relative' ref={profileDropdownRef}>
+                <button
+                  onClick={toggleProfileDropdown}
+                  className='w-8 h-8 rounded-full border-2 border-neutral/20 transition-all duration-200 flex items-center justify-center bg-gradient-to-br from-primary to-accent text-white hover:border-primary hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2'
+                  aria-label='User menu'
+                  aria-expanded={isProfileDropdownOpen}
+                >
+                  {user.photoURL ? (
+                    <img
+                      src={user.photoURL}
+                      alt='User avatar'
+                      className='w-full h-full rounded-full object-cover'
+                    />
+                  ) : (
+                    <FiUser className='w-3 h-3' />
+                  )}
+                </button>
+
+                {/* Mobile Profile Dropdown */}
+                {isProfileDropdownOpen && (
+                  <div className='absolute right-0 mt-3 w-48 bg-secondary border border-border rounded-lg shadow-lg z-50 overflow-hidden'>
+                    <div className='py-1'>
+                      <Link href='/profile' passHref legacyBehavior>
+                        <a
+                          className='flex items-center px-4 py-3 text-sm text-text hover:bg-neutral/10 transition-colors duration-200 no-underline'
+                          onClick={closeProfileDropdown}
+                        >
+                          <FiUser className='w-4 h-4 mr-3 text-neutral' />
+                          <span className='font-medium'>Profile</span>
+                        </a>
+                      </Link>
+                      <hr className='border-border my-1' />
+                      <button
+                        onClick={() => handleSignOut(closeProfileDropdown)}
+                        className='w-full flex items-center px-4 py-3 text-sm text-text hover:bg-neutral/10 transition-colors duration-200 text-left'
+                      >
+                        <FiLogOut className='w-4 h-4 mr-3 text-neutral' />
+                        <span className='font-medium'>Sign Out</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link href='/login' passHref legacyBehavior>
+                <a className='bg-primary text-white px-3 py-1.5 rounded-lg no-underline text-sm font-medium transition-all duration-200 hover:bg-accent'>
+                  Login
+                </a>
+              </Link>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* Mobile Bottom Navigation */}
+      {!isLoading && (
+        <nav className='md:hidden fixed bottom-0 left-0 right-0 bg-secondary/95 backdrop-blur-md border-t border-border z-50'>
+          <div className='flex items-center justify-around px-2 py-2'>
+            {mobileNavItems.map(({ href, label, icon, auth }) => {
               const active = router.pathname === href;
               return (
                 <NavLink
                   key={href}
                   href={href}
                   label={label}
+                  icon={icon}
                   active={active}
                   auth={auth}
-                  onClick={closeMobileMenu}
+                  isMobile={true}
                 />
               );
             })}
-          </nav>
-
-          {/* User Section */}
-          <div className='border-t border-border p-4'>
-            {user ? (
-              <div className='space-y-3'>
-                <div className='flex items-center space-x-3 px-3 py-2'>
-                  <div className='w-10 h-10 rounded-full border border-neutral/20 flex items-center justify-center bg-gradient-to-br from-primary to-accent text-white'>
-                    {user.photoURL ? (
-                      <img
-                        src={user.photoURL}
-                        alt='User avatar'
-                        className='w-full h-full rounded-full object-cover'
-                      />
-                    ) : (
-                      <FiUser className='w-5 h-5' />
-                    )}
-                  </div>
-                  <div className='flex-1'>
-                    <p className='text-sm font-medium text-text truncate'>
-                      {user.displayName || user.email}
-                    </p>
-                    <p className='text-xs text-neutral truncate'>
-                      {user.email}
-                    </p>
-                  </div>
-                </div>
-
-                {!isPremiumUser && (
-                  <Link href='/premium' passHref legacyBehavior>
-                    <a
-                      className='flex items-center justify-center space-x-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-3 rounded-lg no-underline font-semibold transition-all duration-200 hover:from-amber-600 hover:to-orange-600 text-sm'
-                      onClick={closeMobileMenu}
-                    >
-                      <FiBarChart2 className='w-4 h-4' />
-                      <span>Upgrade to Premium</span>
-                    </a>
-                  </Link>
-                )}
-
-                <div className='space-y-1'>
-                  <Link href='/profile' passHref legacyBehavior>
-                    <a
-                      className='flex items-center space-x-3 px-3 py-3 rounded-lg text-text hover:bg-neutral/10 transition-colors duration-200 no-underline'
-                      onClick={closeMobileMenu}
-                    >
-                      <FiUser className='w-4 h-4 text-neutral' />
-                      <span className='font-medium'>Profile</span>
-                    </a>
-                  </Link>
-                  <button
-                    onClick={() => handleSignOut(closeMobileMenu)}
-                    className='w-full flex items-center space-x-3 px-3 py-3 rounded-lg text-text hover:bg-neutral/10 font-medium transition-colors duration-200 text-left'
-                  >
-                    <FiLogOut className='w-4 h-4 text-neutral' />
-                    <span>Sign Out</span>
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className='space-y-3'>
-                <Link href='/login' passHref legacyBehavior>
-                  <a
-                    className='block bg-primary text-white px-4 py-3 rounded-lg no-underline font-medium text-center transition-all duration-200 hover:bg-accent'
-                    onClick={closeMobileMenu}
-                  >
-                    Sign In
-                  </a>
-                </Link>
-                <p className='text-xs text-neutral text-center'>
-                  Join Frontend School to access all features
-                </p>
-              </div>
-            )}
           </div>
-        </div>
-      </div>
+        </nav>
+      )}
+
+      {/* Bottom padding for mobile to account for bottom navigation */}
+      {!isLoading && <div className='md:hidden h-16'></div>}
     </>
   );
 }

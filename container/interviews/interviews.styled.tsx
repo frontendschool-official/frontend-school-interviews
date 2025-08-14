@@ -201,11 +201,11 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({ children }) => (
 );
 
 export const EditorHeader: React.FC<EditorHeaderProps> = ({ children }) => (
-  <div className='p-4 border-b border-border bg-secondary'>{children}</div>
+  <div className='p-4 border-b border-border bg-secondary transition-colors duration-300'>{children}</div>
 );
 
 export const EditorTabs: React.FC<EditorTabsProps> = ({ children }) => (
-  <div className='flex border-b border-border bg-secondary'>{children}</div>
+  <div className='flex border-b border-border bg-secondary transition-colors duration-300'>{children}</div>
 );
 
 export const Tab: React.FC<TabProps> = ({
@@ -215,7 +215,7 @@ export const Tab: React.FC<TabProps> = ({
 }) => (
   <button
     onClick={onClick}
-    className={`px-4 py-2 text-sm font-medium transition-colors duration-200 border-b-2 ${
+    className={`px-4 py-2 text-sm font-medium transition-all duration-300 border-b-2 ${
       active
         ? 'text-primary border-primary bg-primary/10'
         : 'text-text border-transparent hover:text-primary hover:bg-secondary/50'

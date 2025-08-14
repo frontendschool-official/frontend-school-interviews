@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import { Input } from '@/components/ui';
 import { OnboardingData } from '../types/user';
 import { FaGraduationCap, FaCode, FaChartLine, FaRocket } from 'react-icons/fa';
 
@@ -275,21 +276,16 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
                   </div>
                 </div>
 
-                <div>
-                  <label className='block font-semibold text-text mb-3'>
-                    Daily Goal (minutes)
-                  </label>
-                  <input
-                    type='number'
-                    min='10'
-                    max='180'
-                    value={formData.dailyGoal}
-                    onChange={e =>
-                      handleInputChange('dailyGoal', parseInt(e.target.value))
-                    }
-                    className='w-full p-3 border border-border rounded-lg bg-bodyBg text-text focus:outline-none focus:border-primary'
-                  />
-                </div>
+                <Input
+                  label='Daily Goal (minutes)'
+                  type='number'
+                  min='10'
+                  max='180'
+                  value={formData.dailyGoal}
+                  onChange={e =>
+                    handleInputChange('dailyGoal', parseInt(e.target.value))
+                  }
+                />
               </div>
             </div>
           )}

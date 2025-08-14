@@ -8,7 +8,6 @@ import DashboardStats from '@/components/dashboard/DashboardStats';
 import RecentProblems from '@/components/dashboard/RecentProblems';
 import QuickActions from '@/components/dashboard/QuickActions';
 import ProgressOverview from '@/components/dashboard/ProgressOverview';
-import WeeklyStats from '@/components/dashboard/WeeklyStats';
 
 export default function Dashboard() {
   const { user, loading } = useAuth();
@@ -29,7 +28,7 @@ export default function Dashboard() {
 
       try {
         setUserStatsLoading(true);
-        const response = await apiClient.getUserStats(user.uid);
+        const response = await apiClient.getUserStats();
         if (response.error) {
           console.error('Error fetching user stats:', response.error);
         } else {
@@ -79,52 +78,49 @@ export default function Dashboard() {
 
   return (
     <Layout>
-      <div className='mb-6 sm:mb-8'>
-        <h1 className='text-2xl sm:text-3xl md:text-4xl font-bold text-text mb-2'>
-          Dashboard
-        </h1>
-        <p className='text-base sm:text-lg text-text/80 mb-4'>
-          Track your progress and continue learning
-        </p>
-        <div className='bg-secondary border border-border rounded-xl p-4 sm:p-6 mb-6 sm:mb-8'>
-          <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-4'>
-            <div>
-              <h2 className='text-lg sm:text-xl font-semibold text-text mb-2'>
-                Welcome back, {user.displayName || user.email}!
-              </h2>
-              <p className='text-sm sm:text-base text-text/80'>
-                Ready to ace your next interview?
+      <div className='max-w-7xl mx-auto p-4 min-h-screen bg-bodyBg'>
+        {/* Header Section */}
+        <div className='mb-6 sm:mb-8'>
+          <div className='flex justify-between items-start mb-4 sm:mb-6 p-4 sm:p-6 bg-secondary rounded-2xl border border-border shadow-lg md:flex-row flex-col gap-4 text-center md:text-left'>
+            <div className='flex-1'>
+              <h1 className='text-2xl sm:text-3xl font-bold text-neutralDark mb-2'>
+                Dashboard
+              </h1>
+              <p className='text-text opacity-80 text-xs sm:text-sm'>
+                Welcome back, {user.displayName || user.email}! Track your progress and continue learning.
               </p>
             </div>
             {userStats && (
-              <div className='text-center sm:text-right'>
-                <div className='text-xl sm:text-2xl font-bold text-primary'>
-                  {userStats.currentStreak} days
-                </div>
-                <div className='text-xs sm:text-sm text-text/70'>
-                  Current streak
+              <div className='flex items-center gap-3'>
+                <div className='text-center'>
+                  <div className='text-2xl sm:text-3xl font-bold text-primary'>
+                    {userStats.currentStreak}
+                  </div>
+                  <div className='text-xs text-text/70'>Day Streak</div>
                 </div>
               </div>
             )}
           </div>
         </div>
-      </div>
 
-      <DashboardStats />
+        {/* Overview Stats - Full Width */}
+        <div className='mb-6 sm:mb-8'>
+          <DashboardStats />
+        </div>
 
-      <WeeklyStats
-        weeklyStats={userStats?.weeklyStats}
-        performanceByType={userStats?.performanceByType}
-        loading={userStatsLoading}
-      />
+        {/* Main Content Grid */}
+        <div className='grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8'>
+          {/* Left Column - Quick Actions and Recent Problems */}
+          <div className='lg:col-span-2 space-y-6 sm:space-y-8'>
+            <QuickActions />
+            <RecentProblems recentActivity={userStats?.recentActivity} />
+          </div>
 
-      <div className='grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 mb-6 sm:mb-8'>
-        <QuickActions />
-        <ProgressOverview />
-      </div>
-
-      <div className='col-span-full'>
-        <RecentProblems recentActivity={userStats?.recentActivity} />
+          {/* Right Column - Learning Progress */}
+          <div className='space-y-6 sm:space-y-8'>
+            <ProgressOverview />
+          </div>
+        </div>
       </div>
     </Layout>
   );

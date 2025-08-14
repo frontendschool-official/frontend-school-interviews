@@ -1,12 +1,9 @@
 import React, { useRef, useState } from 'react';
-import Navbar from '../components/ui/Navbar';
-import Button from '../components/ui/Button';
-import Card from '../components/ui/Card';
-import Tag from '../components/ui/Tag';
-import Modal from '../components/ui/Modal';
+import NavBar from '../components/NavBar';
+import { Button, Card, Tag, Modal, Input } from '@/components/ui';
 import EditorShell from '../components/ui/EditorShell';
-import SandpackEditor from '../components/SandpackEditor';
-import CodeEditor from '../components/CodeEditor';
+
+import { CodeEditor } from '@/components/ui';
 
 export default function UIShowcase() {
   const [open, setOpen] = useState(false);
@@ -18,7 +15,7 @@ export default function UIShowcase() {
 
   return (
     <div className='min-h-screen bg-bodyBg text-text'>
-      <Navbar />
+      <NavBar />
       <main className='max-w-6xl mx-auto px-6 py-10 space-y-10'>
         <section>
           <h2 className='text-2xl font-bold mb-4'>Buttons</h2>
@@ -64,12 +61,11 @@ export default function UIShowcase() {
             isOpen={open}
             onClose={() => setOpen(false)}
             title='Create Workspace'
-            initialFocusRef={focusRef}
+
           >
             <div className='space-y-4'>
-              <label className='block text-sm font-medium'>Name</label>
-              <input
-                className='w-full rounded-lg border border-border bg-bodyBg px-3 py-2 focus:outline-none focus:shadow-focus'
+              <Input
+                label='Name'
                 placeholder='Workspace name'
               />
               <div className='flex justify-end gap-2 pt-2'>
@@ -85,7 +81,7 @@ export default function UIShowcase() {
         <section>
           <h2 className='text-2xl font-bold mb-4'>Editor Shell (Sandpack)</h2>
           <EditorShell title='index.tsx'>
-            <SandpackEditor code={code} onChange={setCode} />
+                            <CodeEditor code={code} onChange={setCode} mode='sandpack' />
           </EditorShell>
         </section>
 

@@ -1,7 +1,7 @@
 import { auth } from '@/services/firebase/config';
 
 /**
- * Make an authenticated API request with Firebase ID token
+ * Make an authenticated API request using session cookies
  * @param url The API endpoint URL
  * @param options Fetch options
  * @returns Promise with the response
@@ -11,25 +11,15 @@ export async function authenticatedFetch(
   options: RequestInit = {}
 ): Promise<Response> {
   try {
-    // Get the current user
-    const currentUser = auth.currentUser;
-
-    if (!currentUser) {
-      throw new Error('User not authenticated');
-    }
-
-    // Get the ID token
-    const idToken = await currentUser.getIdToken();
-
     // Prepare headers
     const headers = new Headers(options.headers);
     headers.set('Content-Type', 'application/json');
-    headers.set('Authorization', `Bearer ${idToken}`);
 
-    // Make the request
+    // Make the request - session cookies are automatically included
     return fetch(url, {
       ...options,
       headers,
+      credentials: 'include', // Include cookies in the request
     });
   } catch (error) {
     console.error('Error making authenticated request:', error);
