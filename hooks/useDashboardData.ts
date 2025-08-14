@@ -46,40 +46,28 @@ export const useDashboardData = (): DashboardData => {
         setLoading(true);
         setError(null);
 
-        // Fetch user progress data using API
-        const progressResponse = await fetch(`/api/user-profile/progress`);
-        if (progressResponse.ok) {
-          const progressData = await progressResponse.json();
-          setUserProgress(progressData.progress || []);
-        } else {
-          console.error(
-            'Error fetching user progress:',
-            progressResponse.statusText
-          );
-        }
+        // Fetch progress and stats in parallel; fire-and-forget streak update
+        const progressPromise = fetch(`/api/user-profile/progress`, {
+          headers: { 'Cache-Control': 'no-store' },
+        }).then(async r => (r.ok ? r.json() : Promise.reject(r.statusText)));
 
-        // Fetch problem statistics
-        const statsResponse = await apiClient.getProblemStats();
-        if (statsResponse.error) {
-          console.error('Error fetching problem stats:', statsResponse.error);
-        } else {
-          setProblemStats(statsResponse.data);
-        }
+        const statsPromise = apiClient.getProblemStats();
 
-        // Update user streak using API
-        const streakResponse = await fetch('/api/user-profile/update-streak', {
+        // Fire-and-forget to avoid blocking UI
+        fetch('/api/user-profile/update-streak', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({}),
-        });
+        }).catch(() => {});
 
-        if (!streakResponse.ok) {
-          console.error(
-            'Error updating user streak:',
-            streakResponse.statusText
-          );
+        const [progressData, statsResponse] = await Promise.all([
+          progressPromise,
+          statsPromise,
+        ]);
+
+        setUserProgress(progressData.progress || []);
+        if (!statsResponse.error) {
+          setProblemStats(statsResponse.data);
         }
 
         setLoading(false);

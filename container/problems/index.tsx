@@ -12,15 +12,9 @@ import {
   ProblemCard,
   SearchableDropdown,
   Pagination,
+  Tabs,
 } from '@/components/ui';
 import type { SearchableDropdownOption } from '@/components/ui';
-
-interface TabItem {
-  id: string;
-  label: string;
-  count: number;
-  icon: string;
-}
 
 const ProblemsPage: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
@@ -111,7 +105,7 @@ const ProblemsPage: React.FC = () => {
   }, []);
 
   // Tab configuration with icons and stats
-  const tabItems: TabItem[] = React.useMemo(
+  const tabItems = React.useMemo(
     () => [
       {
         id: 'all',
@@ -326,74 +320,19 @@ const ProblemsPage: React.FC = () => {
             {!problemsError && (
               <>
                 {problems?.length > 0 ? (
-                  <div className='flex flex-col lg:flex-row gap-6'>
-                    {/* Left Sidebar - Filters */}
-                    <aside className='lg:w-80 flex-shrink-0'>
-                      <div className='sticky top-6 space-y-6'>
-                        {/* Category Filters */}
-                        <section className='bg-secondary/50 rounded-xl p-4 border border-border/30 shadow-sm'>
-                          <h3 className='text-lg font-semibold text-neutralDark mb-4'>
-                            Categories
-                          </h3>
-                          <nav
-                            className='space-y-2'
-                            aria-label='Problem categories'
-                          >
-                            {tabItems.map(tab => (
-                              <button
-                                key={tab.id}
-                                onClick={() => setFilter(tab.id as any)}
-                                className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                                  activeFilter === tab.id
-                                    ? 'bg-primary text-bodyBg'
-                                    : 'text-text/70 hover:bg-secondary hover:text-text'
-                                }`}
-                                aria-pressed={activeFilter === tab.id}
-                                aria-label={`${tab.label} problems (${tab.count})`}
-                              >
-                                <div className='flex items-center justify-between'>
-                                  <span className='flex items-center gap-2'>
-                                    <span aria-hidden='true'>{tab.icon}</span>
-                                    {tab.label}
-                                  </span>
-                                  <span
-                                    className='text-xs opacity-70'
-                                    aria-label={`${tab.count} problems`}
-                                  >
-                                    {tab.count}
-                                  </span>
-                                </div>
-                              </button>
-                            ))}
-                          </nav>
-                        </section>
-
-                        {/* Sort Controls */}
-                        <section className='bg-secondary/50 rounded-xl p-4 border border-border/30 shadow-sm'>
-                          <h3 className='text-lg font-semibold text-neutralDark mb-4'>
-                            Sort Options
-                          </h3>
-                          <SearchableDropdown
-                            options={sortOptions}
-                            value={sortBy}
-                            onValueChange={setSortBy}
-                            placeholder='Sort by...'
-                            searchPlaceholder='Search sort options...'
-                            size='sm'
-                            icon={
-                              <FiArrowUp className='w-3 h-3 text-primary' />
-                            }
-                            emptyMessage='No sort options available'
-                            noResultsMessage='No sort options found'
-                            className='w-full'
-                            aria-label='Sort problems by'
-                          />
-                        </section>
-                      </div>
-                    </aside>
+                  <div className='space-y-6'>
+                    {/* Category Tabs */}
+                    <section className='bg-secondary/50 rounded-xl p-4 border border-border/30 shadow-sm'>
+                      <Tabs
+                        items={tabItems}
+                        activeTab={activeFilter}
+                        onTabChange={tabId => setFilter(tabId as any)}
+                        className='mb-0'
+                      />
+                    </section>
 
                     {/* Main Content Area */}
-                    <div className='flex-1 min-w-0'>
+                    <div className='space-y-6'>
                       {/* Search Bar - Always at Top */}
                       <section className='bg-secondary/50 rounded-xl p-4 mb-6 border border-border/30 shadow-sm'>
                         <div className='flex flex-col lg:flex-row gap-4 lg:items-center'>
@@ -452,6 +391,25 @@ const ProblemsPage: React.FC = () => {
                               Use Ctrl+K or Cmd+K to quickly focus the search
                               box
                             </div>
+                          </div>
+
+                          {/* Sort Dropdown */}
+                          <div className='lg:flex-shrink-0'>
+                            <SearchableDropdown
+                              options={sortOptions}
+                              value={sortBy}
+                              onValueChange={setSortBy}
+                              placeholder='Sort by...'
+                              searchPlaceholder='Search sort options...'
+                              size='sm'
+                              icon={
+                                <FiArrowUp className='w-3 h-3 text-primary' />
+                              }
+                              emptyMessage='No sort options available'
+                              noResultsMessage='No sort options found'
+                              className='w-full lg:w-48'
+                              aria-label='Sort problems by'
+                            />
                           </div>
 
                           {/* Quick Filter Chips */}

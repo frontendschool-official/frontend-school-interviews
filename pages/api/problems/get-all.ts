@@ -19,6 +19,8 @@ export default async function handler(
     }
 
     const result = await getAllProblems(pageNumber, limitNumber);
+    // Publicly cache for 60s and allow CDNs/stale-while-revalidate
+    res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=300');
     res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ error: 'Failed to get problems', message: error });

@@ -59,7 +59,14 @@ export const useProblems = (page: number = 1, limit: number = 12) => {
         setProblemsLoadingRef.current?.(true);
         setProblemsErrorRef.current?.(null);
 
-        const allProblemsResponse = await apiClient.getAllProblems(page, limit);
+        // Fetch problems and submissions in parallel to reduce latency
+        const allProblemsResponsePromise = apiClient.getAllProblems(page, limit);
+        const submissionsPromise = user ? apiClient.getSubmissionsByUserId() : Promise.resolve({ data: [] } as any);
+
+        const [allProblemsResponse, submissionResponse] = await Promise.all([
+          allProblemsResponsePromise,
+          submissionsPromise,
+        ]);
         if (allProblemsResponse.error) {
           throw new Error(allProblemsResponse.error);
         }
@@ -74,32 +81,18 @@ export const useProblems = (page: number = 1, limit: number = 12) => {
           if (id) statusMap[id] = 'unsolved';
         });
 
-        if (user) {
-          try {
-            const submissionResponse = await apiClient.getSubmissionsByUserId();
-            if (submissionResponse.error) {
-              console.error(
-                'Error fetching submissions:',
-                submissionResponse.error
-              );
-            } else {
-              const submissionDocs = submissionResponse.data || [];
-              const submissionsArray = Array.isArray(submissionDocs)
-                ? submissionDocs
-                : [];
+        if (user && !submissionResponse.error) {
+          const submissionDocs = submissionResponse.data || [];
+          const submissionsArray = Array.isArray(submissionDocs)
+            ? submissionDocs
+            : [];
 
-              problemsArray.forEach((p: Problem) => {
-                const id = (p as any)?.id as string | undefined;
-                if (!id) return;
-                const submission = submissionsArray.find(
-                  (s: any) => s.problemId === id
-                );
-                if (submission) statusMap[id] = 'attempted';
-              });
-            }
-          } catch (submissionError) {
-            console.error('Error fetching submissions:', submissionError);
-          }
+          problemsArray.forEach((p: Problem) => {
+            const id = (p as any)?.id as string | undefined;
+            if (!id) return;
+            const submission = submissionsArray.find((s: any) => s.problemId === id);
+            if (submission) statusMap[id] = 'attempted';
+          });
         }
 
         if (!isCancelled) {

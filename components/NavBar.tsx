@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+// dynamic import placeholder was removed; keep static for now to avoid unused import
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useAuth } from '@/hooks/useAuth';
@@ -235,10 +236,13 @@ export default function NavBar() {
                     aria-expanded={isProfileDropdownOpen}
                   >
                     {user.photoURL ? (
+                      // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={user.photoURL}
                         alt='User avatar'
                         className='w-full h-full rounded-full object-cover'
+                        loading='lazy'
+                        decoding='async'
                       />
                     ) : (
                       <FiUser className='w-4 h-4' />
@@ -326,11 +330,14 @@ export default function NavBar() {
                   aria-label='User menu'
                   aria-expanded={isProfileDropdownOpen}
                 >
-                  {user.photoURL ? (
+                  {user?.photoURL ? (
+                    // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={user.photoURL}
+                      src={user?.photoURL}
                       alt='User avatar'
                       className='w-full h-full rounded-full object-cover'
+                      loading='lazy'
+                      decoding='async'
                     />
                   ) : (
                     <FiUser className='w-3 h-3' />

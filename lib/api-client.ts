@@ -22,8 +22,15 @@ export interface SessionResponse {
   error?: string;
 }
 
+type CacheEntry<T> = {
+  data: T;
+  expiry: number;
+};
+
 class ApiClient {
   private baseUrl: string;
+  private inFlight: Map<string, Promise<ApiResponse<any>>> = new Map();
+  private cache: Map<string, CacheEntry<any>> = new Map();
 
   constructor() {
     // For client-side requests, we don't need a base URL as we're calling relative endpoints
@@ -36,24 +43,51 @@ class ApiClient {
   ): Promise<ApiResponse<T>> {
     try {
       const url = `${this.baseUrl}${endpoint}`;
-      const response = await fetch(url, {
+      const cacheKey = `${options.method || 'GET'}:${url}:${options.body || ''}`;
+
+      // Dedupe in-flight requests with the same key
+      if (this.inFlight.has(cacheKey)) {
+        return (await this.inFlight.get(cacheKey)) as ApiResponse<T>;
+      }
+
+      // Serve from short-lived cache for idempotent GETs
+      if ((options.method || 'GET').toUpperCase() === 'GET') {
+        const cached = this.cache.get(cacheKey);
+        if (cached && cached.expiry > Date.now()) {
+          return { data: cached.data } as ApiResponse<T>;
+        }
+      }
+
+      const fetchPromise = fetch(url, {
         headers: {
           'Content-Type': 'application/json',
           ...options.headers,
         },
         ...options,
       });
+      this.inFlight.set(cacheKey, fetchPromise.then(async response => {
+        const data = await response.json();
+        if (!response.ok) {
+          return {
+            error: data.error || 'Request failed',
+            message: data.message,
+          } as ApiResponse<T>;
+        }
 
-      const data = await response.json();
+        // Cache successful GET responses for a very short time (stale-while-revalidate pattern could extend this)
+        if ((options.method || 'GET').toUpperCase() === 'GET') {
+          this.cache.set(cacheKey, {
+            data,
+            expiry: Date.now() + 5_000, // 5 seconds
+          });
+        }
+        return { data } as ApiResponse<T>;
+      }).finally(() => {
+        // Clear in-flight after settlement to avoid memory leaks
+        this.inFlight.delete(cacheKey);
+      }));
 
-      if (!response.ok) {
-        return {
-          error: data.error || 'Request failed',
-          message: data.message,
-        };
-      }
-
-      return { data };
+      return (await this.inFlight.get(cacheKey)) as ApiResponse<T>;
     } catch (error) {
       console.error('API request failed:', error);
       return {

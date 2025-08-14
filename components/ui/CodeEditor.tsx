@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Editor } from '@monaco-editor/react';
+import dynamic from 'next/dynamic';
 import { FiPlay, FiRotateCcw } from 'react-icons/fi';
 import { useThemeContext } from '@/hooks/useTheme';
 
@@ -197,9 +197,13 @@ export default function CodeEditor({
     );
   };
 
+  const MonacoEditor = dynamic(async () => (await import('@monaco-editor/react')).Editor, {
+    ssr: false,
+  });
+
   const editorContent = (
     <div className={`flex-1 min-h-0 ${className}`}>
-      <Editor
+      <MonacoEditor
         height={height}
         language={language}
         theme={editorTheme}

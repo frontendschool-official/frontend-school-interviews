@@ -35,7 +35,8 @@ export default async function handler(
         });
       }
 
-      // Return critical user profile data with session
+      // Return critical user profile data with session (private)
+      res.setHeader('Cache-Control', 'private, no-store');
       return res.status(200).json({
         authenticated: true,
         userId: decodedClaims.uid,
@@ -99,6 +100,7 @@ export default async function handler(
       );
 
       // Return critical user profile data with session creation
+      res.setHeader('Cache-Control', 'private, no-store');
       return res.status(200).json({
         success: true,
         message: 'Session cookie created successfully',

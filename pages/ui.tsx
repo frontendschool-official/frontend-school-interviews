@@ -61,13 +61,9 @@ export default function UIShowcase() {
             isOpen={open}
             onClose={() => setOpen(false)}
             title='Create Workspace'
-
           >
             <div className='space-y-4'>
-              <Input
-                label='Name'
-                placeholder='Workspace name'
-              />
+              <Input label='Name' placeholder='Workspace name' />
               <div className='flex justify-end gap-2 pt-2'>
                 <Button variant='secondary' onClick={() => setOpen(false)}>
                   Cancel
@@ -81,7 +77,7 @@ export default function UIShowcase() {
         <section>
           <h2 className='text-2xl font-bold mb-4'>Editor Shell (Sandpack)</h2>
           <EditorShell title='index.tsx'>
-                            <CodeEditor code={code} onChange={setCode} mode='sandpack' />
+            <CodeEditor code={code} onChange={setCode} mode='sandpack' />
           </EditorShell>
         </section>
 

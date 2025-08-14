@@ -3,16 +3,14 @@ import { AuthProvider } from '../hooks/useAuth';
 import { ThemeContextProvider, useThemeContext } from '../hooks/useTheme';
 import { Toaster } from 'react-hot-toast';
 import '../styles/globals.css';
-import 'swagger-ui-react/swagger-ui.css';
+import { Inter } from 'next/font/google';
+
+const inter = Inter({ subsets: ['latin'], display: 'swap' });
 
 function InnerApp(props: AppProps) {
   const { isInitialized } = useThemeContext();
 
-  // Don't render until theme is initialized to prevent flash
-  if (!isInitialized) {
-    return null; // or a loading spinner if preferred
-  }
-
+  // Render immediately; _document sets initial theme to avoid flash
   return <props.Component {...props.pageProps} />;
 }
 
@@ -20,7 +18,9 @@ export default function MyApp(props: AppProps) {
   return (
     <AuthProvider>
       <ThemeContextProvider>
-        <InnerApp {...props} />
+        <div className={inter.className}>
+          <InnerApp {...props} />
+        </div>
         <Toaster
           position='top-right'
           toastOptions={{

@@ -17,6 +17,8 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       return res.status(404).json({ error: 'User profile not found' });
     }
 
+    // Private, user-specific data: do not cache in shared caches
+    res.setHeader('Cache-Control', 'private, no-store');
     res.status(200).json(profile);
   } catch (error) {
     console.error('Error getting user profile:', error);

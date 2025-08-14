@@ -5,17 +5,7 @@ export default class MyDocument extends Document {
     return (
       <Html suppressHydrationWarning>
         <Head>
-          {/* Inter font */}
-          <link rel='preconnect' href='https://fonts.googleapis.com' />
-          <link
-            rel='preconnect'
-            href='https://fonts.gstatic.com'
-            crossOrigin='anonymous'
-          />
-          <link
-            href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap'
-            rel='stylesheet'
-          />
+          {/* Font moved to next/font for performance */}
           {/* Prevent theme flash: set dark class ASAP */}
           <script
             dangerouslySetInnerHTML={{

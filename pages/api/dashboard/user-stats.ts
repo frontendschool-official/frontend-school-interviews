@@ -284,6 +284,8 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       problemsByType,
     };
 
+    // Private analytics, never cache
+    res.setHeader('Cache-Control', 'private, no-store');
     res.status(200).json(userStats);
   } catch (error) {
     console.error('Error getting user stats:', error);

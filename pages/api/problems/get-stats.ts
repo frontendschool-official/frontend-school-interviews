@@ -59,6 +59,8 @@ export default async function handler(
       },
     };
 
+    // Cache stats a bit longer since they change less frequently
+    res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=600, stale-while-revalidate=600');
     res.status(200).json(stats);
   } catch (error) {
     console.error('Error getting problem stats:', error);

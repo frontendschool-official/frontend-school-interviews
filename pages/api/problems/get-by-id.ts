@@ -27,6 +27,8 @@ export default async function handler(
       });
     }
 
+    // Cache public problem detail for short time
+    res.setHeader('Cache-Control', 'public, max-age=120, s-maxage=600, stale-while-revalidate=600');
     res.status(200).json({
       success: true,
       problem,

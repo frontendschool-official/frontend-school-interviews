@@ -1,18 +1,17 @@
-import { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 import Layout from '@/components/Layout';
-import FeatureSection from './feature';
 import HeroSection from './hero';
-import PricingSection from './Pricing';
+
+const FeatureSection = dynamic(() => import('./feature'), {
+  ssr: false,
+  loading: () => null,
+});
+const PricingSection = dynamic(() => import('./Pricing'), {
+  ssr: false,
+  loading: () => null,
+});
 
 export default function HomePage() {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return null;
-
   return (
     <Layout
       showNavBar={true}
@@ -23,7 +22,6 @@ export default function HomePage() {
       handleBack={() => {}}
     >
       <HeroSection />
-
       <FeatureSection />
       <PricingSection />
     </Layout>

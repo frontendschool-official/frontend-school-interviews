@@ -45,14 +45,24 @@ export async function middleware(request: NextRequest) {
   const sessionCookie = request.cookies.get('session')?.value;
 
   if (!sessionCookie) {
-    return NextResponse.json(
-      { error: 'Authentication required' },
-      { status: 401 }
+    // Fast path: short-circuit unauthorized API calls without body parsing
+    return new NextResponse(
+      JSON.stringify({ error: 'Authentication required' }),
+      {
+        status: 401,
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-store',
+        },
+      }
     );
   }
 
   // Pass through to API routes - they will handle the actual verification
-  return NextResponse.next();
+  const response = NextResponse.next();
+  // Ensure API responses are not cached at the edge by default
+  response.headers.set('Cache-Control', 'no-store');
+  return response;
 }
 
 export const config = {
@@ -64,6 +74,6 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public folder
      */
-    '/((?!_next/static|_next/image|favicon.ico|public/).*)',
+    '/api/:path*',
   ],
 };
