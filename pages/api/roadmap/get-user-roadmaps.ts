@@ -1,39 +1,25 @@
-import { NextApiResponse } from 'next';
-import {
-  getRoadmapsForUser,
-  getRoadmapStats,
-} from '@/services/firebase/roadmaps';
-import { withRequiredAuth, AuthenticatedRequest } from '@/lib/auth';
+import type { NextApiRequest, NextApiResponse } from 'next';
+import '@/lib/firebase-admin';
+import { RoadmapRepo, verifyAuth } from '@workspace/api';
 
-async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    console.log('📋 Getting roadmaps for user:', req.userId);
+    const { uid } = await verifyAuth(req);
+    console.log('📋 Getting roadmaps for user:', uid);
 
-    // Get user's roadmaps
-    const roadmaps = await getRoadmapsForUser(req.userId!);
-
-    if (!roadmaps) {
-      return res.status(200).json({
-        success: true,
-        roadmaps: [],
-        stats: null,
-        message: 'No roadmaps found for user',
-      });
-    }
-
-    // Get roadmap statistics
-    const stats = await getRoadmapStats(req.userId!);
+    const repo = new RoadmapRepo();
+    const roadmaps = await repo.listForUser(uid);
 
     console.log(`✅ Found ${roadmaps.length} roadmaps for user`);
 
     return res.status(200).json({
       success: true,
       roadmaps,
-      stats,
+      stats: null, // TODO: Implement roadmap stats
       message: `Successfully retrieved ${roadmaps.length} roadmaps`,
     });
   } catch (error) {
@@ -51,4 +37,4 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   }
 }
 
-export default withRequiredAuth(handler);
+export default handler;

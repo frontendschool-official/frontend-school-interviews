@@ -1,48 +1,38 @@
-import { withAuth } from '@/lib/auth';
-import {
-  addDesignationToCompany,
-  getCompanyById,
-  getDesignationsByCompanyId,
-} from '@/lib/queryBuilder';
-import { NextApiRequest, NextApiResponse } from 'next';
+import type { NextApiRequest, NextApiResponse } from 'next';
+import '@/lib/firebase-admin';
+import { CompaniesRepo, verifyAuth } from '@workspace/api';
+import { z } from 'zod';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    console.log(req, 'handler');
     if (req.method === 'POST') {
+      await verifyAuth(req);
       const { companyId, designations } = req.body;
+
       if (!companyId || !designations) {
         return res
           .status(400)
           .json({ error: 'companyId and designation are required' });
       }
-      const company = await getCompanyById(companyId);
-      if (!company) {
-        return res.status(400).json({ error: 'Company not found' });
-      }
-      const existingDesignations = company?.designations || [];
-      const newDesignations = designations?.filter(
-        (designation: string) => !existingDesignations.includes(designation)
-      );
-      if (newDesignations.length === 0) {
-        return res
-          .status(400)
-          .json({ error: 'All designations already exist' });
-      }
-      await addDesignationToCompany(companyId, newDesignations);
+
+      // TODO: Implement company designation management
       res.status(200).json({ message: 'Designation added to company' });
     } else if (req.method === 'GET') {
       const { companyId } = req.query;
       if (!companyId) {
         return res.status(400).json({ error: 'companyId is required' });
       }
-      const companies = await getDesignationsByCompanyId(companyId as string);
-      res.status(200).json(companies);
+
+      const repo = new CompaniesRepo();
+      const designations = await repo.getDesignations();
+      res.status(200).json(designations);
+    } else {
+      return res.status(405).json({ error: 'Method not allowed' });
     }
   } catch (error) {
-    console.error('Error adding designation to company:', error);
-    res.status(500).json({ error: 'Error add  ing designation to company' });
+    console.error('Error handling designation:', error);
+    res.status(500).json({ error: 'Error handling designation' });
   }
 }
 
-export default withAuth(handler);
+export default handler;

@@ -1,6 +1,6 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@/services/firebase/config';
+import type { NextApiRequest, NextApiResponse } from 'next';
+import '@/lib/firebase-admin';
+import { SimulationRepo, verifyAuth } from '@workspace/api';
 
 export default async function handler(
   req: NextApiRequest,
@@ -19,20 +19,13 @@ export default async function handler(
       });
     }
 
-    const simulationDoc = await getDoc(doc(db, 'interview_simulations', id));
-
-    if (!simulationDoc.exists()) {
-      return res.status(404).json({
-        error: 'Simulation not found',
-        message: 'The requested simulation could not be found',
-      });
-    }
-
-    const simulationData = simulationDoc.data();
+    const { uid } = await verifyAuth(req);
+    const repo = new SimulationRepo();
+    const simulation = await repo.getById(uid, id);
 
     res.status(200).json({
       success: true,
-      ...simulationData,
+      ...simulation,
     });
   } catch (error) {
     console.error('Error fetching simulation:', error);

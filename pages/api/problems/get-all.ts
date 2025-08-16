@@ -1,5 +1,6 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { getAllProblems } from '@/services/problems';
+import type { NextApiRequest, NextApiResponse } from 'next';
+import '@/lib/firebase-admin';
+import { ProblemRepo } from '@workspace/api';
 
 export default async function handler(
   req: NextApiRequest,
@@ -10,18 +11,32 @@ export default async function handler(
     const pageNumber = parseInt(page as string, 10);
     const limitNumber = parseInt(limit as string, 10);
 
-    // Validate parameters
     if (pageNumber < 1 || limitNumber < 1 || limitNumber > 50) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'Invalid pagination parameters',
-        message: 'Page must be >= 1 and limit must be between 1 and 50'
+        message: 'Page must be >= 1 and limit must be between 1 and 50',
       });
     }
 
-    const result = await getAllProblems(pageNumber, limitNumber);
-    // Publicly cache for 60s and allow CDNs/stale-while-revalidate
-    res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=300');
-    res.status(200).json(result);
+    const repo = new ProblemRepo();
+    const problems = await repo.listAdminPublic({ limit: limitNumber });
+
+    const totalItems = problems.length;
+    const totalPages = 1;
+    const pagination = {
+      currentPage: pageNumber,
+      totalPages,
+      totalItems,
+      itemsPerPage: limitNumber,
+      hasNextPage: false,
+      hasPrevPage: pageNumber > 1,
+    };
+
+    res.setHeader(
+      'Cache-Control',
+      'public, max-age=60, s-maxage=300, stale-while-revalidate=300'
+    );
+    res.status(200).json({ problems, pagination });
   } catch (error) {
     res.status(500).json({ error: 'Failed to get problems', message: error });
   }

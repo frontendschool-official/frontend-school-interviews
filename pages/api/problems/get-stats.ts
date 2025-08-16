@@ -1,7 +1,6 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { collection, getDocs, query } from 'firebase/firestore';
-import { db } from '@/services/firebase/config';
-import { COLLECTIONS } from '@/enums/collections';
+import type { NextApiRequest, NextApiResponse } from 'next';
+import '@/lib/firebase-admin';
+import { ProblemRepo } from '@workspace/api';
 
 export default async function handler(
   req: NextApiRequest,
@@ -12,50 +11,20 @@ export default async function handler(
   }
 
   try {
-    const problemsRef = collection(db, COLLECTIONS.INTERVIEW_PROBLEMS);
-
-    // Get all problems to calculate stats
-    const allProblemsQuery = query(problemsRef);
-    const allProblemsSnapshot = await getDocs(allProblemsQuery);
-
-    const problems = allProblemsSnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-    })) as any[];
+    const repo = new ProblemRepo();
+    const problems = await repo.listAdminPublic({ limit: 200 });
 
     // Calculate counts by type
     const stats = {
       total: problems.length,
-      dsa: problems.filter(
-        p =>
-          p.type === 'dsa' ||
-          p.interviewType === 'dsa' ||
-          (p.problem && p.problem.type === 'dsa')
-      ).length,
-      machineCoding: problems.filter(
-        p =>
-          p.type === 'machine_coding' ||
-          p.interviewType === 'machine_coding' ||
-          (p.problem && p.problem.type === 'machine_coding')
-      ).length,
-      systemDesign: problems.filter(
-        p =>
-          p.type === 'system_design' ||
-          p.interviewType === 'system_design' ||
-          (p.problem && p.problem.type === 'system_design')
-      ).length,
-      theory: problems.filter(
-        p =>
-          p.type === 'theory' ||
-          p.interviewType === 'theory' ||
-          (p.problem && p.problem.type === 'theory') ||
-          p.type === 'js_concepts' ||
-          p.interviewType === 'theory_and_debugging'
-      ).length,
+      dsa: problems.filter(p => p.kind === 'dsa').length,
+      machineCoding: problems.filter(p => p.kind === 'machine_coding').length,
+      systemDesign: problems.filter(p => p.kind === 'system_design').length,
+      theory: problems.filter(p => p.kind === 'theory').length,
       byDifficulty: {
-        easy: problems.filter(p => p.difficulty === 'easy').length,
-        medium: problems.filter(p => p.difficulty === 'medium').length,
-        hard: problems.filter(p => p.difficulty === 'hard').length,
+        easy: problems.filter(p => p.content?.difficulty === 'easy').length,
+        medium: problems.filter(p => p.content?.difficulty === 'medium').length,
+        hard: problems.filter(p => p.content?.difficulty === 'hard').length,
       },
     };
 

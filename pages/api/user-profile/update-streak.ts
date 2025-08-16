@@ -1,17 +1,22 @@
-import { NextApiResponse } from 'next';
-import { updateUserStreak } from '@/services/firebase/user-profile';
-import { withRequiredAuth, AuthenticatedRequest } from '@/lib/auth';
+import type { NextApiRequest, NextApiResponse } from 'next';
+import '@/lib/firebase-admin';
+import { UserProfileRepo, verifyAuth } from '@workspace/api';
 
-async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    // Get user ID from authenticated session (verified server-side)
-    const userId = req.userId!;
-
-    await updateUserStreak(userId);
+    const { uid } = await verifyAuth(req);
+    const repo = new UserProfileRepo();
+    
+    // Get current profile to calculate new streak
+    const profile = await repo.getById(uid);
+    const currentStreak = profile?.streak || 0;
+    const newStreak = currentStreak + 1;
+    
+    await repo.updateStreak(uid, newStreak);
 
     res.status(200).json({
       success: true,
@@ -26,4 +31,4 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   }
 }
 
-export default withRequiredAuth(handler);
+export default handler;

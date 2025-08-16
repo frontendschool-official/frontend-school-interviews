@@ -191,9 +191,9 @@ const ProblemsPage: React.FC = () => {
             return titleA.localeCompare(titleB);
 
           case 'difficulty': {
-            const difficultyOrder = { easy: 1, medium: 2, hard: 3 };
-            const aDiff = a.difficulty || 'medium';
-            const bDiff = b.difficulty || 'medium';
+            const difficultyOrder = { easy: 1, medium: 2, hard: 3 } as const;
+            const aDiff = a?.content?.difficulty || a?.difficulty || 'medium';
+            const bDiff = b?.content?.difficulty || b?.difficulty || 'medium';
             return (
               (difficultyOrder[aDiff as keyof typeof difficultyOrder] || 2) -
               (difficultyOrder[bDiff as keyof typeof difficultyOrder] || 2)
@@ -207,8 +207,8 @@ const ProblemsPage: React.FC = () => {
               system_design: 3,
               theory: 4,
             };
-            const aType = a.type || 'user_generated';
-            const bType = b.type || 'user_generated';
+            const aType = a?.kind || a?.type || 'user_generated';
+            const bType = b?.kind || b?.type || 'user_generated';
             return (
               (typeOrder[aType as keyof typeof typeOrder] || 5) -
               (typeOrder[bType as keyof typeof typeOrder] || 5)

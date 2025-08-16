@@ -1,0 +1,26 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "baseUrl": ".",
+    "rootDir": "src",
+    "outDir": "dist",
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "strict": true,
+    "noEmit": false,
+    "declaration": true,
+    "paths": {
+      "@workspace/utils": ["../utils/src"],
+      "@workspace/schemas": ["../schemas/src"],
+      "@workspace/config": ["../config/src"]
+    }
+  },
+  "include": ["src/**/*"],
+  "references": [
+    { "path": "../utils" },
+    { "path": "../schemas" },
+    { "path": "../config" }
+  ]
+}
+

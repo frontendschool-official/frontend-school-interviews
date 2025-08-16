@@ -1,0 +1,21 @@
+{
+  "name": "@workspace/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.4.0",
+    "zod": "^3.23.8",
+    "@workspace/schemas": "workspace:*",
+    "@workspace/utils": "workspace:*",
+    "@workspace/config": "workspace:*"
+  }
+}
+

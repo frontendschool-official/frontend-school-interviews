@@ -1,17 +1,16 @@
-import { NextApiResponse } from 'next';
-import { getUserProfile } from '@/services/firebase/user-profile';
-import { withRequiredAuth, AuthenticatedRequest } from '@/lib/auth';
+import type { NextApiRequest, NextApiResponse } from 'next';
+import '@/lib/firebase-admin';
+import { UserProfileRepo, verifyAuth } from '@workspace/api';
 
-async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    // Get user ID from authenticated session (verified server-side)
-    const userId = req.userId!;
-
-    const profile = await getUserProfile(userId);
+    const { uid } = await verifyAuth(req);
+    const repo = new UserProfileRepo();
+    const profile = await repo.getById(uid);
 
     if (!profile) {
       return res.status(404).json({ error: 'User profile not found' });
@@ -29,4 +28,4 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   }
 }
 
-export default withRequiredAuth(handler);
+export default handler;

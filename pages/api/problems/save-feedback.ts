@@ -1,14 +1,15 @@
-import { NextApiResponse } from 'next';
-import { saveDetailedFeedback } from '@/services/firebase/user-progress';
-import { withRequiredAuth, AuthenticatedRequest } from '@/lib/auth';
+import type { NextApiResponse } from 'next';
+import type { NextApiRequest } from 'next';
+import '@/lib/firebase-admin';
+import { UserProgressRepo, verifyAuth } from '@workspace/api';
 
-async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const { problemId, feedbackData } = req.body;
+    const { problemId, feedbackData } = req.body ?? {};
 
     if (!problemId || !feedbackData) {
       return res.status(400).json({
@@ -17,10 +18,9 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       });
     }
 
-    // Get user ID from authenticated session (verified server-side)
-    const userId = req.userId!;
-
-    await saveDetailedFeedback(userId, problemId, feedbackData);
+    const { uid } = await verifyAuth(req);
+    const repo = new UserProgressRepo();
+    await repo.saveFeedback(uid, problemId, feedbackData);
 
     res.status(200).json({
       success: true,
@@ -35,4 +35,4 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   }
 }
 
-export default withRequiredAuth(handler);
+export default handler;

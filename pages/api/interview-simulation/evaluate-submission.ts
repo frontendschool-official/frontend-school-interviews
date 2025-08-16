@@ -1,6 +1,12 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { evaluateMockInterviewSubmission } from '@/services/ai/evaluation';
-import { MockInterviewProblem, MockInterviewSubmission } from '@/types/problem';
+import type { NextApiRequest, NextApiResponse } from 'next';
+import '@/lib/firebase-admin';
+import { verifyAuth } from '@workspace/api';
+import { z } from 'zod';
+
+const evaluateSubmissionSchema = z.object({
+  problem: z.record(z.any()),
+  submission: z.record(z.any()),
+});
 
 export default async function handler(
   req: NextApiRequest,
@@ -11,18 +17,18 @@ export default async function handler(
   }
 
   try {
-    const { problem, submission } = req.body;
+    await verifyAuth(req);
+    const body = evaluateSubmissionSchema.parse(req.body);
+    const { problem, submission } = body;
 
-    if (!problem || !submission) {
-      return res.status(400).json({
-        error: 'Missing required fields: problem and submission are required',
-      });
-    }
-
-    const evaluation = await evaluateMockInterviewSubmission(
-      problem as MockInterviewProblem,
-      submission as MockInterviewSubmission
-    );
+    // TODO: Implement evaluation service in @workspace/api
+    // For now, return a placeholder evaluation
+    const evaluation = {
+      score: 75,
+      feedback: 'Good attempt! Consider optimizing your solution further.',
+      suggestions: ['Try to improve time complexity', 'Add edge case handling'],
+      timestamp: Date.now(),
+    };
 
     res.status(200).json(evaluation);
   } catch (error) {

@@ -1,5 +1,8 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { saveInterviewProblemDocument } from '@/services/firebase/problems';
+import type { NextApiRequest, NextApiResponse } from 'next';
+import '@/lib/firebase-admin';
+import { ProblemRepo, verifyAuth } from '@workspace/api';
+import { problemSchema, problemSourceEnum, visibilityEnum } from '@workspace/schemas';
+import { createId, nowUnixMs } from '@workspace/utils';
 
 export default async function handler(
   req: NextApiRequest,
@@ -10,17 +13,27 @@ export default async function handler(
   }
 
   try {
-    const { problemData } = req.body;
-
-    if (!problemData) {
-      return res.status(400).json({
-        error: 'Missing required field: problemData is required',
-      });
+    const { problemData } = req.body ?? {};
+    if (!problemData || typeof problemData !== 'object') {
+      return res.status(400).json({ error: 'problemData is required' });
     }
 
-    const result = await saveInterviewProblemDocument(problemData);
-
-    res.status(200).json({ success: true, data: result });
+    const token = await verifyAuth(req);
+    const now = nowUnixMs();
+    const candidate = {
+      ...problemData,
+      id: problemData?.id ?? createId(),
+      schemaVersion: '1.0.0',
+      ownerId: token.uid,
+      source: problemSourceEnum.enum.direct,
+      visibility: visibilityEnum.enum.private,
+      createdAt: problemData?.createdAt ?? now,
+      updatedAt: now,
+    };
+    const valid = problemSchema.parse(candidate);
+    const repo = new ProblemRepo();
+    const saved = await repo.create(valid);
+    res.status(200).json({ success: true, data: saved });
   } catch (error) {
     console.error('Error saving interview problem:', error);
     res.status(500).json({

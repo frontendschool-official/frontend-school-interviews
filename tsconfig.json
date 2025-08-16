@@ -2,7 +2,11 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@workspace/schemas": ["packages/schemas/src"],
+      "@workspace/utils": ["packages/utils/src"],
+      "@workspace/config": ["packages/config/src"],
+      "@workspace/api": ["packages/api/src"]
     },
     "target": "es2015",
     "lib": ["dom", "dom.iterable", "esnext"],

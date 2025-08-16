@@ -1,44 +1,36 @@
-import { NextApiResponse } from 'next';
-import { createInterviewSimulation } from '@/services/interview/simulation';
-import { withRequiredAuth, AuthenticatedRequest } from '@/lib/auth';
-import { getInterviewInsights } from '@/services/interview/insights';
+import type { NextApiResponse } from 'next';
+import type { NextApiRequest } from 'next';
+import '@/lib/firebase-admin';
+import { SimulationRepo, verifyAuth } from '@workspace/api';
+import { z } from 'zod';
 
-async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
+const createSimulationSchema = z.object({
+  companyName: z.string().min(1),
+  roleLevel: z.string().min(1),
+  companyId: z.string().optional(),
+});
+
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const { companyName, roleLevel, companyId } = req.body;
+    const { uid } = await verifyAuth(req);
+    const body = createSimulationSchema.parse(req.body);
+    const { companyName, roleLevel, companyId } = body;
 
-    // Validate required fields
-    if (!companyName) {
-      return res.status(400).json({ error: 'companyName is required' });
-    }
-    if (!roleLevel) {
-      return res.status(400).json({ error: 'roleLevel is required' });
-    }
-
-    // Get user ID from authenticated session (verified server-side)
-    const userId = req.userId!;
-
-    const insights = await getInterviewInsights(
+    const repo = new SimulationRepo();
+    const simulation = await repo.create({
+      ownerId: uid,
       companyName,
       roleLevel,
-      companyId
-    );
-    console.log(insights, 'insights');
-    // Create the interview simulation
-    const simulationId = await createInterviewSimulation({
-      userId,
-      companyName,
-      roleLevel,
-      insights: insights,
+      companyId,
     });
 
     res.status(201).json({
       success: true,
-      simulationId,
+      simulationId: simulation.id,
       message: 'Interview simulation created successfully',
     });
   } catch (error) {
@@ -50,4 +42,4 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   }
 }
 
-export default withRequiredAuth(handler);
+export default handler;

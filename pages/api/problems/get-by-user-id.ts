@@ -1,17 +1,17 @@
-import { NextApiResponse } from 'next';
-import { getAllProblemsByUserId } from '@/services/problems';
-import { withRequiredAuth, AuthenticatedRequest } from '@/lib/auth';
+import type { NextApiResponse } from 'next';
+import '@/lib/firebase-admin';
+import { ProblemRepo, verifyAuth } from '@workspace/api';
+import type { NextApiRequest } from 'next';
 
-async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    // Get user ID from authenticated session (verified server-side)
-    const userId = req.userId!;
-
-    const problems = await getAllProblemsByUserId(userId);
+    const token = await verifyAuth(req);
+    const repo = new ProblemRepo();
+    const problems = await repo.listForUser(token.uid, { limit: 50 });
 
     res.status(200).json(problems);
   } catch (error) {
@@ -23,4 +23,4 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   }
 }
 
-export default withRequiredAuth(handler);
+export default handler;

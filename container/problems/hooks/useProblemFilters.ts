@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import { Problem, ProblemStatus } from '../../../hooks/useProblems';
-import { ProblemType } from '@/types/problem';
 import { useAppStore } from '@/store';
 
 export type FilterType =
@@ -34,14 +33,12 @@ export const useProblemFilters = ({
   const activeProblemFilter = useAppStore(s => s.activeProblemFilter);
   const setActiveProblemFilter = useAppStore(s => s.setActiveProblemFilter);
 
-  const getProblemType = (problem: Problem): ProblemType => {
+  const getProblemType = (problem: any): string => {
     if (!problem) return 'user_generated';
-
-    if ('type' in problem) {
-      return problem.type;
-    }
+    if (typeof problem.kind === 'string') return problem.kind;
+    if ('type' in problem) return (problem as any).type;
     if ('interviewType' in problem) {
-      switch (problem.interviewType) {
+      switch ((problem as any).interviewType) {
         case 'dsa':
           return 'dsa';
         case 'coding':
@@ -49,9 +46,7 @@ export const useProblemFilters = ({
         case 'design':
           return 'system_design';
         case 'theory_and_debugging':
-          return 'theory_and_debugging';
-        default:
-          return 'user_generated';
+          return 'theory';
       }
     }
     return 'user_generated';

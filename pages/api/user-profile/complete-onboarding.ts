@@ -1,14 +1,17 @@
-import { NextApiResponse } from 'next';
-import { completeOnboarding } from '@/services/firebase/user-profile';
-import { OnboardingData } from '@/types/user';
-import { withRequiredAuth, AuthenticatedRequest } from '@/lib/auth';
+import type { NextApiRequest, NextApiResponse } from 'next';
+import '@/lib/firebase-admin';
+import { UserProfileRepo, verifyAuth } from '@workspace/api';
+import { z } from 'zod';
 
-async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
+const onboardingDataSchema = z.record(z.any());
+
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
+    const { uid } = await verifyAuth(req);
     const { onboardingData } = req.body;
 
     if (!onboardingData) {
@@ -17,10 +20,8 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       });
     }
 
-    // Get user ID from authenticated session (verified server-side)
-    const userId = req.userId!;
-
-    await completeOnboarding(userId, onboardingData as OnboardingData);
+    const repo = new UserProfileRepo();
+    await repo.completeOnboarding(uid);
 
     res.status(200).json({ success: true });
   } catch (error) {
@@ -32,4 +33,4 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   }
 }
 
-export default withRequiredAuth(handler);
+export default handler;

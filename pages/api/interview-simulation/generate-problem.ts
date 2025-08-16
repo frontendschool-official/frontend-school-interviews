@@ -1,5 +1,14 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { generateMockInterviewProblem } from '@/services/ai/evaluation';
+import type { NextApiRequest, NextApiResponse } from 'next';
+import '@/lib/firebase-admin';
+import { ProblemGenerator, verifyAuth } from '@workspace/api';
+import { z } from 'zod';
+
+const generateProblemSchema = z.object({
+  roundType: z.string().min(1),
+  companyName: z.string().min(1),
+  roleLevel: z.string().min(1),
+  difficulty: z.enum(['easy', 'medium', 'hard']).optional(),
+});
 
 export default async function handler(
   req: NextApiRequest,
@@ -10,21 +19,18 @@ export default async function handler(
   }
 
   try {
-    const { roundType, companyName, roleLevel, difficulty } = req.body;
+    await verifyAuth(req);
+    const body = generateProblemSchema.parse(req.body);
+    const { roundType, companyName, roleLevel, difficulty } = body;
 
-    if (!roundType || !companyName || !roleLevel) {
-      return res.status(400).json({
-        error:
-          'Missing required fields: roundType, companyName, and roleLevel are required',
-      });
-    }
-
-    const problem = await generateMockInterviewProblem(
-      roundType,
-      companyName,
-      roleLevel,
-      difficulty || 'medium'
-    );
+    const generator = new ProblemGenerator();
+    const problem = await generator.generate({
+      kind: roundType as any,
+      role: roleLevel,
+      company: companyName,
+      difficulty: difficulty || 'medium',
+      context: `Interview for ${roleLevel} at ${companyName}`,
+    });
 
     res.status(200).json(problem);
   } catch (error) {

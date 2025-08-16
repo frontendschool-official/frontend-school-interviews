@@ -1,15 +1,15 @@
-import { NextApiResponse } from 'next';
-import { saveSubmission } from '@/services/firebase/problems';
-import { SubmissionData } from '@/types/problem';
-import { withRequiredAuth, AuthenticatedRequest } from '@/lib/auth';
+import type { NextApiResponse } from 'next';
+import type { NextApiRequest } from 'next';
+import '@/lib/firebase-admin';
+import { SubmissionsRepo, verifyAuth } from '@workspace/api';
 
-async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const { problemId, submissionData } = req.body;
+    const { problemId, submissionData } = req.body ?? {};
 
     if (!problemId || !submissionData) {
       return res.status(400).json({
@@ -18,10 +18,9 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       });
     }
 
-    // Get user ID from authenticated session (verified server-side)
-    const userId = req.userId!;
-
-    await saveSubmission(userId, problemId, submissionData as SubmissionData);
+    const { uid } = await verifyAuth(req);
+    const repo = new SubmissionsRepo();
+    await repo.save(uid, problemId, submissionData);
 
     res.status(200).json({ success: true });
   } catch (error) {
@@ -33,4 +32,4 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   }
 }
 
-export default withRequiredAuth(handler);
+export default handler;

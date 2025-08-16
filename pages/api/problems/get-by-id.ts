@@ -1,5 +1,6 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { getProblemById } from '@/services/firebase/problems';
+import type { NextApiRequest, NextApiResponse } from 'next';
+import '@/lib/firebase-admin';
+import { ProblemRepo, verifyAuthHeader } from '@workspace/api';
 
 export default async function handler(
   req: NextApiRequest,
@@ -18,7 +19,11 @@ export default async function handler(
       });
     }
 
-    const problem = await getProblemById(id);
+    const repo = new ProblemRepo();
+    const auth = req.headers.authorization
+      ? await verifyAuthHeader(req.headers.authorization).catch(() => ({ uid: null }))
+      : { uid: null };
+    const problem = await repo.getById((auth as any).uid, id);
 
     if (!problem) {
       return res.status(404).json({

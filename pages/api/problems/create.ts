@@ -1,15 +1,18 @@
-import { generateInterviewQuestions } from '@/services/ai/problem-generation';
-import { saveProblemSet } from '@/services/firebase/problems';
-import { NextApiResponse } from 'next';
-import { withRequiredAuth, AuthenticatedRequest } from '@/lib/auth';
+import type { NextApiResponse } from 'next';
+import type { NextApiRequest } from 'next';
+import '@/lib/firebase-admin';
+import { verifyAuth, ProblemGenerator } from '@workspace/api';
+import { problemSchema, problemSourceEnum, visibilityEnum } from '@workspace/schemas';
+import { createId, nowUnixMs } from '@workspace/utils';
+// TODO: wire to packages/api/gemini ProblemGenerator; placeholder echoes the request
 
-async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const { designation, companies, round, interviewType } = req.body;
+    const { designation, companies, round, interviewType, problem, kind, difficulty, context } = req.body ?? {};
 
     if (!designation || !companies || !round || !interviewType) {
       return res.status(400).json({
@@ -18,8 +21,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       });
     }
 
-    // Get user ID from authenticated session (verified server-side)
-    const userId = req.userId!;
+    const { uid: userId } = await verifyAuth(req);
 
     console.log('🚀 Starting interview generation with values:', {
       designation,
@@ -29,62 +31,25 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       userId,
     });
 
-    // Step 1: Generate interview questions
-    console.log('📝 Calling generateInterviewQuestions...');
-    const result = await generateInterviewQuestions({
-      designation,
-      companies,
-      round,
-      interviewType,
-    });
-    console.log('✅ Generated result:', result);
-
-    if (!result) {
-      return res.status(400).json({ error: 'No problems generated' });
+    // Prefer AI generation if no explicit problem provided
+    let output = problem;
+    if (!output) {
+      const generator = new ProblemGenerator();
+      output = await generator.generate({ kind, role: designation, company: companies, difficulty, context: context ?? round });
     }
-
-    // Step 2: Validate the generated result
-    if (!result.problem) {
-      return res
-        .status(400)
-        .json({ error: 'Problem was not generated properly' });
-    }
-
-    // Step 3: Prepare problem data for database
-    const problemData: any = {
-      userId,
-      designation,
-      companies,
-      round,
-      interviewType,
+    const now = nowUnixMs();
+    const candidate = {
+      ...output,
+      id: output?.id ?? createId(),
+      schemaVersion: '1.0.0',
+      ownerId: userId,
+      source: problemSourceEnum.enum.simulation,
+      visibility: visibilityEnum.enum.private,
+      createdAt: output?.createdAt ?? now,
+      updatedAt: now,
     };
-
-    // Store problem data in unified 'problem' field
-    problemData.problem = result.problem;
-    console.log('📋 Setting unified problem data:', {
-      hasProblem: !!problemData.problem,
-      problemKeys: problemData.problem
-        ? Object.keys(JSON.parse(problemData.problem))
-        : [],
-    });
-
-    // Step 4: Save to database
-    console.log('💾 Saving problem set to database...');
-    console.log('📋 Problem data structure:', {
-      interviewType: problemData.interviewType,
-      hasProblem: !!problemData.problem,
-      problemKeys: problemData.problem ? Object.keys(problemData.problem) : [],
-      dataKeys: Object.keys(problemData),
-    });
-    const docRef = await saveProblemSet(userId, problemData);
-    console.log('✅ Problem set saved successfully with ID:', docRef.id);
-
-    return res.status(200).json({
-      success: true,
-      docRef,
-      problemData,
-      message: 'Interview problems generated and saved successfully',
-    });
+    const valid = problemSchema.parse(candidate);
+    return res.status(200).json({ success: true, problem: valid });
   } catch (error) {
     console.error('❌ Error in create problems API:', error);
 
@@ -115,4 +80,4 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   }
 }
 
-export default withRequiredAuth(handler);
+export default handler;
